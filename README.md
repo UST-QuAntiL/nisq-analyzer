@@ -1,34 +1,34 @@
-# QC-Atlas
+# NISQ-Analyzer
 
-[![Build Status](https://api.travis-ci.org/planqk/qc-atlas.svg?branch=master)](https://travis-ci.org/planqk/qc-atlas)
+[![Build Status](https://api.travis-ci.com/planqk/nisq-analyzer.svg?branch=master)](https://travis-ci.com/planqk/nisq-analyzer)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## Build
 
 1. Run `mvn package -DskipTests` inside the root folder.
-2. When completed, the built product can be found in `org.planqk.atlas.web/target`.
+2. When completed, the built product can be found in `org.planqk.nisq.analyzer.core/target`.
 
 ## Running via Docker
 
 The easiest way to get started is using Docker-Compose: [planqk-docker](https://github.com/PlanQK/planqk-docker)
 
-Alternatively you can build and run the QC-Atlas Docker image by your own:
+Alternatively you can build and run the NISQ-Analyzer Docker image by your own:
 
-1. `docker build -t atlas .`
-   In case, there are issues, you can also try `docker build --no-cache -t atlas .`
-2. `docker run -p 8080:8080 atlas` to run the QC-Atlas on <http://localhost:8080>
+1. `docker build -t nisq-analyzer .`
+   In case, there are issues, you can also try `docker build --no-cache -t nisq-analyzer .`
+2. `docker run -p 8080:8080 nisq-analyzer` to run the NISQ-Analyzer on <http://localhost:8080>
 
 You can also use the pre-built image:
 
-    docker run -p 8080:8080 planqk/atlas
+    docker run -p 8080:8080 planqk/nisq-analyzer
 	
 ## Running on Tomcat
 
-Build the project and deploy the WAR file located at `org.planqk.atlas.web/target` to Tomcat.
+Build the project and deploy the WAR file located at `org.planqk.nisq.analyzer.core/target` to Tomcat.
 
 Make sure you have an accessibly Postgres database and configure the application correspondingly.
 
-Prerequisites for the NISQ Analazer components:
+Prerequisites:
 
 - [SWI Prolog](https://www.swi-prolog.org/) is installed on the machine where the Tomcat runs and the Path is configured correspondingly
 
