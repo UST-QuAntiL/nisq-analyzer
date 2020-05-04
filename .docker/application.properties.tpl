@@ -1,0 +1,10 @@
+spring.datasource.driverClassName=org.postgresql.Driver
+spring.datasource.url=jdbc:postgresql://{{.Env.POSTGRES_HOSTNAME}}:{{.Env.POSTGRES_PORT}}/{{.Env.POSTGRES_DB}}
+spring.datasource.username={{.Env.POSTGRES_USER}}
+spring.datasource.password={{.Env.POSTGRES_PASSWORD}}
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation=true
+spring.jpa.hibernate.ddl-auto=update
+logging.level.org.planqk.atlas=DEBUG
+spring.datasource.initialization-mode=always
+spring.jpa.properties.hibernate.enable_lazy_load_no_trans=true
