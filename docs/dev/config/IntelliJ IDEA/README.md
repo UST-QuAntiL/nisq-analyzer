@@ -65,7 +65,7 @@
     
   - Choose C:\Apache\apache-tomcat-9.0.7 (or wherever you saved and extracted Tomcat) as Tomcat Home and Tomcat base directory. 
     -> Your Tomcat version is displayed, confirm with "OK". 
-  - Set no Browser Launch and define url as localhost:8080/atlas
+  - Set no Browser Launch and define url as localhost:8080/nisq-analyzer
     
     ![tomcat](graphics/tomcat-after-launch.PNG)
     
@@ -76,7 +76,7 @@
     
     ![tomcat-artifact2](graphics/select-artifact-new.png)
     
-  - Define deployment context (/atlas): 
+  - Define deployment context (/nisq-analyzer): 
     
     ![tomcat-artifact2](graphics/deployment-context.PNG)
     
