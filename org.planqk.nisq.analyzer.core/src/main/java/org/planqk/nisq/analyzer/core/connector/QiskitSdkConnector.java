@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.connector;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.Map;
 
@@ -27,6 +28,7 @@ import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Sdk connector which passes execution and analysis requests to a connected Qiskit service.
@@ -35,6 +37,13 @@ import org.springframework.stereotype.Service;
 public class QiskitSdkConnector implements SdkConnector {
 
     final private static Logger LOG = LoggerFactory.getLogger(QiskitSdkConnector.class);
+
+    // API Endpoints
+    final private static String qiskitServiceHostname = "127.0.0.1";
+    final private static int port = 5000;
+    final private static String token = "";
+    final private static URI transpileAPIEndpoint = URI.create(String.format("http://%s:%d/qiskit-service/api/v1.0/transpile", qiskitServiceHostname, port));
+    final private static URI executeAPIEndpoint = URI.create(String.format("http://%s:%d/qiskit-service/api/v1.0/execute", qiskitServiceHostname, port));
 
     @Override
     public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters, ExecutionResult executionResult) {
@@ -48,6 +57,14 @@ public class QiskitSdkConnector implements SdkConnector {
         LOG.debug("Analysing quantum algorithm implementation with Qiskit Sdk connector plugin!");
 
         // TODO: call Qiskit service to analyse given circuit
+
+        // Build the payload for the request
+        RestTemplate restTemplate = new RestTemplate();
+        QiskitRequest request = new QiskitRequest(algorithmImplementationURL, qpu.getName(), parameters, token);
+
+        // Transpile the given algorithm implementation using Qiskit service
+        restTemplate.postForEntity(transpileAPIEndpoint, request, CircuitInformation.class);
+
         return new CircuitInformation(1, 1);
     }
 
