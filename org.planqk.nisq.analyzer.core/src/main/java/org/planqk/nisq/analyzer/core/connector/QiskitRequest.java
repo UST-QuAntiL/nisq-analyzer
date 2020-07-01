@@ -22,6 +22,7 @@ package org.planqk.nisq.analyzer.core.connector;
 import java.util.Map;
 import java.net.URL;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,14 +30,17 @@ public class QiskitRequest {
 
     @Getter
     @Setter
+    @JsonProperty("impl-url")
     private URL impl_url;
 
     @Getter
     @Setter
+    @JsonProperty("qpu-name")
     private String qpu_name;
 
     @Getter
     @Setter
+    @JsonProperty("input-params")
     private Map<String, String> input_params;
 
     @Getter
