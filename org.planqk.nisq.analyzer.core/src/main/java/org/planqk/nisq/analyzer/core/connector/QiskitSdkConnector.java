@@ -82,6 +82,17 @@ public class QiskitSdkConnector implements SdkConnector {
                         executionResult.setStatusCode("Execution successfully completed.");
                         executionResult.setResult(result.getResult());
                     }
+
+                    // Wait a second for next poll
+                    try
+                    {
+                        Thread.sleep(1000);
+                    }
+                    catch (InterruptedException e)
+                    {
+                        // pass
+                    }
+
                 }
                 catch (RestClientException e)
                 {
