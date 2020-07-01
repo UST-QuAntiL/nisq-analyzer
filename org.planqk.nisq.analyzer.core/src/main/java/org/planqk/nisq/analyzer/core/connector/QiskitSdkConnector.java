@@ -24,6 +24,7 @@ import java.net.URL;
 import java.util.Map;
 
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
+import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,52 @@ public class QiskitSdkConnector implements SdkConnector {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
 
         // TODO: call Qiskit service, change status to running, wait for results/errors and change status/content of result object
+
+        // Prepare the request
+        RestTemplate restTemplate = new RestTemplate();
+        String token = qpu.getProvider().getSecretKey();
+        QiskitRequest request = new QiskitRequest(algorithmImplementationURL, qpu.getName(), parameters, token);
+
+        try
+        {
+            // make the execution request
+            URI resultLocation = restTemplate.postForLocation(executeAPIEndpoint, request);
+
+            // change the result status
+            executionResult.setStatus(ExecutionResultStatus.RUNNING);
+            executionResult.setStatusCode("Pending for execution on Qiskit Service ...");
+
+            // poll the Qiskit service frequently
+            while (executionResult.getStatus() != ExecutionResultStatus.FINISHED ||  executionResult.getStatus() != ExecutionResultStatus.FAILED)
+            {
+                try
+                {
+                    QiskitExecutionResult result = restTemplate.getForObject(resultLocation, QiskitExecutionResult.class);
+
+                    // Check if execution is completed
+                    if (result.isComplete())
+                    {
+                        executionResult.setStatus(ExecutionResultStatus.FINISHED);
+                        executionResult.setStatusCode("Execution successfully completed.");
+                        executionResult.setResult(result.getResult());
+                    }
+                }
+                catch (RestClientException e)
+                {
+                    LOG.error("Polling result from Qiskit Service failed.");
+                    executionResult.setStatus(ExecutionResultStatus.FAILED);
+                    executionResult.setStatusCode("Polling result from Qiskit Service failed.");
+                }
+
+            }
+
+        }
+        catch (RestClientException e)
+        {
+            LOG.error("Connection to Qiskit Service failed.");
+            executionResult.setStatus(ExecutionResultStatus.FAILED);
+            executionResult.setStatusCode("Connection to Qiskit Service failed.");
+        }
     }
 
     @Override
