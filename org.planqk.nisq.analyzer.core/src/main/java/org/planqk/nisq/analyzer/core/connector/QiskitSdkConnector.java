@@ -28,6 +28,7 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -42,11 +43,24 @@ public class QiskitSdkConnector implements SdkConnector {
 
     final private static Logger LOG = LoggerFactory.getLogger(QiskitSdkConnector.class);
 
+    @Value("${org.planqk.nisq.analyzer.connector.qiskit.pollInterval:10000}")
+    private int pollInterval;
+
     // API Endpoints
-    final private static String qiskitServiceHostname = "127.0.0.1";
-    final private static int port = 5000;
-    final private static URI transpileAPIEndpoint = URI.create(String.format("http://%s:%d/qiskit-service/api/v1.0/transpile", qiskitServiceHostname, port));
-    final private static URI executeAPIEndpoint = URI.create(String.format("http://%s:%d/qiskit-service/api/v1.0/execute", qiskitServiceHostname, port));
+    private URI transpileAPIEndpoint;
+    private URI executeAPIEndpoint;
+
+
+    public QiskitSdkConnector(
+            @Value("${org.planqk.nisq.analyzer.connector.qiskit.hostname}") String hostname,
+            @Value("${org.planqk.nisq.analyzer.connector.qiskit.port}") int port,
+            @Value("${org.planqk.nisq.analyzer.connector.qiskit.version}") String version
+    )
+    {
+        // compile the API endpoints
+        transpileAPIEndpoint = URI.create(String.format("http://%s:%d/qiskit-service/api/%s/transpile", hostname, port, version));
+        executeAPIEndpoint = URI.create(String.format("http://%s:%d/qiskit-service/api/%s/execute", hostname, port, version));
+    }
 
     @Override
     public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters, ExecutionResult executionResult) {
@@ -83,10 +97,10 @@ public class QiskitSdkConnector implements SdkConnector {
                         executionResult.setResult(result.getResult());
                     }
 
-                    // Wait a second for next poll
+                    // Wait for next poll
                     try
                     {
-                        Thread.sleep(1000);
+                        Thread.sleep(pollInterval);
                     }
                     catch (InterruptedException e)
                     {
