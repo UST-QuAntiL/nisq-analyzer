@@ -40,6 +40,7 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.HasId;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.services.ExecutionResultService;
 import org.planqk.nisq.analyzer.core.services.ImplementationService;
@@ -103,8 +104,12 @@ public class NisqAnalyzerControlService {
         ExecutionResult executionResult =
                 executionResultService.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED, "Passing execution to executor plugin.", qpu, null, implementation, inputParameters));
 
+        // Retrieve parameter types for execution
+        Map<String, ParameterValue> typedParameters = new HashMap<>();
+        // TODO: implement conversion
+
         // execute implementation
-        new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), qpu, inputParameters, executionResult)).start();
+        new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), qpu, typedParameters, executionResult)).start();
 
         return executionResult;
     }
@@ -119,7 +124,7 @@ public class NisqAnalyzerControlService {
      * them
      * @throws UnsatisfiedLinkError Is thrown if the jpl driver is not on the java class path
      */
-    public Map<Implementation, List<Qpu>> performSelection(Algorithm algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
+    public Map<Implementation, List<Qpu>> performSelection(Algorithm algorithm, Map<String, ParameterValue> inputParameters) throws UnsatisfiedLinkError {
         LOG.debug("Performing implementation and QPU selection for algorithm with Id: {}", algorithm.getId());
         Map<Implementation, List<Qpu>> resultPairs = new HashMap<>();
 

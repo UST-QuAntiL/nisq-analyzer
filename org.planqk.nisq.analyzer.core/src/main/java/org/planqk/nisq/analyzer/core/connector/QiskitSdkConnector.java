@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +64,7 @@ public class QiskitSdkConnector implements SdkConnector {
     }
 
     @Override
-    public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters, ExecutionResult executionResult) {
+    public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters, ExecutionResult executionResult) {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
 
         // TODO: call Qiskit service, change status to running, wait for results/errors and change status/content of result object
@@ -127,7 +128,7 @@ public class QiskitSdkConnector implements SdkConnector {
     }
 
     @Override
-    public CircuitInformation getCircuitProperties(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters) {
+    public CircuitInformation getCircuitProperties(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters) {
         LOG.debug("Analysing quantum algorithm implementation with Qiskit Sdk connector plugin!");
 
         // Build the payload for the request

@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.web.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -30,6 +31,8 @@ import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.model.Algorithm;
 import org.planqk.nisq.analyzer.core.model.Implementation;
+import org.planqk.nisq.analyzer.core.model.Parameter;
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.services.AlgorithmService;
 import org.planqk.nisq.analyzer.core.utils.RestUtils;
@@ -265,9 +268,20 @@ public class AlgorithmController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
+        // Retrieve the type of the parameter from the algorithm definition
+        Map<String, ParameterValue> typedParams = new HashMap<>();
+        params.getParameters().forEach( (key, value) -> {
+            Optional<Parameter> parameter = algorithm.getInputParameters().stream().filter(p -> p.getName().equals(key)).findFirst();
+            if (parameter.isPresent()) {
+                typedParams.put(key, new ParameterValue(parameter.get().getType(), value));
+            } else {
+                LOG.error("Parameter set for the selection is not valid.");
+            }
+        });
+
         Map<Implementation, List<Qpu>> selectionResults;
         try {
-            selectionResults = nisqAnalyzerService.performSelection(algorithm, params.getParameters());
+            selectionResults = nisqAnalyzerService.performSelection(algorithm, typedParams);
         } catch (UnsatisfiedLinkError e) {
             LOG.error("UnsatisfiedLinkError while activating prolog rule. Please make sure prolog is installed and configured correctly to use the NISQ analyzer functionality!");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("No prolog engine accessible from the server. Selection not possible!");

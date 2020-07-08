@@ -28,6 +28,7 @@ import java.util.Objects;
 import org.jpl7.PrologException;
 import org.jpl7.Query;
 import org.jpl7.Term;
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -72,7 +73,7 @@ public class PrologQueryEngine {
      * @param params    the set of parameters to use for the evaluation
      * @return the estimated circuit width, or zero if an error occurs
      */
-    public int checkWidth(String widthRule, Map<String, String> params) {
+    public int checkWidth(String widthRule, Map<String, ParameterValue> params) {
         // TODO
         return 0;
     }
@@ -84,7 +85,7 @@ public class PrologQueryEngine {
      * @param params    the set of parameters to use for the evaluation
      * @return the estimated circuit depth, or zero if an error occurs
      */
-    public int checkDepth(String depthRule, Map<String, String> params) {
+    public int checkDepth(String depthRule, Map<String, ParameterValue> params) {
         // TODO
         return 0;
     }
@@ -96,7 +97,7 @@ public class PrologQueryEngine {
      * @param params        the set of parameters to use for the evaluation
      * @return the evaluation result of the prolog rule
      */
-    public boolean checkExecutability(String selectionRule, Map<String, String> params) {
+    public boolean checkExecutability(String selectionRule, Map<String, ParameterValue> params) {
         // retrieve signature of the defined selection rule
         String signature = PrologUtility.getSignatureOfRule(selectionRule);
         String[] signatureParts = signature.split("\\(");
@@ -118,7 +119,7 @@ public class PrologQueryEngine {
             }
 
             // FIXME: avoid replacing parts of another variable where the name contains the searched variable, e.g., search for variable 'A' and replace part of variable 'AB' by accident
-            parameterPart = parameterPart.replaceFirst(variable, params.get(variable));
+            parameterPart = parameterPart.replaceFirst(variable, params.get(variable).getRawValue());
         }
 
         // add point to instruct prolog to evaluate the rule

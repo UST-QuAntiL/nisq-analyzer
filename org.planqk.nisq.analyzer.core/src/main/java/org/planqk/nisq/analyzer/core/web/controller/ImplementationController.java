@@ -270,6 +270,10 @@ public class ImplementationController {
         }
 
         try {
+
+            // Retrieve the
+
+
             ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(implementationOptional.get(), qpuOptional.get(), executionRequest.getParameters());
             ExecutionResultDto dto = ExecutionResultDto.Converter.convert(result);
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(algoId, implId, result.getId())).withSelfRel());

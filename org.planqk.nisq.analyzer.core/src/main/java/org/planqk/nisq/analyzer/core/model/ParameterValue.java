@@ -17,42 +17,20 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.connector;
+package org.planqk.nisq.analyzer.core.model;
 
-import java.util.Map;
-import java.net.URL;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.planqk.nisq.analyzer.core.model.ParameterValue;
 
-public class QiskitRequest {
-
-    @Getter
-    @Setter
-    @JsonProperty("impl-url")
-    private URL impl_url;
+@AllArgsConstructor
+public class ParameterValue {
 
     @Getter
     @Setter
-    @JsonProperty("qpu-name")
-    private String qpu_name;
+    DataType type;
 
     @Getter
     @Setter
-    @JsonProperty("input-params")
-    private Map<String, ParameterValue> input_params;
-
-    @Getter
-    @Setter
-    private String token;
-
-    public QiskitRequest(URL impl_url, String qpu_name, Map<String,ParameterValue> input_params, String token)
-    {
-        this.impl_url = impl_url;
-        this.qpu_name = qpu_name;
-        this.input_params = input_params;
-        this.token = token;
-    }
+    String rawValue;
 }
