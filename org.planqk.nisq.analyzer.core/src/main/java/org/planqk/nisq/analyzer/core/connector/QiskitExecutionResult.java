@@ -19,6 +19,9 @@
 
 package org.planqk.nisq.analyzer.core.connector;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,5 +41,5 @@ public class QiskitExecutionResult {
 
     @Getter
     @Setter
-    private String result = "";
+    private Map<String, Object> result = new HashMap<>();
 }

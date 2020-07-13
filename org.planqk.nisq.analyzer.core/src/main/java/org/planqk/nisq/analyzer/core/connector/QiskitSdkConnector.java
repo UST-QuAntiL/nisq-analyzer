@@ -83,7 +83,7 @@ public class QiskitSdkConnector implements SdkConnector {
             executionResult.setStatusCode("Pending for execution on Qiskit Service ...");
 
             // poll the Qiskit service frequently
-            while (executionResult.getStatus() != ExecutionResultStatus.FINISHED ||  executionResult.getStatus() != ExecutionResultStatus.FAILED)
+            while (executionResult.getStatus() != ExecutionResultStatus.FINISHED && executionResult.getStatus() != ExecutionResultStatus.FAILED)
             {
                 try
                 {
@@ -94,7 +94,7 @@ public class QiskitSdkConnector implements SdkConnector {
                     {
                         executionResult.setStatus(ExecutionResultStatus.FINISHED);
                         executionResult.setStatusCode("Execution successfully completed.");
-                        executionResult.setResult(result.getResult());
+                        executionResult.setResult(result.getResult().toString());
                     }
 
                     // Wait for next poll
