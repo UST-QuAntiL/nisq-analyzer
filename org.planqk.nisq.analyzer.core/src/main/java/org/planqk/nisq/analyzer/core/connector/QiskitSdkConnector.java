@@ -26,6 +26,7 @@ import java.util.Map;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.Qpu;
+import org.planqk.nisq.analyzer.core.services.ExecutionResultService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,7 +64,7 @@ public class QiskitSdkConnector implements SdkConnector {
     }
 
     @Override
-    public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters, ExecutionResult executionResult) {
+    public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters, ExecutionResult executionResult, ExecutionResultService resultService) {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
 
         // TODO: call Qiskit service, change status to running, wait for results/errors and change status/content of result object
@@ -81,6 +82,7 @@ public class QiskitSdkConnector implements SdkConnector {
             // change the result status
             executionResult.setStatus(ExecutionResultStatus.RUNNING);
             executionResult.setStatusCode("Pending for execution on Qiskit Service ...");
+            resultService.save(executionResult);
 
             // poll the Qiskit service frequently
             while (executionResult.getStatus() != ExecutionResultStatus.FINISHED && executionResult.getStatus() != ExecutionResultStatus.FAILED)
@@ -95,6 +97,7 @@ public class QiskitSdkConnector implements SdkConnector {
                         executionResult.setStatus(ExecutionResultStatus.FINISHED);
                         executionResult.setStatusCode("Execution successfully completed.");
                         executionResult.setResult(result.getResult().toString());
+                        resultService.save(executionResult);
                     }
 
                     // Wait for next poll
