@@ -19,15 +19,20 @@
 
 package org.planqk.nisq.analyzer.core.connector;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@NoArgsConstructor
 @AllArgsConstructor
 public class QiskitExecutionResult {
 
-    @Getter
     @Setter
+    @Getter
     private String id;
 
     @Getter
@@ -36,5 +41,5 @@ public class QiskitExecutionResult {
 
     @Getter
     @Setter
-    private String result = "";
+    private Map<String, Object> result = new HashMap<>();
 }

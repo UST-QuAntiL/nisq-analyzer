@@ -109,7 +109,7 @@ public class NisqAnalyzerControlService {
         // TODO: implement conversion
 
         // execute implementation
-        new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), qpu, typedParameters, executionResult)).start();
+        new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), qpu, inputParameters, executionResult, executionResultService)).start();
 
         return executionResult;
     }
