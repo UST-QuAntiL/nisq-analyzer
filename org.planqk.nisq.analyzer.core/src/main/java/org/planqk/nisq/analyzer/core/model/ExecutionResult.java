@@ -21,6 +21,7 @@ package org.planqk.nisq.analyzer.core.model;
 
 import java.util.Map;
 
+import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
@@ -53,6 +54,7 @@ public class ExecutionResult extends HasId {
 
     @Getter
     @Setter
+    @Column(length = 4096)
     private String result;
 
     @Getter
