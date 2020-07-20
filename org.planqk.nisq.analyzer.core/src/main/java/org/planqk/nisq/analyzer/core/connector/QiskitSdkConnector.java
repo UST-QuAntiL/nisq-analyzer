@@ -116,6 +116,7 @@ public class QiskitSdkConnector implements SdkConnector {
                     LOG.error("Polling result from Qiskit Service failed.");
                     executionResult.setStatus(ExecutionResultStatus.FAILED);
                     executionResult.setStatusCode("Polling result from Qiskit Service failed.");
+                    resultService.save(executionResult);
                 }
 
             }
@@ -126,6 +127,7 @@ public class QiskitSdkConnector implements SdkConnector {
             LOG.error("Connection to Qiskit Service failed.");
             executionResult.setStatus(ExecutionResultStatus.FAILED);
             executionResult.setStatusCode("Connection to Qiskit Service failed.");
+            resultService.save(executionResult);
         }
     }
 
