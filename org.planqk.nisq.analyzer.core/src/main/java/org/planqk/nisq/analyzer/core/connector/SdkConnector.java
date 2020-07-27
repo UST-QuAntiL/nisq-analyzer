@@ -42,7 +42,7 @@ public interface SdkConnector {
      * @param executionResult            the object to update the current state of the long running task and to add the
      *                                   results after completion
      */
-    void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters, ExecutionResult executionResult, ExecutionResultService resultService);
+    void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters, ExecutionResult executionResult, ExecutionResultService resultService);
 
 
     /**

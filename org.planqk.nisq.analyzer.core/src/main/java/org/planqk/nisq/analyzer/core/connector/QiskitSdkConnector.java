@@ -65,7 +65,7 @@ public class QiskitSdkConnector implements SdkConnector {
     }
 
     @Override
-    public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters, ExecutionResult executionResult, ExecutionResultService resultService) {
+    public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters, ExecutionResult executionResult, ExecutionResultService resultService) {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
 
         // TODO: call Qiskit service, change status to running, wait for results/errors and change status/content of result object

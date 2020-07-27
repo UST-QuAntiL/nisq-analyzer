@@ -19,6 +19,9 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,4 +36,23 @@ public class ParameterValue {
     @Getter
     @Setter
     String rawValue;
+
+
+    public static String convertToUntyped(ParameterValue parameter)
+    {
+        return parameter.rawValue;
+    }
+
+    public static Map<String,String> convertToUntyped(Map<String, ParameterValue> parameters)
+    {
+        Map<String,String> untypedParameters = new HashMap<>();
+
+        // Convert all the entries to untyped versions
+        for ( Map.Entry<String, ParameterValue> entry : parameters.entrySet())
+        {
+            untypedParameters.put(entry.getKey(), ParameterValue.convertToUntyped(entry.getValue()));
+        }
+
+        return untypedParameters;
+    }
 }

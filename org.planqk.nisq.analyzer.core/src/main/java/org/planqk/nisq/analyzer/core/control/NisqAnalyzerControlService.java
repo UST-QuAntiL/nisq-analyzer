@@ -88,7 +88,7 @@ public class NisqAnalyzerControlService {
      * @return the ExecutionResult to track the current status and store the result
      * @throws RuntimeException is thrown in case the execution of the algorithm implementation fails
      */
-    public ExecutionResult executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, String> inputParameters) throws RuntimeException {
+    public ExecutionResult executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> inputParameters) throws RuntimeException {
         LOG.debug("Executing quantum algorithm implementation with Id: {} and name: {}", implementation.getId(), implementation.getName());
 
         // get suited Sdk connector plugin
@@ -102,11 +102,9 @@ public class NisqAnalyzerControlService {
 
         // create a object to store the execution results
         ExecutionResult executionResult =
-                executionResultService.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED, "Passing execution to executor plugin.", qpu, null, implementation, inputParameters));
-
-        // Retrieve parameter types for execution
-        Map<String, ParameterValue> typedParameters = new HashMap<>();
-        // TODO: implement conversion
+                executionResultService.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
+                        "Passing execution to executor plugin.", qpu,
+                        null, implementation, ParameterValue.convertToUntyped(inputParameters)));
 
         // execute implementation
         new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), qpu, inputParameters, executionResult, executionResultService)).start();

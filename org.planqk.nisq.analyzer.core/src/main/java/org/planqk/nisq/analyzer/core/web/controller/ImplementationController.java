@@ -19,6 +19,8 @@
 
 package org.planqk.nisq.analyzer.core.web.controller;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,6 +30,8 @@ import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.model.Algorithm;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
+import org.planqk.nisq.analyzer.core.model.Parameter;
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.planqk.nisq.analyzer.core.services.AlgorithmService;
@@ -263,6 +267,8 @@ public class ImplementationController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
+        Algorithm algorithm = implementationOptional.get().getImplementedAlgorithm();
+
         Optional<Qpu> qpuOptional = qpuService.findById(executionRequest.getQpuId());
         if (!qpuOptional.isPresent()) {
             LOG.error("Unable to retrieve qpu with id {} form the repository.", executionRequest.getQpuId());
@@ -271,10 +277,19 @@ public class ImplementationController {
 
         try {
 
-            // Retrieve the
+            // Retrieve the type of the parameter from the algorithm definition
+            Map<String, ParameterValue> typedParams = new HashMap<>();
+            executionRequest.getParameters().forEach( (key, value) -> {
+                Optional<Parameter> parameter = algorithm.getInputParameters().stream().filter(p -> p.getName().equals(key)).findFirst();
+                if (parameter.isPresent()) {
+                    typedParams.put(key, new ParameterValue(parameter.get().getType(), value));
+                } else {
+                    LOG.error("Parameter set for the selection is not valid.");
+                }
+            });
 
 
-            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(implementationOptional.get(), qpuOptional.get(), executionRequest.getParameters());
+            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(implementationOptional.get(), qpuOptional.get(), typedParams);
             ExecutionResultDto dto = ExecutionResultDto.Converter.convert(result);
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(algoId, implId, result.getId())).withSelfRel());
             return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
