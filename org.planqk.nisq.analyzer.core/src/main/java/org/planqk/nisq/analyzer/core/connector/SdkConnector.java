@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Qpu;
+import org.planqk.nisq.analyzer.core.services.ExecutionResultService;
 
 /**
  * Interface for the interaction with a certain SDK.
@@ -40,7 +41,7 @@ public interface SdkConnector {
      * @param executionResult            the object to update the current state of the long running task and to add the
      *                                   results after completion
      */
-    void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters, ExecutionResult executionResult);
+    void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters, ExecutionResult executionResult, ExecutionResultService resultService);
 
     /**
      * Analyse the quantum algorithm implementation located at the given URL after transpiling it for the given QPU and

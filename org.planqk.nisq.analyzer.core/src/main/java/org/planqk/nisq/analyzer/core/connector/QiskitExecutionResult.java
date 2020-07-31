@@ -1,4 +1,4 @@
-/********************************************************************************
+/*******************************************************************************
  * Copyright (c) 2020 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
@@ -17,53 +17,29 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
+package org.planqk.nisq.analyzer.core.connector;
 
+import java.util.HashMap;
 import java.util.Map;
-
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Entity representing the result of an execution of a quantum algorithm implementation on a certain QPU.
- */
-@Entity
-@AllArgsConstructor
 @NoArgsConstructor
-public class ExecutionResult extends HasId {
+@AllArgsConstructor
+public class QiskitExecutionResult {
+
+    @Setter
+    @Getter
+    private String id;
 
     @Getter
     @Setter
-    private ExecutionResultStatus status;
+    private boolean complete;
 
     @Getter
     @Setter
-    private String statusCode;
-
-    @Getter
-    @Setter
-    @ManyToOne
-    private Qpu executingQpu;
-
-    @Getter
-    @Setter
-    @Column(length = 4096)
-    private String result;
-
-    @Getter
-    @Setter
-    @ManyToOne
-    private Implementation executedImplementation;
-
-    @Getter
-    @Setter
-    @ElementCollection
-    private Map<String, String> inputParameters;
+    private Map<String, Object> result = new HashMap<>();
 }
