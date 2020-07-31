@@ -106,7 +106,7 @@ public class NisqAnalyzerControlService {
                 executionResultService.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED, "Passing execution to executor plugin.", qpu, null, implementation, inputParameters));
 
         // execute implementation
-        new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), qpu, inputParameters, executionResult)).start();
+        new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), qpu, inputParameters, executionResult, executionResultService)).start();
 
         return executionResult;
     }
