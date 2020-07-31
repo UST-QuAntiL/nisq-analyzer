@@ -26,6 +26,7 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.planqk.nisq.analyzer.core.Application;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.model.Algorithm;
@@ -49,6 +50,7 @@ import org.springframework.http.ResponseEntity;
         classes = Application.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ImplementationSelectionTest {
 
     @LocalServerPort
@@ -78,6 +80,7 @@ public class ImplementationSelectionTest {
         shorAlg.setOutputParameters(Arrays.asList(
                 new Parameter("Factor", DataType.Integer, "", "")
         ));
+        shorAlg = algorithmService.save(shorAlg);
 
         // Create SDK
         Sdk qiskit = new Sdk();
