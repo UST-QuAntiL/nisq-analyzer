@@ -38,6 +38,9 @@ import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.planqk.nisq.analyzer.core.services.AlgorithmService;
 import org.planqk.nisq.analyzer.core.services.ImplementationService;
+import org.planqk.nisq.analyzer.core.services.ProviderService;
+import org.planqk.nisq.analyzer.core.services.QpuService;
+import org.planqk.nisq.analyzer.core.services.SdkService;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AlgorithmListDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -58,13 +61,23 @@ public class ImplementationSelectionTest {
 
     @Autowired
     private TestRestTemplate template;
-
+    
+    
+    // Services
     @Autowired
     private ImplementationService implementationService;
 
     @Autowired
     private AlgorithmService algorithmService;
-
+    
+    @Autowired
+    private ProviderService providerService;
+    
+    @Autowired
+    private SdkService sdkService;
+    
+    @Autowired
+    private QpuService qpuService;
 
     @BeforeAll
     public void prepareTestDatabase(){
@@ -85,6 +98,7 @@ public class ImplementationSelectionTest {
         // Create SDK
         Sdk qiskit = new Sdk();
         qiskit.setName("Qiskit");
+        qiskit = sdkService.save(qiskit);
 
         // Create Shor15 Implementation
         Implementation shor15Implementation = new Implementation();
@@ -106,6 +120,7 @@ public class ImplementationSelectionTest {
         shor15Implementation.setWidthRule("expectedWidth(W, shor-15-qiskit) :- W is 8.");
         shor15Implementation.setDepthRule("expectedDepth(D, shor-15-qiskit) :- D is 7.");
         shor15Implementation.setImplementedAlgorithm(shorAlg);
+        implementationService.save(shor15Implementation);
 
         // Create ShorGeneral Implementation
         Implementation shorGeneralImplementation = new Implementation();
@@ -127,12 +142,17 @@ public class ImplementationSelectionTest {
         shorGeneralImplementation.setWidthRule("expectedWidth(W, L, shor-general-qiskit) :- W is 2 * L + 3.");
         shorGeneralImplementation.setDepthRule("expectedDepth(D, L, shor-general-qiskit) :- D is L**3.");
         shorGeneralImplementation.setImplementedAlgorithm(shorAlg);
+        implementationService.save(shorGeneralImplementation);
 
         // Create Provider
         Provider ibmQ = new Provider();
         ibmQ.setName("IBM");
         ibmQ.setAccessKey("");
         ibmQ.setSecretKey(token);
+        providerService.save(ibmQ);
+
+        List<Sdk> supportedSDK = new ArrayList<>();
+        supportedSDK.add(qiskit);
 
         // Create IBM QPUs
         Qpu ibmq16 = new Qpu();
@@ -140,9 +160,9 @@ public class ImplementationSelectionTest {
         ibmq16.setQubitCount(15);
         ibmq16.setT1(50063.8361f);
         ibmq16.setMaxGateTime(1043);
-        ibmq16.setSupportedSdks(Arrays.asList(
-                qiskit
-        ));
+        ibmq16.setSupportedSdks(supportedSDK);
+        ibmq16.setProvider(ibmQ);
+        qpuService.save(ibmq16);
 
         Qpu ibmq5 = new Qpu();
         ibmq5.setName("ibmq_5_yorktown");
@@ -152,6 +172,9 @@ public class ImplementationSelectionTest {
         ibmq5.setSupportedSdks(Arrays.asList(
                 qiskit
         ));
+        ibmq5.setProvider(ibmQ);
+        qpuService.save(ibmq5);
+
 
         Qpu ibmqsim = new Qpu();
         ibmqsim.setName("ibmq_qasm_simulator");

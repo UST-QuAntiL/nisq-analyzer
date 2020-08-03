@@ -58,7 +58,7 @@ public class Qpu extends HasId {
     private float maxGateTime;
 
     @Setter
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinTable(
             name = "qpu_sdk",
             joinColumns = @JoinColumn(name = "qpu_id"),
