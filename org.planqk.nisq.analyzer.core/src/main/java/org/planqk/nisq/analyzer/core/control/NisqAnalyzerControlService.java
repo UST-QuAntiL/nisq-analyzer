@@ -244,7 +244,7 @@ public class NisqAnalyzerControlService {
         }
         for (Implementation impl : implementationService.findAll()) {
             if (!prologKnowledgeBaseHandler.doesPrologFileExist(impl.getId().toString())) {
-                prologFactUpdater.handleImplementationInsertion(impl.getId(), impl.getSdk().toString(), impl.getImplementedAlgorithm().getId(), impl.getSelectionRule(), impl.getWidthRule(), impl.getDepthRule());
+                prologFactUpdater.handleImplementationInsertion(impl.getId(), impl.getSdk().getName(), impl.getImplementedAlgorithm().getId(), impl.getSelectionRule(), impl.getWidthRule(), impl.getDepthRule());
                 LOG.debug("Rebuild prolog file for implementation {}", impl.getName());
             }
         }
