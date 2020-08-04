@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.repository;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
@@ -31,7 +32,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
  * different queries.
  */
 @RepositoryRestResource(exported = false)
-public interface ExecutionResultRepository extends JpaRepository<ExecutionResult, Long> {
+public interface ExecutionResultRepository extends JpaRepository<ExecutionResult, UUID> {
 
     List<ExecutionResult> findByExecutedImplementation(Implementation implementation);
 }

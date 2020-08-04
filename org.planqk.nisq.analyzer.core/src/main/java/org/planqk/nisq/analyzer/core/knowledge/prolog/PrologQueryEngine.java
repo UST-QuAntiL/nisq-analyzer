@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import org.jpl7.PrologException;
 import org.jpl7.Query;
@@ -138,7 +139,7 @@ public class PrologQueryEngine {
      * @param circuitDepth     the depth of the circuit representation of the implementation
      * @return a list with an Id for each QPU that can execute the given implementation
      */
-    public List<Long> getSuitableQpus(Long implementationId, int requiredQubits, int circuitDepth) {
+    public List<UUID> getSuitableQpus(UUID implementationId, int requiredQubits, int circuitDepth) {
         // check if file with required rule exists and create otherwise
         if (!prologKnowledgeBaseHandler.doesPrologFileExist(Constants.QPU_RULE_NAME)) {
             try {
@@ -150,7 +151,7 @@ public class PrologQueryEngine {
         }
         prologKnowledgeBaseHandler.activatePrologFile(Constants.QPU_RULE_NAME);
 
-        List<Long> suitableQPUs = new ArrayList<>();
+        List<UUID> suitableQPUs = new ArrayList<>();
 
         // determine the suited QPUs for the implementation and the width/depth through the Prolog knowledge base
         String qpuVariable = "Qpu";
@@ -163,8 +164,9 @@ public class PrologQueryEngine {
             LOG.debug("Retrieved {} possible qpu candidates for the query.", solutions.length);
             for (Map<String, Term> solution : solutions) {
                 if (Objects.nonNull(solution.get(qpuVariable))) {
-                    LOG.debug("Found solution: {}", solution.get(qpuVariable));
-                    suitableQPUs.add(solution.get(qpuVariable).longValue());
+                    LOG.debug("Found solution: {}", solution.get(qpuVariable).name());
+                    //suitableQPUs.add(solution.get(qpuVariable).name());
+                    // TODO
                 }
             }
         }

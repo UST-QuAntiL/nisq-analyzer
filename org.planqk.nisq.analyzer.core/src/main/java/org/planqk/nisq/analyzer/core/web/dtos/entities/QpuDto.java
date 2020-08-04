@@ -20,11 +20,11 @@
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
 import java.util.List;
+import java.util.UUID;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.planqk.nisq.analyzer.core.model.Provider;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.springframework.hateoas.RepresentationModel;
@@ -33,11 +33,11 @@ import org.springframework.hateoas.RepresentationModel;
  * Data transfer object for the model class {@link Qpu}.
  */
 @ToString(callSuper = true, includeFieldNames = true)
-public class QpuDto extends RepresentationModel<ProviderDto> {
+public class QpuDto extends RepresentationModel<QpuDto> {
 
     @Getter
     @Setter
-    private Long id;
+    private UUID id;
 
     @Getter
     @Setter
@@ -67,13 +67,12 @@ public class QpuDto extends RepresentationModel<ProviderDto> {
             return dto;
         }
 
-        public static Qpu convert(final QpuDto object, final Provider provider, final List<Sdk> supportedSdks) {
+        public static Qpu convert(final QpuDto object, final List<Sdk> supportedSdks) {
             Qpu qpu = new Qpu();
             qpu.setName(object.getName());
             qpu.setQubitCount(object.getNumberOfQubits());
             qpu.setT1(object.getT1());
             qpu.setMaxGateTime(object.getMaxGateTime());
-            qpu.setProvider(provider);
             qpu.setSupportedSdks(supportedSdks);
             return qpu;
         }

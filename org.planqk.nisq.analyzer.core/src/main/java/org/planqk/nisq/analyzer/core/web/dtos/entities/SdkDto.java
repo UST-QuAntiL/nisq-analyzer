@@ -19,6 +19,8 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
+import java.util.UUID;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -30,7 +32,7 @@ public class SdkDto extends RepresentationModel<SdkDto> {
 
     @Getter
     @Setter
-    private Long id;
+    private UUID id;
 
     @Getter
     @Setter

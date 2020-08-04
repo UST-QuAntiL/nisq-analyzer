@@ -19,14 +19,12 @@
 
 package org.planqk.nisq.analyzer.core.repository;
 
-import java.util.Optional;
+import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 @RepositoryRestResource(exported = false)
-public interface QpuRepository extends JpaRepository<Qpu, Long> {
-
-    Optional<Qpu> findByName(String name);
+public interface QpuRepository extends JpaRepository<Qpu, UUID> {
 }

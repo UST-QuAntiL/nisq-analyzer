@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,7 +30,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
  * Repository to access {@link Sdk}s available in the data base with different queries.
  */
 @RepositoryRestResource(exported = false)
-public interface SdkRepository extends JpaRepository<Sdk, Long> {
+public interface SdkRepository extends JpaRepository<Sdk, UUID> {
 
     Optional<Sdk> findByName(String name);
 }

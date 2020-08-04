@@ -23,6 +23,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -30,18 +31,20 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.lang.NonNull;
 
 /**
- * Entity representing an implementation of a certain quantum {@link Algorithm}.
+ * Entity representing an implementation of a certain quantum algorithm.
  */
 @Entity
-public class Implementation extends AlgorOrImpl {
+@NoArgsConstructor
+public class Implementation extends HasId {
 
     @Getter
     @Setter
-    private ProgrammingLanguage programmingLanguage;
+    private String name;
 
     @Getter
     @Setter
@@ -61,8 +64,7 @@ public class Implementation extends AlgorOrImpl {
 
     @Getter
     @Setter
-    @ManyToOne
-    private Algorithm implementedAlgorithm;
+    private UUID implementedAlgorithm;
 
     @Getter
     @Setter
@@ -73,8 +75,28 @@ public class Implementation extends AlgorOrImpl {
     @OneToMany(cascade = CascadeType.PERSIST)
     private List<ExecutionResult> executionResults;
 
-    public Implementation() {
-        super();
+    @Setter
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Parameter> inputParameters;
+
+    @Setter
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Parameter> outputParameters;
+
+    @NonNull
+    public List<Parameter> getInputParameters() {
+        if (Objects.isNull(inputParameters)) {
+            return new ArrayList<>();
+        }
+        return inputParameters;
+    }
+
+    @NonNull
+    public List<Parameter> getOutputParameters() {
+        if (Objects.isNull(outputParameters)) {
+            return new ArrayList<>();
+        }
+        return outputParameters;
     }
 
     @NonNull
