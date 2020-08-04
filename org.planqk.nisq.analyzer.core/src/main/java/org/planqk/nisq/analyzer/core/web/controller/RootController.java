@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -52,9 +53,10 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
  */
 @RestController
 @CrossOrigin(allowedHeaders = "*", origins = "*")
+@RequestMapping("/")
 public class RootController {
 
-    private final static Logger LOG = LoggerFactory.getLogger(QpuController.class);
+    private final static Logger LOG = LoggerFactory.getLogger(RootController.class);
 
     private final NisqAnalyzerControlService nisqAnalyzerService;
 
@@ -101,6 +103,11 @@ public class RootController {
     @PostMapping("/" + Constants.SELECTION)
     public ResponseEntity selectImplementations(@RequestParam UUID algoId, @RequestBody ParameterKeyValueDto params) {
         LOG.debug("Post to select implementations for algorithm with Id {} received.", algoId);
+
+        if (Objects.isNull(algoId)) {
+            LOG.error("AlgoId for the selection is null.");
+            return new ResponseEntity<>("AlgoId for the selection is null.", HttpStatus.BAD_REQUEST);
+        }
 
         if (Objects.isNull(params.getParameters())) {
             LOG.error("Parameter set for the selection is null.");

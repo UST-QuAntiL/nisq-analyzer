@@ -155,7 +155,7 @@ public class PrologQueryEngine {
 
         // determine the suited QPUs for the implementation and the width/depth through the Prolog knowledge base
         String qpuVariable = "Qpu";
-        String query = "executableOnQpu(" + requiredQubits + "," + circuitDepth + "," + implementationId + "," + qpuVariable + ").";
+        String query = "executableOnQpu(" + requiredQubits + "," + circuitDepth + ",\"" + implementationId + "\"," + qpuVariable + ").";
         LOG.debug("Executing the following query to determine the suitable QPUs: {}", query);
         Map<String, Term>[] solutions = getSolutions(query);
 
