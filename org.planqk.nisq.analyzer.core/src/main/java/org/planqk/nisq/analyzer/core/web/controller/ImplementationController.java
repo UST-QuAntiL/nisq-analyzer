@@ -86,7 +86,7 @@ public class ImplementationController {
     }
 
     @GetMapping("/")
-    public HttpEntity<ImplementationListDto> getImplementations(@RequestParam(required = false) Long algoId) {
+    public HttpEntity<ImplementationListDto> getImplementations(@RequestParam(required = false) UUID algoId) {
         LOG.debug("Get to retrieve all implementations received.");
         ImplementationListDto dtoList = new ImplementationListDto();
 
