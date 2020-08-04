@@ -21,12 +21,18 @@ package org.planqk.nisq.analyzer.core.connector;
 
 import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
+import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
+import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.Qpu;
-import org.planqk.nisq.analyzer.core.services.ExecutionResultService;
+import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,6 +48,8 @@ import org.springframework.web.client.RestTemplate;
 public class QiskitSdkConnector implements SdkConnector {
 
     final private static Logger LOG = LoggerFactory.getLogger(QiskitSdkConnector.class);
+
+    final private static String TOKEN_PARAMETER = "token";
 
     @Value("${org.planqk.nisq.analyzer.connector.qiskit.pollInterval:10000}")
     private int pollInterval;
@@ -61,12 +69,17 @@ public class QiskitSdkConnector implements SdkConnector {
     }
 
     @Override
-    public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters, ExecutionResult executionResult, ExecutionResultService resultService) {
+    public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters, ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
+
+        String token = getTokenFromInputParameters(parameters);
+        if (Objects.isNull(token)) {
+            LOG.error("Required token parameter not provided!");
+            return;
+        }
 
         // Prepare the request
         RestTemplate restTemplate = new RestTemplate();
-        String token = qpu.getProvider().getSecretKey();
         QiskitRequest request = new QiskitRequest(algorithmImplementationURL, qpu.getName(), parameters, token);
 
         try {
@@ -76,7 +89,7 @@ public class QiskitSdkConnector implements SdkConnector {
             // change the result status
             executionResult.setStatus(ExecutionResultStatus.RUNNING);
             executionResult.setStatusCode("Pending for execution on Qiskit Service ...");
-            resultService.save(executionResult);
+            resultRepository.save(executionResult);
 
             // poll the Qiskit service frequently
             while (executionResult.getStatus() != ExecutionResultStatus.FINISHED && executionResult.getStatus() != ExecutionResultStatus.FAILED) {
@@ -88,7 +101,7 @@ public class QiskitSdkConnector implements SdkConnector {
                         executionResult.setStatus(ExecutionResultStatus.FINISHED);
                         executionResult.setStatusCode("Execution successfully completed.");
                         executionResult.setResult(result.getResult().toString());
-                        resultService.save(executionResult);
+                        resultRepository.save(executionResult);
                     }
 
                     // Wait for next poll
@@ -101,14 +114,14 @@ public class QiskitSdkConnector implements SdkConnector {
                     LOG.error("Polling result from Qiskit Service failed.");
                     executionResult.setStatus(ExecutionResultStatus.FAILED);
                     executionResult.setStatusCode("Polling result from Qiskit Service failed.");
-                    resultService.save(executionResult);
+                    resultRepository.save(executionResult);
                 }
             }
         } catch (RestClientException e) {
             LOG.error("Connection to Qiskit Service failed.");
             executionResult.setStatus(ExecutionResultStatus.FAILED);
             executionResult.setStatusCode("Connection to Qiskit Service failed.");
-            resultService.save(executionResult);
+            resultRepository.save(executionResult);
         }
     }
 
@@ -116,9 +129,14 @@ public class QiskitSdkConnector implements SdkConnector {
     public CircuitInformation getCircuitProperties(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters) {
         LOG.debug("Analysing quantum algorithm implementation with Qiskit Sdk connector plugin!");
 
+        String token = getTokenFromInputParameters(parameters);
+        if (Objects.isNull(token)) {
+            LOG.error("Required token parameter not provided!");
+            return null;
+        }
+
         // Build the payload for the request
         RestTemplate restTemplate = new RestTemplate();
-        String token = qpu.getProvider().getSecretKey();
         QiskitRequest request = new QiskitRequest(algorithmImplementationURL, qpu.getName(), parameters, token);
 
         try {
@@ -138,12 +156,30 @@ public class QiskitSdkConnector implements SdkConnector {
             LOG.error("Connection to Qiskit Service failed.");
         }
 
-        // Return default Circuit on failure ?
-        return new CircuitInformation(1, 1);
+        return null;
     }
 
     @Override
     public String supportedSdk() {
         return "Qiskit";
+    }
+
+    @Override
+    public Set<Parameter> getSdkSpecificParameters() {
+        // only the token is required
+        return new HashSet<>(Arrays.asList(new Parameter(TOKEN_PARAMETER, DataType.String, null, null)));
+    }
+
+    /**
+     * Retrieve token parameter from input parameters
+     *
+     * @param parameters the set of input parameters
+     * @return the value of the token parameter
+     */
+    private String getTokenFromInputParameters(Map<String, String> parameters) {
+        if (parameters.containsKey(TOKEN_PARAMETER)) {
+            return parameters.get(TOKEN_PARAMETER);
+        }
+        return null;
     }
 }

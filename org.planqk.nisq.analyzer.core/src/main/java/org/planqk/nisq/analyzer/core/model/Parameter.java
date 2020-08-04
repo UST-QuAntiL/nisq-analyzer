@@ -24,6 +24,7 @@ import javax.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -31,6 +32,7 @@ import lombok.Setter;
  */
 @Entity
 @AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode
 public class Parameter extends HasId {
 
@@ -49,7 +51,4 @@ public class Parameter extends HasId {
     @Getter
     @Setter
     String description;
-
-    public Parameter() {
-    }
 }

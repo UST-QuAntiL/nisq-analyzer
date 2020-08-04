@@ -25,12 +25,10 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.planqk.nisq.analyzer.core.Constants;
-import org.planqk.nisq.analyzer.core.model.Provider;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.Sdk;
-import org.planqk.nisq.analyzer.core.repository.ProviderRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuRepository;
-import org.planqk.nisq.analyzer.core.services.SdkService;
+import org.planqk.nisq.analyzer.core.repository.SdkRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.requests.CreateQpuRequest;
@@ -55,39 +53,35 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
  */
 @RestController
 @CrossOrigin(allowedHeaders = "*", origins = "*")
-@RequestMapping("/" + Constants.PROVIDERS + "/{providerId}/" + Constants.QPUS)
+@RequestMapping("/" + Constants.QPUS)
 public class QpuController {
 
     private final static Logger LOG = LoggerFactory.getLogger(QpuController.class);
     private final QpuRepository qpuRepository;
-    private final ProviderRepository providerRepository;
-    private final SdkService sdkService;
+    private final SdkRepository sdkRepository;
 
-    public QpuController(QpuRepository qpuRepository, ProviderRepository providerRepository, SdkService sdkService) {
+    public QpuController(QpuRepository qpuRepository, SdkRepository sdkRepository) {
         this.qpuRepository = qpuRepository;
-        this.providerRepository = providerRepository;
-        this.sdkService = sdkService;
+        this.sdkRepository = sdkRepository;
     }
 
     @GetMapping("/")
-    public HttpEntity<QpuListDto> getQpus(@PathVariable Long providerId) {
+    public HttpEntity<QpuListDto> getQpus() {
         LOG.debug("Get to retrieve all QPUs received.");
         QpuListDto qpuListDto = new QpuListDto();
 
         // add all available algorithms to the response
         for (Qpu qpu : qpuRepository.findAll()) {
-            if (qpu.getProvider().getId().equals(providerId)) {
-                qpuListDto.add(createQpuDto(providerId, qpu));
-                qpuListDto.add(linkTo(methodOn(QpuController.class).getQpu(providerId, qpu.getId())).withRel(qpu.getId().toString()));
-            }
+            qpuListDto.add(createQpuDto(qpu));
+            qpuListDto.add(linkTo(methodOn(QpuController.class).getQpu(qpu.getId())).withRel(qpu.getId().toString()));
         }
 
-        qpuListDto.add(linkTo(methodOn(QpuController.class).getQpus(providerId)).withSelfRel());
+        qpuListDto.add(linkTo(methodOn(QpuController.class).getQpus()).withSelfRel());
         return new ResponseEntity<>(qpuListDto, HttpStatus.OK);
     }
 
     @GetMapping("/{qpuId}")
-    public HttpEntity<QpuDto> getQpu(@PathVariable Long providerId, @PathVariable Long qpuId) {
+    public HttpEntity<QpuDto> getQpu(@PathVariable Long qpuId) {
         LOG.debug("Get to retrieve QPU with id: {}.", qpuId);
 
         Optional<Qpu> qpuOptional = qpuRepository.findById(qpuId);
@@ -96,18 +90,12 @@ public class QpuController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(createQpuDto(providerId, qpuOptional.get()), HttpStatus.OK);
+        return new ResponseEntity<>(createQpuDto(qpuOptional.get()), HttpStatus.OK);
     }
 
     @PostMapping("/")
-    public HttpEntity<QpuDto> createQpu(@PathVariable Long providerId, @RequestBody CreateQpuRequest qpuRequest) {
+    public HttpEntity<QpuDto> createQpu(@RequestBody CreateQpuRequest qpuRequest) {
         LOG.debug("Post to create new QPU received.");
-
-        Optional<Provider> providerOptional = providerRepository.findById(providerId);
-        if (!providerOptional.isPresent()) {
-            LOG.error("Unable to retrieve provider with id {} from the repository.", providerId);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
 
         // check consistency of the QPU object
         if (Objects.isNull(qpuRequest.getName())) {
@@ -120,7 +108,7 @@ public class QpuController {
         if (Objects.nonNull(qpuRequest.getSupportedSdkIds())) {
             LOG.debug("Supported SDKs are defined for the QPU.");
             for (Long sdkId : qpuRequest.getSupportedSdkIds()) {
-                Optional<Sdk> sdkOptional = sdkService.findById(sdkId);
+                Optional<Sdk> sdkOptional = sdkRepository.findById(sdkId);
                 if (!sdkOptional.isPresent()) {
                     LOG.error("Unable to retrieve SDK with id {} from the repository.", sdkId);
                     return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -130,21 +118,19 @@ public class QpuController {
         }
 
         // store and return QPU
-        Qpu qpu = qpuRepository.save(QpuDto.Converter.convert(qpuRequest, providerOptional.get(), supportedSdks));
-        return new ResponseEntity<>(createQpuDto(providerId, qpu), HttpStatus.OK);
+        Qpu qpu = qpuRepository.save(QpuDto.Converter.convert(qpuRequest, supportedSdks));
+        return new ResponseEntity<>(createQpuDto(qpu), HttpStatus.OK);
     }
 
     /**
      * Create a DTO object for a given {@link Qpu}.
      *
-     * @param providerId the Id of the provider the QPU belongs to
-     * @param qpu        the {@link Qpu} to create the DTO for
+     * @param qpu the {@link Qpu} to create the DTO for
      * @return the created DTO
      */
-    private QpuDto createQpuDto(Long providerId, Qpu qpu) {
+    private QpuDto createQpuDto(Qpu qpu) {
         QpuDto qpuDto = QpuDto.Converter.convert(qpu);
-        qpuDto.add(linkTo(methodOn(QpuController.class).getQpu(providerId, qpu.getId())).withSelfRel());
-        qpuDto.add(linkTo(methodOn(ProviderController.class).getProvider(providerId)).withRel(Constants.PROVIDER));
+        qpuDto.add(linkTo(methodOn(QpuController.class).getQpu(qpu.getId())).withSelfRel());
         for (Sdk sdk : qpu.getSupportedSdks()) {
             qpuDto.add(linkTo(methodOn(SdkController.class).getSdk(sdk.getId())).withRel(Constants.SUPPORTED_SDK + "-" + sdk.getId()));
         }

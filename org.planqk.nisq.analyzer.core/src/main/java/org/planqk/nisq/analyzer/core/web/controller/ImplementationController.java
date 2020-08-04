@@ -31,7 +31,7 @@ import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuRepository;
-import org.planqk.nisq.analyzer.core.services.SdkService;
+import org.planqk.nisq.analyzer.core.repository.SdkRepository;
 import org.planqk.nisq.analyzer.core.utils.RestUtils;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationDto;
@@ -68,15 +68,15 @@ public class ImplementationController {
     private final NisqAnalyzerControlService controlService;
     private final ImplementationRepository implementationRepository;
     private final QpuRepository qpuRepository;
-    private final SdkService sdkService;
+    private final SdkRepository sdkRepository;
 
     public ImplementationController(ImplementationRepository implementationRepository,
                                     QpuRepository qpuRepository,
-                                    SdkService sdkService,
+                                    SdkRepository sdkRepository,
                                     NisqAnalyzerControlService controlService) {
         this.implementationRepository = implementationRepository;
         this.qpuRepository = qpuRepository;
-        this.sdkService = sdkService;
+        this.sdkRepository = sdkRepository;
         this.controlService = controlService;
     }
 
@@ -127,7 +127,7 @@ public class ImplementationController {
         }
 
         // retrieve referenced Sdk and abort if not present
-        Optional<Sdk> sdkOptional = sdkService.findByName(impl.getSdk());
+        Optional<Sdk> sdkOptional = sdkRepository.findByName(impl.getSdk());
         if (!sdkOptional.isPresent()) {
             LOG.error("Unable to retrieve Sdk with name {} from the repository.", impl.getSdk());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

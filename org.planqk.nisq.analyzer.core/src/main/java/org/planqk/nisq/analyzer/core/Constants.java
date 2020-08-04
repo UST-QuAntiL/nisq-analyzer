@@ -26,7 +26,6 @@ public class Constants {
 
     // URL snippets
     public static final String IMPLEMENTATIONS = "implementations";
-    public static final String PROVIDERS = "providers";
     public static final String QPUS = "qpus";
     public static final String SDKS = "sdks";
     public static final String EXECUTION = "execute";
@@ -39,7 +38,6 @@ public class Constants {
     public static final String SUPPORTED_SDK = "supported-sdk";
     public static final String INPUT_PARAMS = "input-parameters";
     public static final String OUTPUT_PARAMS = "output-parameters";
-    public static final String PROVIDER = "provider";
     public static final String RESULTS_LINK = "results";
     public static final String EXECUTED_ALGORITHM_LINK = "executed-algorithm";
     public static final String USED_QPU_LINK = "used-qpu";

@@ -42,9 +42,9 @@ import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.Sdk;
+import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuRepository;
-import org.planqk.nisq.analyzer.core.services.ExecutionResultService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -61,7 +61,7 @@ public class NisqAnalyzerControlService {
 
     final private ImplementationRepository implementationRepository;
 
-    final private ExecutionResultService executionResultService;
+    final private ExecutionResultRepository executionResultRepository;
 
     final private QpuRepository qpuRepository;
 
@@ -69,10 +69,10 @@ public class NisqAnalyzerControlService {
 
     final private PrologKnowledgeBaseHandler prologKnowledgeBaseHandler;
 
-    public NisqAnalyzerControlService(List<SdkConnector> connectorList, ImplementationRepository implementationRepository, ExecutionResultService executionResultService, QpuRepository qpuRepository, PrologQueryEngine prologQueryEngine, PrologKnowledgeBaseHandler prologKnowledgeBaseHandler) {
+    public NisqAnalyzerControlService(List<SdkConnector> connectorList, ImplementationRepository implementationRepository, ExecutionResultRepository executionResultRepository, QpuRepository qpuRepository, PrologQueryEngine prologQueryEngine, PrologKnowledgeBaseHandler prologKnowledgeBaseHandler) {
         this.connectorList = connectorList;
         this.implementationRepository = implementationRepository;
-        this.executionResultService = executionResultService;
+        this.executionResultRepository = executionResultRepository;
         this.qpuRepository = qpuRepository;
         this.prologQueryEngine = prologQueryEngine;
         this.prologKnowledgeBaseHandler = prologKnowledgeBaseHandler;
@@ -102,10 +102,10 @@ public class NisqAnalyzerControlService {
 
         // create a object to store the execution results
         ExecutionResult executionResult =
-                executionResultService.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED, "Passing execution to executor plugin.", qpu, null, implementation, inputParameters));
+                executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED, "Passing execution to executor plugin.", qpu, null, implementation, inputParameters));
 
         // execute implementation
-        new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), qpu, inputParameters, executionResult, executionResultService)).start();
+        new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), qpu, inputParameters, executionResult, executionResultRepository)).start();
 
         return executionResult;
     }
@@ -179,6 +179,7 @@ public class NisqAnalyzerControlService {
 
                 // analyze the quantum circuit by utilizing the capabilities of the suited plugin and retrieve important circuit properties
                 CircuitInformation circuitInformation = selectedSdkConnector.getCircuitProperties(execImplementation.getFileLocation(), qpu, inputParameters);
+                // TODO: check for null
 
                 // skip qpu if the number of required qubits is greater than the provided
                 if (circuitInformation.getCircuitWidth() > qpu.getQubitCount()) {

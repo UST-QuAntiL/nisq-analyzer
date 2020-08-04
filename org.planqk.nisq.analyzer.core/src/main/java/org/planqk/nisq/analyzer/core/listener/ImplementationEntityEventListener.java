@@ -38,7 +38,6 @@ public class ImplementationEntityEventListener {
     @EventListener
     public void onImplementationCreatedEvent(EntityCreatedEvent<Implementation> event) {
         Implementation impl = event.getEntity();
-
         prologFactUpdater.handleImplementationInsertion(impl.getId(), impl.getSdk().getName(), impl.getImplementedAlgorithm(), impl.getSelectionRule(), impl.getWidthRule(), impl.getDepthRule());
     }
 }

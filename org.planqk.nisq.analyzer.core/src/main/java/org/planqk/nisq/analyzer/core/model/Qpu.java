@@ -29,9 +29,9 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.lang.NonNull;
 
@@ -39,6 +39,7 @@ import org.springframework.lang.NonNull;
  * Entity representing a quantum processing unit (Qpu).
  */
 @Entity
+@NoArgsConstructor
 public class Qpu extends HasId {
 
     @Getter
@@ -64,14 +65,6 @@ public class Qpu extends HasId {
             joinColumns = @JoinColumn(name = "qpu_id"),
             inverseJoinColumns = @JoinColumn(name = "sdk_id"))
     private List<Sdk> supportedSdks;
-
-    @Getter
-    @Setter
-    @ManyToOne
-    private Provider provider;
-
-    public Qpu() {
-    }
 
     @NonNull
     public List<Sdk> getSupportedSdks() {
