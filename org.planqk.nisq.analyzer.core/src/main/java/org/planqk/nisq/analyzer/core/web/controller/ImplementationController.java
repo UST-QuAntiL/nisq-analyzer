@@ -246,7 +246,7 @@ public class ImplementationController {
         }
 
         try {
-            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(implementationOptional.get(), qpuOptional.get(), executionRequest.getParameters());
+            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(implementationOptional.get(), qpuOptional.get(), executionRequest.getParameters(), executionRequest.getAnalysedDepth(), executionRequest.getAnalysedWidth());
             ExecutionResultDto dto = ExecutionResultDto.Converter.convert(result);
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(implId, result.getId())).withSelfRel());
             return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);

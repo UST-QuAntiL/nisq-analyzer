@@ -17,27 +17,27 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.web.dtos.requests;
+package org.planqk.nisq.analyzer.core.control;
 
-import java.util.UUID;
-
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.planqk.nisq.analyzer.core.model.Implementation;
+import org.planqk.nisq.analyzer.core.model.Qpu;
 
 /**
- * Dto to exchange input and output parameters as key value pairs.
+ * Object to represent the result of a analysis for a certain qpu and implementation
  */
-public class ExecutionRequest extends ParameterKeyValueDto {
+@Data
+@AllArgsConstructor
+public class AnalysisResult {
 
-    @Getter
-    @Setter
-    private UUID qpuId;
+    Qpu qpu;
 
-    @Getter
-    @Setter
-    private int analysedDepth;
+    Implementation implementation;
 
-    @Getter
-    @Setter
-    private int analysedWidth;
+    boolean estimate;
+
+    int analysedDepth;
+
+    int analysedWidth;
 }

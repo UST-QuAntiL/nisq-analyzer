@@ -59,17 +59,4 @@ public class RestUtils {
         }
         return true;
     }
-
-    /**
-     * Check if all required parameters are contained in the provided parameters
-     *
-     * @param requiredParameters the set of required parameters
-     * @param providedParameters the map with the provided parameters
-     * @return <code>true</code> if all required parameters are contained in the provided parameters, <code>false</code>
-     * otherwise
-     */
-    public static boolean parametersAvailable(Set<Parameter> requiredParameters, Map<String, String> providedParameters) {
-        LOG.debug("Checking if {} required parameters are available in the input map with {} provided parameters!", requiredParameters.size(), providedParameters.size());
-        return requiredParameters.stream().allMatch(param -> providedParameters.containsKey(param.getName()));
-    }
 }
