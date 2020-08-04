@@ -29,7 +29,7 @@ import org.planqk.nisq.analyzer.core.control.AnalysisResult;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterListDto;
-import org.planqk.nisq.analyzer.core.web.dtos.requests.ParameterKeyValueDto;
+import org.planqk.nisq.analyzer.core.web.dtos.requests.SelectionRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.hateoas.RepresentationModel;
@@ -40,7 +40,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -53,7 +52,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
  */
 @RestController
 @CrossOrigin(allowedHeaders = "*", origins = "*")
-@RequestMapping("/")
 public class RootController {
 
     private final static Logger LOG = LoggerFactory.getLogger(RootController.class);
@@ -74,7 +72,7 @@ public class RootController {
         responseEntity.add(linkTo(methodOn(QpuController.class).getQpus()).withRel(Constants.QPUS));
         responseEntity.add(linkTo(methodOn(SdkController.class).getSdks()).withRel(Constants.SDKS));
         responseEntity.add(linkTo(methodOn(RootController.class).getSelectionParams(null)).withRel(Constants.SELECTION_PARAMS));
-        responseEntity.add(linkTo(methodOn(RootController.class).selectImplementations(null, null)).withRel(Constants.SELECTION));
+        responseEntity.add(linkTo(methodOn(RootController.class).selectImplementations(null)).withRel(Constants.SELECTION));
 
         return new ResponseEntity<>(responseEntity, HttpStatus.OK);
     }
@@ -101,12 +99,12 @@ public class RootController {
     }
 
     @PostMapping("/" + Constants.SELECTION)
-    public ResponseEntity selectImplementations(@RequestParam UUID algoId, @RequestBody ParameterKeyValueDto params) {
-        LOG.debug("Post to select implementations for algorithm with Id {} received.", algoId);
+    public ResponseEntity selectImplementations(@RequestBody SelectionRequest params) {
+        LOG.debug("Post to select implementations for algorithm with Id {} received.", params.getAlgorithmId());
 
-        if (Objects.isNull(algoId)) {
-            LOG.error("AlgoId for the selection is null.");
-            return new ResponseEntity<>("AlgoId for the selection is null.", HttpStatus.BAD_REQUEST);
+        if (Objects.isNull(params.getAlgorithmId())) {
+            LOG.error("Algorithm Id for the selection is null.");
+            return new ResponseEntity<>("Algorithm Id for the selection is null.", HttpStatus.BAD_REQUEST);
         }
 
         if (Objects.isNull(params.getParameters())) {
@@ -117,7 +115,7 @@ public class RootController {
 
         List<AnalysisResult> analysisResults;
         try {
-            analysisResults = nisqAnalyzerService.performSelection(algoId, params.getParameters());
+            analysisResults = nisqAnalyzerService.performSelection(params.getAlgorithmId(), params.getParameters());
         } catch (UnsatisfiedLinkError e) {
             LOG.error("UnsatisfiedLinkError while activating prolog rule. Please make sure prolog is installed and configured correctly to use the NISQ analyzer functionality!");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("No prolog engine accessible from the server. Selection not possible!");

@@ -270,7 +270,7 @@ public class PrologFactUpdater {
      * @return the Prolog fact
      */
     private String createRequiredSdkFact(UUID implId, String sdkName) {
-        return "requiredSdk(\"" + implId + "\",\"" + sdkName + "\").";
+        return "requiredSdk(\"" + implId + "\"," + sdkName + ").";
     }
 
     /**

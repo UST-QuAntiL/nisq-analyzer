@@ -130,7 +130,6 @@ public class NisqAnalyzerControlService {
     public List<AnalysisResult> performSelection(UUID algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
         LOG.debug("Performing implementation and QPU selection for algorithm with Id: {}", algorithm);
         List<AnalysisResult> analysisResult = new ArrayList<>();
-
         rebuildPrologFiles();
 
         // activate the current prolog files
