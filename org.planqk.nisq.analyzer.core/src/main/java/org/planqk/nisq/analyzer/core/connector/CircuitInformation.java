@@ -19,21 +19,26 @@
 
 package org.planqk.nisq.analyzer.core.connector;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
  * Object to encapsulate all information that is retrieved during the analysis of a quantum circuit.
  */
+@NoArgsConstructor
 @AllArgsConstructor
 public class CircuitInformation {
 
     @Getter
     @Setter
-    private int circuitDepth;
+    @JsonProperty("depth")
+    private int circuitDepth = 0;
 
     @Getter
     @Setter
-    private int circuitWidth;
+    @JsonProperty("width")
+    private int circuitWidth = 0;
 }

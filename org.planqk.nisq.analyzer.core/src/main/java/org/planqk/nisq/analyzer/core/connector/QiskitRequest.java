@@ -1,4 +1,4 @@
-/********************************************************************************
+/*******************************************************************************
  * Copyright (c) 2020 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
@@ -17,53 +17,41 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
+package org.planqk.nisq.analyzer.core.connector;
 
 import java.util.Map;
+import java.net.URL;
 
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Entity representing the result of an execution of a quantum algorithm implementation on a certain QPU.
- */
-@Entity
-@AllArgsConstructor
-@NoArgsConstructor
-public class ExecutionResult extends HasId {
+public class QiskitRequest {
 
     @Getter
     @Setter
-    private ExecutionResultStatus status;
+    @JsonProperty("impl-url")
+    private URL impl_url;
 
     @Getter
     @Setter
-    private String statusCode;
+    @JsonProperty("qpu-name")
+    private String qpu_name;
 
     @Getter
     @Setter
-    @ManyToOne
-    private Qpu executingQpu;
+    @JsonProperty("input-params")
+    private Map<String, String> input_params;
 
     @Getter
     @Setter
-    @Column(length = 4096)
-    private String result;
+    private String token;
 
-    @Getter
-    @Setter
-    @ManyToOne
-    private Implementation executedImplementation;
-
-    @Getter
-    @Setter
-    @ElementCollection
-    private Map<String, String> inputParameters;
+    public QiskitRequest(URL impl_url, String qpu_name, Map<String,String> input_params, String token)
+    {
+        this.impl_url = impl_url;
+        this.qpu_name = qpu_name;
+        this.input_params = input_params;
+        this.token = token;
+    }
 }
