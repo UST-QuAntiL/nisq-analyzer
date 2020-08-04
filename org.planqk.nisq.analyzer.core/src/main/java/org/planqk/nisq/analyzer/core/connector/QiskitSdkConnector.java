@@ -30,7 +30,6 @@ import org.planqk.nisq.analyzer.core.services.ExecutionResultService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -51,13 +50,11 @@ public class QiskitSdkConnector implements SdkConnector {
     private URI transpileAPIEndpoint;
     private URI executeAPIEndpoint;
 
-
     public QiskitSdkConnector(
             @Value("${org.planqk.nisq.analyzer.connector.qiskit.hostname}") String hostname,
             @Value("${org.planqk.nisq.analyzer.connector.qiskit.port}") int port,
             @Value("${org.planqk.nisq.analyzer.connector.qiskit.version}") String version
-    )
-    {
+    ) {
         // compile the API endpoints
         transpileAPIEndpoint = URI.create(String.format("http://%s:%d/qiskit-service/api/%s/transpile", hostname, port, version));
         executeAPIEndpoint = URI.create(String.format("http://%s:%d/qiskit-service/api/%s/execute", hostname, port, version));
@@ -67,15 +64,12 @@ public class QiskitSdkConnector implements SdkConnector {
     public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters, ExecutionResult executionResult, ExecutionResultService resultService) {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
 
-        // TODO: call Qiskit service, change status to running, wait for results/errors and change status/content of result object
-
         // Prepare the request
         RestTemplate restTemplate = new RestTemplate();
         String token = qpu.getProvider().getSecretKey();
         QiskitRequest request = new QiskitRequest(algorithmImplementationURL, qpu.getName(), parameters, token);
 
-        try
-        {
+        try {
             // make the execution request
             URI resultLocation = restTemplate.postForLocation(executeAPIEndpoint, request);
 
@@ -85,15 +79,12 @@ public class QiskitSdkConnector implements SdkConnector {
             resultService.save(executionResult);
 
             // poll the Qiskit service frequently
-            while (executionResult.getStatus() != ExecutionResultStatus.FINISHED && executionResult.getStatus() != ExecutionResultStatus.FAILED)
-            {
-                try
-                {
+            while (executionResult.getStatus() != ExecutionResultStatus.FINISHED && executionResult.getStatus() != ExecutionResultStatus.FAILED) {
+                try {
                     QiskitExecutionResult result = restTemplate.getForObject(resultLocation, QiskitExecutionResult.class);
 
                     // Check if execution is completed
-                    if (result.isComplete())
-                    {
+                    if (result.isComplete()) {
                         executionResult.setStatus(ExecutionResultStatus.FINISHED);
                         executionResult.setStatusCode("Execution successfully completed.");
                         executionResult.setResult(result.getResult().toString());
@@ -101,29 +92,19 @@ public class QiskitSdkConnector implements SdkConnector {
                     }
 
                     // Wait for next poll
-                    try
-                    {
+                    try {
                         Thread.sleep(pollInterval);
-                    }
-                    catch (InterruptedException e)
-                    {
+                    } catch (InterruptedException e) {
                         // pass
                     }
-
-                }
-                catch (RestClientException e)
-                {
+                } catch (RestClientException e) {
                     LOG.error("Polling result from Qiskit Service failed.");
                     executionResult.setStatus(ExecutionResultStatus.FAILED);
                     executionResult.setStatusCode("Polling result from Qiskit Service failed.");
                     resultService.save(executionResult);
                 }
-
             }
-
-        }
-        catch (RestClientException e)
-        {
+        } catch (RestClientException e) {
             LOG.error("Connection to Qiskit Service failed.");
             executionResult.setStatus(ExecutionResultStatus.FAILED);
             executionResult.setStatusCode("Connection to Qiskit Service failed.");
@@ -140,28 +121,20 @@ public class QiskitSdkConnector implements SdkConnector {
         String token = qpu.getProvider().getSecretKey();
         QiskitRequest request = new QiskitRequest(algorithmImplementationURL, qpu.getName(), parameters, token);
 
-        try
-        {
+        try {
             // Transpile the given algorithm implementation using Qiskit service
             ResponseEntity<CircuitInformation> response = restTemplate.postForEntity(transpileAPIEndpoint, request, CircuitInformation.class);
 
             // Check if the Qiskit service was successful
-            if (response.getStatusCode().is2xxSuccessful())
-            {
+            if (response.getStatusCode().is2xxSuccessful()) {
                 LOG.debug("Circuit transpiled using Qiskit Service.");
                 return response.getBody();
-            }
-            else if (response.getStatusCode().is4xxClientError())
-            {
+            } else if (response.getStatusCode().is4xxClientError()) {
                 LOG.error(String.format("Qiskit Service rejected request (HTTP %d)", response.getStatusCodeValue()));
-            }
-            else if (response.getStatusCode().is5xxServerError())
-            {
+            } else if (response.getStatusCode().is5xxServerError()) {
                 LOG.error(String.format("Internal Qiskit Service error (HTTP %d)", response.getStatusCodeValue()));
             }
-        }
-        catch (RestClientException e)
-        {
+        } catch (RestClientException e) {
             LOG.error("Connection to Qiskit Service failed.");
         }
 

@@ -30,7 +30,7 @@ import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
-import org.planqk.nisq.analyzer.core.services.QpuService;
+import org.planqk.nisq.analyzer.core.repository.QpuRepository;
 import org.planqk.nisq.analyzer.core.services.SdkService;
 import org.planqk.nisq.analyzer.core.utils.RestUtils;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
@@ -67,26 +67,26 @@ public class ImplementationController {
     final private static Logger LOG = LoggerFactory.getLogger(ImplementationController.class);
     private final NisqAnalyzerControlService controlService;
     private final ImplementationRepository implementationRepository;
-    private final QpuService qpuService;
+    private final QpuRepository qpuRepository;
     private final SdkService sdkService;
 
     public ImplementationController(ImplementationRepository implementationRepository,
-                                    QpuService qpuService,
+                                    QpuRepository qpuRepository,
                                     SdkService sdkService,
                                     NisqAnalyzerControlService controlService) {
         this.implementationRepository = implementationRepository;
-        this.qpuService = qpuService;
+        this.qpuRepository = qpuRepository;
         this.sdkService = sdkService;
         this.controlService = controlService;
     }
 
     @GetMapping("/")
-    public HttpEntity<ImplementationListDto> getImplementations(@RequestParam Long algoId) {
+    public HttpEntity<ImplementationListDto> getImplementations(@RequestParam(required = false) Long algoId) {
         LOG.debug("Get to retrieve all implementations received.");
         ImplementationListDto dtoList = new ImplementationListDto();
 
         // add all available implementations to the response
-        for (Implementation impl : implementationRepository.findAll(RestUtils.getAllPageable())) {
+        for (Implementation impl : implementationRepository.findAll()) {
             // skip impl if query parameter is defined and algo id does not match
             if (Objects.nonNull(algoId) && !impl.getImplementedAlgorithm().equals(algoId)) {
                 continue;
@@ -233,7 +233,7 @@ public class ImplementationController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        Optional<Qpu> qpuOptional = qpuService.findById(executionRequest.getQpuId());
+        Optional<Qpu> qpuOptional = qpuRepository.findById(executionRequest.getQpuId());
         if (!qpuOptional.isPresent()) {
             LOG.error("Unable to retrieve qpu with id {} form the repository.", executionRequest.getQpuId());
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

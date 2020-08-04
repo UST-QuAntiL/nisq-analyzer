@@ -27,7 +27,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Input or output parameter for an {@link AlgorOrImpl}.
+ * Input or output parameter for an {@link Implementation}.
  */
 @Entity
 @AllArgsConstructor

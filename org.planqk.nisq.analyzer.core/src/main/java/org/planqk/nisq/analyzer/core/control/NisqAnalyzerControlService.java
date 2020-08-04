@@ -43,8 +43,8 @@ import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
+import org.planqk.nisq.analyzer.core.repository.QpuRepository;
 import org.planqk.nisq.analyzer.core.services.ExecutionResultService;
-import org.planqk.nisq.analyzer.core.services.QpuService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -63,17 +63,17 @@ public class NisqAnalyzerControlService {
 
     final private ExecutionResultService executionResultService;
 
-    final private QpuService qpuService;
+    final private QpuRepository qpuRepository;
 
     final private PrologQueryEngine prologQueryEngine;
 
     final private PrologKnowledgeBaseHandler prologKnowledgeBaseHandler;
 
-    public NisqAnalyzerControlService(List<SdkConnector> connectorList, ImplementationRepository implementationRepository, ExecutionResultService executionResultService, QpuService qpuService, PrologQueryEngine prologQueryEngine, PrologKnowledgeBaseHandler prologKnowledgeBaseHandler) {
+    public NisqAnalyzerControlService(List<SdkConnector> connectorList, ImplementationRepository implementationRepository, ExecutionResultService executionResultService, QpuRepository qpuRepository, PrologQueryEngine prologQueryEngine, PrologKnowledgeBaseHandler prologKnowledgeBaseHandler) {
         this.connectorList = connectorList;
         this.implementationRepository = implementationRepository;
         this.executionResultService = executionResultService;
-        this.qpuService = qpuService;
+        this.qpuRepository = qpuRepository;
         this.prologQueryEngine = prologQueryEngine;
         this.prologKnowledgeBaseHandler = prologKnowledgeBaseHandler;
     }
@@ -129,7 +129,7 @@ public class NisqAnalyzerControlService {
 
         // activate the current prolog files
         implementationRepository.findAll().stream().map(HasId::getId).forEach(id -> prologKnowledgeBaseHandler.activatePrologFile(id.toString()));
-        qpuService.findAll().stream().map(HasId::getId).forEach(id -> prologKnowledgeBaseHandler.activatePrologFile(id.toString()));
+        qpuRepository.findAll().stream().map(HasId::getId).forEach(id -> prologKnowledgeBaseHandler.activatePrologFile(id.toString()));
 
         // check all implementation if they can handle the given set of input parameters
         List<Implementation> implementations = implementationRepository.findByImplementedAlgorithm(algorithm);
@@ -156,7 +156,7 @@ public class NisqAnalyzerControlService {
             }
 
             List<Qpu> qpuCandidates = suitableQpuIds.stream()
-                    .map(qpuService::findById)
+                    .map(qpuRepository::findById)
                     .filter(Optional::isPresent)
                     .map(Optional::get).collect(Collectors.toList());
             LOG.debug("Filtering based on estimates returned {} QPU candidate(s).", qpuCandidates.size());
@@ -248,10 +248,10 @@ public class NisqAnalyzerControlService {
                 LOG.debug("Rebuild prolog file for implementation {}", impl.getName());
             }
         }
-        if (qpuService.findAll().isEmpty()) {
+        if (qpuRepository.findAll().isEmpty()) {
             LOG.debug("No qpus found in database");
         }
-        for (Qpu qpu : qpuService.findAll()) {
+        for (Qpu qpu : qpuRepository.findAll()) {
             if (!prologKnowledgeBaseHandler.doesPrologFileExist(qpu.getId().toString())) {
                 List<String> sdkNames = qpu.getSupportedSdks().stream().map(Sdk::getName).collect(Collectors.toList());
                 prologFactUpdater.handleQpuInsertion(qpu.getId(), qpu.getQubitCount(), sdkNames, qpu.getT1(), qpu.getMaxGateTime());
