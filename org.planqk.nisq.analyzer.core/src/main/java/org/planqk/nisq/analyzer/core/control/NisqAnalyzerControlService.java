@@ -131,7 +131,6 @@ public class NisqAnalyzerControlService {
         LOG.debug("Performing implementation and QPU selection for algorithm with Id: {}", algorithm);
         List<AnalysisResult> analysisResult = new ArrayList<>();
 
-        // rebuild the prolog files, in case the prolog files aren't in temp folder
         rebuildPrologFiles();
 
         // activate the current prolog files
@@ -282,7 +281,8 @@ public class NisqAnalyzerControlService {
      * @return <code>true</code> if all required parameters are contained in the provided parameters, <code>false</code>
      * otherwise
      */
-    private boolean parametersAvailable(Set<Parameter> requiredParameters, Map<String, String> providedParameters) {
+    private boolean parametersAvailable
+    (Set<Parameter> requiredParameters, Map<String, String> providedParameters) {
         LOG.debug("Checking if {} required parameters are available in the input map with {} provided parameters!", requiredParameters.size(), providedParameters.size());
         return requiredParameters.stream().allMatch(param -> providedParameters.containsKey(param.getName()));
     }
