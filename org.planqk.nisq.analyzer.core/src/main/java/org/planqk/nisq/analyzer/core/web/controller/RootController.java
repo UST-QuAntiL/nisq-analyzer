@@ -25,8 +25,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.Constants;
-import org.planqk.nisq.analyzer.core.control.AnalysisResult;
+import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.requests.SelectionRequest;
@@ -121,6 +123,9 @@ public class RootController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("No prolog engine accessible from the server. Selection not possible!");
         }
 
-        return new ResponseEntity<>(analysisResults, HttpStatus.OK);
+        AnalysisResultListDto analysisResultListDto = new AnalysisResultListDto();
+        analysisResultListDto.add(analysisResults.stream().map(analysisResult -> AnalysisResultDto.Converter.convert(analysisResult)).collect(Collectors.toList()));
+
+        return new ResponseEntity<>(analysisResultListDto, HttpStatus.OK);
     }
 }

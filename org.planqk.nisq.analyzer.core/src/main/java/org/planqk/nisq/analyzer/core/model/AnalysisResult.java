@@ -17,12 +17,10 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.control;
+package org.planqk.nisq.analyzer.core.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.planqk.nisq.analyzer.core.model.Implementation;
-import org.planqk.nisq.analyzer.core.model.Qpu;
 
 /**
  * Object to represent the result of a analysis for a certain qpu and implementation
@@ -40,4 +38,8 @@ public class AnalysisResult {
     int analysedDepth;
 
     int analysedWidth;
+
+    public boolean getEstimate() {
+        return estimate;
+    }
 }

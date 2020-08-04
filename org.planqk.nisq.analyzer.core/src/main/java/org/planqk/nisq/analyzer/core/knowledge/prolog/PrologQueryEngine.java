@@ -155,7 +155,7 @@ public class PrologQueryEngine {
 
         // determine the suited QPUs for the implementation and the width/depth through the Prolog knowledge base
         String qpuVariable = "Qpu";
-        String query = "executableOnQpu(" + requiredQubits + "," + circuitDepth + ",\"" + implementationId + "\"," + qpuVariable + ").";
+        String query = "executableOnQpu(" + requiredQubits + "," + circuitDepth + ",'" + implementationId + "'," + qpuVariable + ").";
         LOG.debug("Executing the following query to determine the suitable QPUs: {}", query);
         Map<String, Term>[] solutions = getSolutions(query);
 
@@ -165,8 +165,11 @@ public class PrologQueryEngine {
             for (Map<String, Term> solution : solutions) {
                 if (Objects.nonNull(solution.get(qpuVariable))) {
                     LOG.debug("Found solution: {}", solution.get(qpuVariable).name());
-                    //suitableQPUs.add(solution.get(qpuVariable).name());
-                    // TODO
+                    try {
+                        suitableQPUs.add(UUID.fromString(solution.get(qpuVariable).name()));
+                    } catch (IllegalArgumentException e) {
+                        LOG.error("Unable to parse result to UUID!");
+                    }
                 }
             }
         }

@@ -35,6 +35,7 @@ import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologKnowledgeBaseHandler;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologQueryEngine;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologUtility;
+import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.HasId;
