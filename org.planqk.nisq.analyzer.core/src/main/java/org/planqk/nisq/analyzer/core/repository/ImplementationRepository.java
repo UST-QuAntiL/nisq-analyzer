@@ -21,7 +21,6 @@ package org.planqk.nisq.analyzer.core.repository;
 
 import java.util.List;
 
-import org.planqk.nisq.analyzer.core.model.Algorithm;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -33,7 +32,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 @RepositoryRestResource(exported = false)
 public interface ImplementationRepository extends JpaRepository<Implementation, Long> {
 
-    List<Implementation> findByImplementedAlgorithm(Algorithm implementedAlgorithm);
+    List<Implementation> findByImplementedAlgorithm(Long implementedAlgorithm);
 
     List<Implementation> findBySdk(Sdk sdk);
 }

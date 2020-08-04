@@ -22,7 +22,6 @@ package org.planqk.nisq.analyzer.core.services;
 import java.util.List;
 import java.util.Optional;
 
-import org.planqk.nisq.analyzer.core.model.Algorithm;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,5 +36,5 @@ public interface ImplementationService {
 
     Optional<Implementation> findById(Long algoId);
 
-    List<Implementation> findByImplementedAlgorithm(Algorithm algorithm);
+    List<Implementation> findByImplementedAlgorithm(Long algorithm);
 }

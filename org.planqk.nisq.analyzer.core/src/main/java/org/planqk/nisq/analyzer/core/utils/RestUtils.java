@@ -25,9 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.model.Parameter;
-import org.planqk.nisq.analyzer.core.web.controller.AlgorithmController;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +37,7 @@ import org.springframework.data.domain.Pageable;
  */
 public class RestUtils {
 
-    final private static Logger LOG = LoggerFactory.getLogger(AlgorithmController.class);
+    final private static Logger LOG = LoggerFactory.getLogger(RestUtils.class);
 
     /**
      * Check if the given lists of input and output parameters are consistent and contain the required attributes to
@@ -100,12 +98,5 @@ public class RestUtils {
      */
     public static Pageable getAllPageable() {
         return Pageable.unpaged();
-    }
-
-    /**
-     * Returns default Paginationparams
-     */
-    public static Pageable getDefaultPageable() {
-        return PageRequest.of(Constants.DEFAULT_PAGE_NUMBER, Constants.DEFAULT_PAGE_SIZE);
     }
 }

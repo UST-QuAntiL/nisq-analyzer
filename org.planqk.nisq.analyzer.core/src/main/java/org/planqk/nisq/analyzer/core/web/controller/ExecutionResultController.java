@@ -24,8 +24,8 @@ import java.util.Optional;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
+import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
 import org.planqk.nisq.analyzer.core.services.ExecutionResultService;
-import org.planqk.nisq.analyzer.core.services.ImplementationService;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultListDto;
 import org.slf4j.Logger;
@@ -45,24 +45,24 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
  * Controller to retrieve the results of quantum algorithm implementation executions.
  */
 @RestController
-@RequestMapping("/" + Constants.ALGORITHMS + "/{algoId}/" + Constants.IMPLEMENTATIONS + "/{implId}/" + Constants.RESULTS)
+@RequestMapping("/" + Constants.IMPLEMENTATIONS + "/{implId}/" + Constants.RESULTS)
 public class ExecutionResultController {
 
     private final static Logger LOG = LoggerFactory.getLogger(ExecutionResultController.class);
 
-    private final ImplementationService implementationService;
+    private final ImplementationRepository implementationRepository;
     private final ExecutionResultService executionResultService;
 
-    public ExecutionResultController(ImplementationService implementationService, ExecutionResultService executionResultService) {
-        this.implementationService = implementationService;
+    public ExecutionResultController(ImplementationRepository implementationRepository, ExecutionResultService executionResultService) {
+        this.implementationRepository = implementationRepository;
         this.executionResultService = executionResultService;
     }
 
     @GetMapping("/")
-    public HttpEntity<ExecutionResultListDto> getExecutionResults(@PathVariable Long algoId, @PathVariable Long implId) {
+    public HttpEntity<ExecutionResultListDto> getExecutionResults(@PathVariable Long implId) {
         LOG.debug("Get to retrieve all execution results for impl with id: {}.", implId);
 
-        Optional<Implementation> implementationOptional = implementationService.findById(implId);
+        Optional<Implementation> implementationOptional = implementationRepository.findById(implId);
         if (!implementationOptional.isPresent()) {
             LOG.error("Unable to retrieve implementation with id {} form the repository.", implId);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -71,16 +71,16 @@ public class ExecutionResultController {
         ExecutionResultListDto dtoList = new ExecutionResultListDto();
         for (ExecutionResult executionResult : executionResultService.findByImplementation(implementationOptional.get())) {
             dtoList.add(createExecutionResultDto(executionResult));
-            dtoList.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(algoId, implId, executionResult.getId()))
+            dtoList.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(implId, executionResult.getId()))
                     .withRel(executionResult.getId().toString()));
         }
 
-        dtoList.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResults(algoId, implId)).withSelfRel());
+        dtoList.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResults(implId)).withSelfRel());
         return new ResponseEntity<>(dtoList, HttpStatus.OK);
     }
 
     @GetMapping("/{resultId}")
-    public HttpEntity<ExecutionResultDto> getExecutionResult(@PathVariable Long algoId, @PathVariable Long implId, @PathVariable Long resultId) {
+    public HttpEntity<ExecutionResultDto> getExecutionResult(@PathVariable Long implId, @PathVariable Long resultId) {
         LOG.debug("Get to retrieve execution result with id: {}.", resultId);
 
         Optional<ExecutionResult> executionResultOptional = executionResultService.findById(resultId);
@@ -102,10 +102,10 @@ public class ExecutionResultController {
     private ExecutionResultDto createExecutionResultDto(ExecutionResult executionResult) {
         ExecutionResultDto dto = ExecutionResultDto.Converter.convert(executionResult);
         dto.add(linkTo(methodOn(ExecutionResultController.class)
-                .getExecutionResult(executionResult.getExecutedImplementation().getImplementedAlgorithm().getId(), executionResult.getExecutedImplementation().getId(), executionResult.getId()))
+                .getExecutionResult(executionResult.getExecutedImplementation().getId(), executionResult.getId()))
                 .withSelfRel());
         dto.add(linkTo(methodOn(ImplementationController.class)
-                .getImplementation(executionResult.getExecutedImplementation().getImplementedAlgorithm().getId(), executionResult.getExecutedImplementation().getId()))
+                .getImplementation(executionResult.getExecutedImplementation().getId()))
                 .withRel(Constants.EXECUTED_ALGORITHM_LINK));
         dto.add(linkTo(methodOn(QpuController.class)
                 .getQpu(executionResult.getExecutingQpu().getProvider().getId(), executionResult.getExecutingQpu().getId()))

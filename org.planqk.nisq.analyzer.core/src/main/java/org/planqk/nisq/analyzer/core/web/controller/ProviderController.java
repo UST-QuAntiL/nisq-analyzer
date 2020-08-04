@@ -24,8 +24,7 @@ import java.util.Optional;
 
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.model.Provider;
-import org.planqk.nisq.analyzer.core.services.ProviderService;
-import org.planqk.nisq.analyzer.core.utils.RestUtils;
+import org.planqk.nisq.analyzer.core.repository.ProviderRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ProviderDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ProviderListDto;
 import org.slf4j.Logger;
@@ -39,7 +38,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -54,27 +52,25 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class ProviderController {
 
     final private static Logger LOG = LoggerFactory.getLogger(ProviderController.class);
-    private ProviderService providerService;
+    private ProviderRepository providerRepository;
 
-    public ProviderController(ProviderService providerService) {
-        this.providerService = providerService;
+    public ProviderController(ProviderRepository providerRepository) {
+        this.providerRepository = providerRepository;
     }
 
     @GetMapping("/")
-    public HttpEntity<ProviderListDto> getProviders(@RequestParam(required = false) Integer page,
-                                                    @RequestParam(required = false) Integer size) {
+    public HttpEntity<ProviderListDto> getProviders() {
         LOG.debug("Get to retrieve all providers received.");
         ProviderListDto providerListDto = new ProviderListDto();
 
         // add all available providers to the response
-        for (Provider provider : providerService.findAll(RestUtils.getPageableFromRequestParams(page, size))) {
+        for (Provider provider : providerRepository.findAll()) {
             providerListDto.add(createProviderDto(provider));
             providerListDto.add(linkTo(methodOn(ProviderController.class).getProvider(provider.getId())).
                     withRel(provider.getId().toString()));
         }
 
-        providerListDto.add(linkTo(methodOn(ProviderController.class).getProviders(Constants.DEFAULT_PAGE_NUMBER,
-                Constants.DEFAULT_PAGE_SIZE)).withSelfRel());
+        providerListDto.add(linkTo(methodOn(ProviderController.class).getProviders()).withSelfRel());
         return new ResponseEntity<>(providerListDto, HttpStatus.OK);
     }
 
@@ -82,7 +78,7 @@ public class ProviderController {
     public HttpEntity<ProviderDto> getProvider(@PathVariable Long id) {
         LOG.debug("Get to retrieve provider with id: {}.", id);
 
-        Optional<Provider> providerOptional = providerService.findById(id);
+        Optional<Provider> providerOptional = providerRepository.findById(id);
         if (!providerOptional.isPresent()) {
             LOG.error("Unable to retrieve provider with id {} from the repository.", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -101,7 +97,7 @@ public class ProviderController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        Provider provider = providerService.save(ProviderDto.Converter.convert(providerDto));
+        Provider provider = providerRepository.save(ProviderDto.Converter.convert(providerDto));
         return new ResponseEntity<>(createProviderDto(provider), HttpStatus.CREATED);
     }
 
@@ -114,8 +110,7 @@ public class ProviderController {
     private ProviderDto createProviderDto(Provider provider) {
         ProviderDto providerDto = ProviderDto.Converter.convert(provider);
         providerDto.add(linkTo(methodOn(ProviderController.class).getProvider(provider.getId())).withSelfRel());
-        providerDto.add(linkTo(methodOn(QpuController.class).getQpus(provider.getId(), Constants.DEFAULT_PAGE_NUMBER,
-                Constants.DEFAULT_PAGE_SIZE)).withRel(Constants.QPUS));
+        providerDto.add(linkTo(methodOn(QpuController.class).getQpus(provider.getId())).withRel(Constants.QPUS));
         return providerDto;
     }
 }

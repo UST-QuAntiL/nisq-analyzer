@@ -24,11 +24,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.planqk.nisq.analyzer.core.model.Algorithm;
 import org.planqk.nisq.analyzer.core.model.Implementation;
-import org.planqk.nisq.analyzer.core.model.ProgrammingLanguage;
 import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.lang.NonNull;
@@ -37,6 +36,7 @@ import org.springframework.lang.NonNull;
  * Data transfer object for the model class Implementation ({@link org.planqk.nisq.analyzer.core.model.Implementation}).
  */
 @ToString(callSuper = true, includeFieldNames = true)
+@NoArgsConstructor
 public class ImplementationDto extends RepresentationModel<ImplementationDto> {
 
     @Getter
@@ -49,7 +49,7 @@ public class ImplementationDto extends RepresentationModel<ImplementationDto> {
 
     @Getter
     @Setter
-    private ProgrammingLanguage programmingLanguage;
+    private Long implementedAlgorithm;
 
     @Getter
     @Setter
@@ -81,9 +81,6 @@ public class ImplementationDto extends RepresentationModel<ImplementationDto> {
     @Setter
     private ParameterListDto outputParameters;
 
-    public ImplementationDto() {
-    }
-
     @NonNull
     public ParameterListDto getInputParameters() {
         if (Objects.isNull(inputParameters)) {
@@ -106,7 +103,7 @@ public class ImplementationDto extends RepresentationModel<ImplementationDto> {
             final ImplementationDto dto = new ImplementationDto();
             dto.setId(object.getId());
             dto.setName(object.getName());
-            dto.setProgrammingLanguage(object.getProgrammingLanguage());
+            dto.setImplementedAlgorithm(object.getImplementedAlgorithm());
             dto.setSelectionRule(object.getSelectionRule());
             dto.setWidthRule(object.getWidthRule());
             dto.setDepthRule(object.getDepthRule());
@@ -126,16 +123,15 @@ public class ImplementationDto extends RepresentationModel<ImplementationDto> {
             return dto;
         }
 
-        public static Implementation convert(final ImplementationDto object, final Sdk sdk, final Algorithm algo) {
+        public static Implementation convert(final ImplementationDto object, final Sdk sdk) {
             Implementation implementation = new Implementation();
             implementation.setName(object.getName());
-            implementation.setProgrammingLanguage(object.getProgrammingLanguage());
+            implementation.setImplementedAlgorithm(object.getImplementedAlgorithm());
             implementation.setSelectionRule(object.getSelectionRule());
             implementation.setWidthRule(object.getWidthRule());
             implementation.setDepthRule(object.getDepthRule());
             implementation.setFileLocation(object.getFileLocation());
             implementation.setSdk(sdk);
-            implementation.setImplementedAlgorithm(algo);
             implementation.setInputParameters(object.getInputParameters().getParameters().stream()
                     .map(ParameterDto.Converter::convert)
                     .collect(Collectors.toList()));

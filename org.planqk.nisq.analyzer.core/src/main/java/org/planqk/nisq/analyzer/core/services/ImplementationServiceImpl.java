@@ -24,7 +24,6 @@ import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import org.planqk.nisq.analyzer.core.listener.EntityCreatedEvent;
-import org.planqk.nisq.analyzer.core.model.Algorithm;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
 import org.springframework.context.ApplicationEventPublisher;
@@ -65,7 +64,7 @@ public class ImplementationServiceImpl implements ImplementationService {
     }
 
     @Override
-    public List<Implementation> findByImplementedAlgorithm(Algorithm algorithm) {
+    public List<Implementation> findByImplementedAlgorithm(Long algorithm) {
         return implementationRepository.findByImplementedAlgorithm(algorithm);
     }
 }

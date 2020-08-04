@@ -45,9 +45,9 @@ public class RootController {
 
         // add links to sub-controllers
         responseEntity.add(linkTo(methodOn(RootController.class).root()).withSelfRel());
-        responseEntity.add(linkTo(methodOn(AlgorithmController.class).getAlgorithms(Constants.DEFAULT_PAGE_NUMBER, Constants.DEFAULT_PAGE_SIZE)).withRel(Constants.ALGORITHMS));
-        responseEntity.add(linkTo(methodOn(ProviderController.class).getProviders(Constants.DEFAULT_PAGE_NUMBER, Constants.DEFAULT_PAGE_SIZE)).withRel(Constants.PROVIDERS));
-        responseEntity.add(linkTo(methodOn(SdkController.class).getSdks(Constants.DEFAULT_PAGE_NUMBER, Constants.DEFAULT_PAGE_SIZE)).withRel(Constants.SDKS));
+        responseEntity.add(linkTo(methodOn(ImplementationController.class).getImplementations(null)).withRel(Constants.IMPLEMENTATIONS));
+        responseEntity.add(linkTo(methodOn(ProviderController.class).getProviders()).withRel(Constants.PROVIDERS));
+        responseEntity.add(linkTo(methodOn(SdkController.class).getSdks()).withRel(Constants.SDKS));
 
         return new ResponseEntity<>(responseEntity, HttpStatus.OK);
     }

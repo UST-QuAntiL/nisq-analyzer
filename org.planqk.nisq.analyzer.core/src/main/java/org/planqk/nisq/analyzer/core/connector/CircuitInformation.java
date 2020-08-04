@@ -36,6 +36,4 @@ public class CircuitInformation {
     @Getter
     @Setter
     private int circuitWidth;
-
-    // TODO: add further important circuit properites
 }
