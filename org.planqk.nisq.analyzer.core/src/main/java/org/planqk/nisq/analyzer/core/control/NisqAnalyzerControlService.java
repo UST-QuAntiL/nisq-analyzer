@@ -41,7 +41,6 @@ import org.planqk.nisq.analyzer.core.model.HasId;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.Qpu;
-import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuRepository;
@@ -69,7 +68,12 @@ public class NisqAnalyzerControlService {
 
     final private PrologKnowledgeBaseHandler prologKnowledgeBaseHandler;
 
-    public NisqAnalyzerControlService(List<SdkConnector> connectorList, ImplementationRepository implementationRepository, ExecutionResultRepository executionResultRepository, QpuRepository qpuRepository, PrologQueryEngine prologQueryEngine, PrologKnowledgeBaseHandler prologKnowledgeBaseHandler) {
+    public NisqAnalyzerControlService(List<SdkConnector> connectorList,
+                                      ImplementationRepository implementationRepository,
+                                      ExecutionResultRepository executionResultRepository,
+                                      QpuRepository qpuRepository,
+                                      PrologQueryEngine prologQueryEngine,
+                                      PrologKnowledgeBaseHandler prologKnowledgeBaseHandler) {
         this.connectorList = connectorList;
         this.implementationRepository = implementationRepository;
         this.executionResultRepository = executionResultRepository;
@@ -245,7 +249,7 @@ public class NisqAnalyzerControlService {
         }
         for (Implementation impl : implementationRepository.findAll()) {
             if (!prologKnowledgeBaseHandler.doesPrologFileExist(impl.getId().toString())) {
-                prologFactUpdater.handleImplementationInsertion(impl.getId(), impl.getSdk().getName(), impl.getImplementedAlgorithm(), impl.getSelectionRule(), impl.getWidthRule(), impl.getDepthRule());
+                prologFactUpdater.handleImplementationInsertion(impl);
                 LOG.debug("Rebuild prolog file for implementation {}", impl.getName());
             }
         }
@@ -254,8 +258,7 @@ public class NisqAnalyzerControlService {
         }
         for (Qpu qpu : qpuRepository.findAll()) {
             if (!prologKnowledgeBaseHandler.doesPrologFileExist(qpu.getId().toString())) {
-                List<String> sdkNames = qpu.getSupportedSdks().stream().map(Sdk::getName).collect(Collectors.toList());
-                prologFactUpdater.handleQpuInsertion(qpu.getId(), qpu.getQubitCount(), sdkNames, qpu.getT1(), qpu.getMaxGateTime());
+                prologFactUpdater.handleQpuInsertion(qpu);
                 LOG.debug("Rebuild prolog file for qpu {}", qpu.getName());
             }
         }

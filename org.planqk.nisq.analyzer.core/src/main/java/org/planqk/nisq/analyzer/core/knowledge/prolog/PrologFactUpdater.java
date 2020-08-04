@@ -22,7 +22,11 @@ package org.planqk.nisq.analyzer.core.knowledge.prolog;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
+import org.planqk.nisq.analyzer.core.model.Implementation;
+import org.planqk.nisq.analyzer.core.model.Qpu;
+import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -46,19 +50,19 @@ public class PrologFactUpdater {
     /**
      * Update the Prolog knowledge base with the required facts for a newly added implementation.
      *
-     * @param id                the id of the implementation that is updated in the repository
-     * @param usedSdk           the used SDK in the updated implementation
-     * @param implementedAlgoId the id of the implemented algorithm
-     * @param selectionRule     the selection rule defined in the inserted implementation
-     * @param widthRule         the width rule defined in the inserted implementation
-     * @param depthRule         the depth rule defined in the inserted implementation
+     * @param implementation the added implementation
      */
-    public void handleImplementationInsertion(Long id, String usedSdk, Long implementedAlgoId, String selectionRule, String widthRule, String depthRule) {
-        LOG.debug("Handling insertion of implementation with Id {} in Prolog knowledge base.", id);
+    public void handleImplementationInsertion(Implementation implementation) {
+        LOG.debug("Handling insertion of implementation with Id {} in Prolog knowledge base.", implementation.getId());
 
-        String prologContent = createImplementationFacts(id, usedSdk.toLowerCase(), implementedAlgoId, selectionRule, widthRule, depthRule);
+        String prologContent = createImplementationFacts(implementation.getId(),
+                implementation.getSdk().getName().toLowerCase(),
+                implementation.getImplementedAlgorithm(),
+                implementation.getSelectionRule(),
+                implementation.getWidthRule(),
+                implementation.getDepthRule());
         try {
-            prologKnowledgeBaseHandler.persistPrologFile(prologContent, id.toString());
+            prologKnowledgeBaseHandler.persistPrologFile(prologContent, implementation.getId().toString());
         } catch (IOException e) {
             LOG.error("Unable to store prolog file to add new facts after implementation insertion: {}", e.getMessage());
         }
@@ -67,18 +71,18 @@ public class PrologFactUpdater {
     /**
      * Update the Prolog knowledge base with the required facts for a newly added QPU.
      *
-     * @param id            the id of the QPU that is added to the repository
-     * @param qubitCount    the number of provided qubits of the QPU that is added to the repository
-     * @param t1Time        the T1 time for the given QPU
-     * @param maxGateTime   the maximum gate time for the given QPU
-     * @param supportedSdks the list of supported SDKs of the QPU that is added to the repository
+     * @param qpu the added QPU
      */
-    public void handleQpuInsertion(Long id, int qubitCount, List<String> supportedSdks, float t1Time, float maxGateTime) {
-        LOG.debug("Handling insertion of QPU with Id {} in Prolog knowledge base.", id);
+    public void handleQpuInsertion(Qpu qpu) {
+        LOG.debug("Handling insertion of QPU with Id {} in Prolog knowledge base.", qpu.getId());
 
-        String prologContent = createQpuFacts(id, qubitCount, supportedSdks, t1Time, maxGateTime);
+        String prologContent = createQpuFacts(qpu.getId(),
+                qpu.getQubitCount(),
+                qpu.getSupportedSdks().stream().map(Sdk::getName).collect(Collectors.toList()),
+                qpu.getT1(),
+                qpu.getMaxGateTime());
         try {
-            prologKnowledgeBaseHandler.persistPrologFile(prologContent, id.toString());
+            prologKnowledgeBaseHandler.persistPrologFile(prologContent, qpu.getId().toString());
         } catch (IOException e) {
             LOG.error("Unable to store prolog file to add new facts after QPU insertion: {}", e.getMessage());
         }
@@ -88,23 +92,23 @@ public class PrologFactUpdater {
      * Update the Prolog knowledge base with the required facts for an updated implementation and delete the outdated
      * facts.
      *
-     * @param id                the id of the implementation that is updated in the repository
-     * @param usedSdk           the used SDK in the updated implementation
-     * @param implementedAlgoId the id of the implemented algorithm
-     * @param selectionRule     the selection rule defined in the updated implementation
-     * @param widthRule         the width rule defined in the updated implementation
-     * @param depthRule         the depth rule defined in the updated implementation
+     * @param implementation the added implementation
      */
-    public void handleImplementationUpdate(Long id, String usedSdk, Long implementedAlgoId, String selectionRule, String widthRule, String depthRule) {
-        LOG.debug("Handling update of implementation with Id {} in Prolog knowledge base.", id);
+    public void handleImplementationUpdate(Implementation implementation) {
+        LOG.debug("Handling update of implementation with Id {} in Prolog knowledge base.", implementation.getId());
 
         // deactivate and delete the Prolog file with the old facts
-        prologKnowledgeBaseHandler.deletePrologFile(id.toString());
+        prologKnowledgeBaseHandler.deletePrologFile(implementation.toString());
 
         // create and activate the Prolog file with the new facts
-        String prologContent = createImplementationFacts(id, usedSdk.toLowerCase(), implementedAlgoId, selectionRule, widthRule, depthRule);
+        String prologContent = createImplementationFacts(implementation.getId(),
+                implementation.getSdk().getName().toLowerCase(),
+                implementation.getImplementedAlgorithm(),
+                implementation.getSelectionRule(),
+                implementation.getWidthRule(),
+                implementation.getDepthRule());
         try {
-            prologKnowledgeBaseHandler.persistPrologFile(prologContent, id.toString());
+            prologKnowledgeBaseHandler.persistPrologFile(prologContent, implementation.toString());
         } catch (IOException e) {
             LOG.error("Unable to store prolog file to add new facts after implementation update: {}", e.getMessage());
         }

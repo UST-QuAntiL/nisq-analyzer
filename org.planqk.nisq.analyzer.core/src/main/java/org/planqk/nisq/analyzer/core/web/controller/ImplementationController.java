@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
+import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Qpu;
@@ -69,15 +70,18 @@ public class ImplementationController {
     private final ImplementationRepository implementationRepository;
     private final QpuRepository qpuRepository;
     private final SdkRepository sdkRepository;
+    private final PrologFactUpdater prologFactUpdater;
 
     public ImplementationController(ImplementationRepository implementationRepository,
                                     QpuRepository qpuRepository,
                                     SdkRepository sdkRepository,
-                                    NisqAnalyzerControlService controlService) {
+                                    NisqAnalyzerControlService controlService,
+                                    PrologFactUpdater prologFactUpdater) {
         this.implementationRepository = implementationRepository;
         this.qpuRepository = qpuRepository;
         this.sdkRepository = sdkRepository;
         this.controlService = controlService;
+        this.prologFactUpdater = prologFactUpdater;
     }
 
     @GetMapping("/")
@@ -143,6 +147,7 @@ public class ImplementationController {
         // store and return implementation
         Implementation implementation =
                 implementationRepository.save(ImplementationDto.Converter.convert(impl, sdkOptional.get()));
+        prologFactUpdater.handleImplementationInsertion(implementation);
         return new ResponseEntity<>(createImplementationDto(implementation), HttpStatus.CREATED);
     }
 
@@ -260,6 +265,8 @@ public class ImplementationController {
         ImplementationDto dto = ImplementationDto.Converter.convert(implementation);
         dto.add(linkTo(methodOn(ImplementationController.class).getImplementation(implementation.getId())).withSelfRel());
         dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResults(implementation.getId())).withRel(Constants.RESULTS_LINK));
+        dto.add(linkTo(methodOn(ImplementationController.class).getInputParameters(implementation.getId())).withRel(Constants.INPUT_PARAMS));
+        dto.add(linkTo(methodOn(ImplementationController.class).getOutputParameters(implementation.getId())).withRel(Constants.OUTPUT_PARAMS));
 
         Sdk usedSdk = implementation.getSdk();
         if (Objects.nonNull(usedSdk)) {

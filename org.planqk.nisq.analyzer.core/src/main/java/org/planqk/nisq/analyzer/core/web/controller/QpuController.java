@@ -25,6 +25,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.planqk.nisq.analyzer.core.Constants;
+import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.planqk.nisq.analyzer.core.repository.QpuRepository;
@@ -59,10 +60,12 @@ public class QpuController {
     private final static Logger LOG = LoggerFactory.getLogger(QpuController.class);
     private final QpuRepository qpuRepository;
     private final SdkRepository sdkRepository;
+    private final PrologFactUpdater prologFactUpdater;
 
-    public QpuController(QpuRepository qpuRepository, SdkRepository sdkRepository) {
+    public QpuController(QpuRepository qpuRepository, SdkRepository sdkRepository, PrologFactUpdater prologFactUpdater) {
         this.qpuRepository = qpuRepository;
         this.sdkRepository = sdkRepository;
+        this.prologFactUpdater = prologFactUpdater;
     }
 
     @GetMapping("/")
@@ -119,6 +122,7 @@ public class QpuController {
 
         // store and return QPU
         Qpu qpu = qpuRepository.save(QpuDto.Converter.convert(qpuRequest, supportedSdks));
+        prologFactUpdater.handleQpuInsertion(qpu);
         return new ResponseEntity<>(createQpuDto(qpu), HttpStatus.OK);
     }
 

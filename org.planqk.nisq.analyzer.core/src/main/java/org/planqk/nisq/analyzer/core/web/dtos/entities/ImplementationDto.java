@@ -69,10 +69,6 @@ public class ImplementationDto extends RepresentationModel<ImplementationDto> {
 
     @Getter
     @Setter
-    private Object content;
-
-    @Getter
-    @Setter
     private URL fileLocation;
 
     @Setter
