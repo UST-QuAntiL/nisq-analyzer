@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
+import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologKnowledgeBaseHandler;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologQueryEngine;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologUtility;
@@ -41,6 +42,7 @@ import org.planqk.nisq.analyzer.core.model.HasId;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.Qpu;
+import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.planqk.nisq.analyzer.core.services.ExecutionResultService;
 import org.planqk.nisq.analyzer.core.services.ImplementationService;
 import org.planqk.nisq.analyzer.core.services.QpuService;
@@ -122,6 +124,8 @@ public class NisqAnalyzerControlService {
     public Map<Implementation, List<Qpu>> performSelection(Algorithm algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
         LOG.debug("Performing implementation and QPU selection for algorithm with Id: {}", algorithm.getId());
         Map<Implementation, List<Qpu>> resultPairs = new HashMap<>();
+        // rebuild the prolog files, in case the prolog files arent in temp folder
+        rebuildPrologFiles();
 
         // activate the current prolog files
         implementationService.findAll().stream().map(HasId::getId).forEach(id -> prologKnowledgeBaseHandler.activatePrologFile(id.toString()));
@@ -129,6 +133,7 @@ public class NisqAnalyzerControlService {
 
         // check all implementation if they can handle the given set of input parameters
         List<Implementation> implementations = implementationService.findByImplementedAlgorithm(algorithm);
+
         LOG.debug("Found {} implementations for the algorithm.", implementations.size());
         List<Implementation> executableImplementations = implementations.stream()
                 .filter(implementation -> prologQueryEngine.checkExecutability(implementation.getSelectionRule(), inputParameters))
@@ -226,5 +231,32 @@ public class NisqAnalyzerControlService {
         }
 
         return requiredParameters;
+    }
+
+    /**
+     * rebuild the prolog files for the implementations and qpus, if the app crashs or no prolog files are in temp
+     * folder.
+     */
+    private void rebuildPrologFiles() {
+        PrologFactUpdater prologFactUpdater = new PrologFactUpdater(prologKnowledgeBaseHandler);
+        if (implementationService.findAll().isEmpty()) {
+            LOG.debug("No implementations found in database");
+        }
+        for (Implementation impl : implementationService.findAll()) {
+            if (!prologKnowledgeBaseHandler.doesPrologFileExist(impl.getId().toString())) {
+                prologFactUpdater.handleImplementationInsertion(impl.getId(), impl.getSdk().getName(), impl.getImplementedAlgorithm().getId(), impl.getSelectionRule(), impl.getWidthRule(), impl.getDepthRule());
+                LOG.debug("Rebuild prolog file for implementation {}", impl.getName());
+            }
+        }
+        if (implementationService.findAll().isEmpty()) {
+            LOG.debug("No qpus found in database");
+        }
+        for (Qpu qpu : qpuService.findAll()) {
+            if (!prologKnowledgeBaseHandler.doesPrologFileExist(qpu.getId().toString())) {
+                List<String> sdkNames = qpu.getSupportedSdks().stream().map(Sdk::getName).collect(Collectors.toList());
+                prologFactUpdater.handleQpuInsertion(qpu.getId(), qpu.getQubitCount(), sdkNames, qpu.getT1(), qpu.getMaxGateTime());
+                LOG.debug("Rebuild prolog file for qpu {}", qpu.getName());
+            }
+        }
     }
 }
