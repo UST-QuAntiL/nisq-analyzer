@@ -126,7 +126,7 @@ public class NisqAnalyzerControlService {
      * them
      * @throws UnsatisfiedLinkError Is thrown if the jpl driver is not on the java class path
      */
-    public Map<Implementation, List<Qpu>> performSelection(Long algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
+    public Map<Implementation, List<Qpu>> performSelection(UUID algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
         LOG.debug("Performing implementation and QPU selection for algorithm with Id: {}", algorithm);
         Map<Implementation, List<Qpu>> resultPairs = new HashMap<>();
         // rebuild the prolog files, in case the prolog files arent in temp folder
@@ -220,7 +220,7 @@ public class NisqAnalyzerControlService {
      * @param algorithm the id of the algorithm to select an implementation for
      * @return the set of required parameters
      */
-    public Set<Parameter> getRequiredSelectionParameters(Long algorithm) {
+    public Set<Parameter> getRequiredSelectionParameters(UUID algorithm) {
         // add parameters from the algorithm
         Set<Parameter> requiredParameters = new HashSet<>();
 

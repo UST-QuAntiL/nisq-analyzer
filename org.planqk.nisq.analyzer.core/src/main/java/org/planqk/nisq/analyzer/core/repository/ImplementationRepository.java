@@ -33,7 +33,5 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 @RepositoryRestResource(exported = false)
 public interface ImplementationRepository extends JpaRepository<Implementation, UUID> {
 
-    List<Implementation> findByImplementedAlgorithm(Long implementedAlgorithm);
-
-    List<Implementation> findBySdk(Sdk sdk);
+    List<Implementation> findByImplementedAlgorithm(UUID implementedAlgorithm);
 }
