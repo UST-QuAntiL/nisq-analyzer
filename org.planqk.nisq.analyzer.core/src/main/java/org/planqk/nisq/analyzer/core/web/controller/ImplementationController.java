@@ -21,6 +21,7 @@ package org.planqk.nisq.analyzer.core.web.controller;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.Constants;
@@ -106,7 +107,7 @@ public class ImplementationController {
     }
 
     @GetMapping("/{implId}")
-    public HttpEntity<ImplementationDto> getImplementation(@PathVariable Long implId) {
+    public HttpEntity<ImplementationDto> getImplementation(@PathVariable UUID implId) {
         LOG.debug("Get to retrieve implementation with id: {}.", implId);
 
         Optional<Implementation> implementationOptional = implementationRepository.findById(implId);
@@ -152,7 +153,7 @@ public class ImplementationController {
     }
 
     @GetMapping("/{implId}/" + Constants.INPUT_PARAMS)
-    public HttpEntity<ParameterListDto> getInputParameters(@PathVariable Long implId) {
+    public HttpEntity<ParameterListDto> getInputParameters(@PathVariable UUID implId) {
         LOG.debug("Get to retrieve input parameters for implementation with id: {}.", implId);
 
         Optional<Implementation> implementationOptional = implementationRepository.findById(implId);
@@ -172,7 +173,7 @@ public class ImplementationController {
     }
 
     @GetMapping("/{implId}/" + Constants.OUTPUT_PARAMS)
-    public HttpEntity<ParameterListDto> getOutputParameters(@PathVariable Long implId) {
+    public HttpEntity<ParameterListDto> getOutputParameters(@PathVariable UUID implId) {
         LOG.debug("Get to retrieve output parameters for implementation with id: {}.", implId);
 
         Optional<Implementation> implementationOptional = implementationRepository.findById(implId);
@@ -192,7 +193,7 @@ public class ImplementationController {
     }
 
     @PostMapping("/{implId}/" + Constants.INPUT_PARAMS)
-    public HttpEntity<ParameterDto> addInputParameter(@PathVariable Long implId, @RequestBody ParameterDto parameterDto) {
+    public HttpEntity<ParameterDto> addInputParameter(@PathVariable UUID implId, @RequestBody ParameterDto parameterDto) {
         LOG.debug("Post to add input parameter on implementation with id: {}.", implId);
         Optional<Implementation> implementationOptional = implementationRepository.findById(implId);
         if (!implementationOptional.isPresent()) {
@@ -210,7 +211,7 @@ public class ImplementationController {
     }
 
     @PostMapping("/{implId}/" + Constants.OUTPUT_PARAMS)
-    public HttpEntity<ParameterDto> addOutputParameter(@PathVariable Long implId, @RequestBody ParameterDto parameterDto) {
+    public HttpEntity<ParameterDto> addOutputParameter(@PathVariable UUID implId, @RequestBody ParameterDto parameterDto) {
         LOG.debug("Post to add output parameter on implementation with id: {}.", implId);
         Optional<Implementation> implementationOptional = implementationRepository.findById(implId);
         if (!implementationOptional.isPresent()) {
@@ -228,7 +229,7 @@ public class ImplementationController {
     }
 
     @PostMapping("/{implId}/" + Constants.EXECUTION)
-    public HttpEntity<ExecutionResultDto> executeImplementation(@PathVariable Long implId,
+    public HttpEntity<ExecutionResultDto> executeImplementation(@PathVariable UUID implId,
                                                                 @RequestBody ExecutionRequest executionRequest) {
         LOG.debug("Post to execute implementation with Id: {}", implId);
 

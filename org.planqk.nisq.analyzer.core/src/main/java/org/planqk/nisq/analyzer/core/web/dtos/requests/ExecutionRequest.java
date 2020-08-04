@@ -19,6 +19,8 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.requests;
 
+import java.util.UUID;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,5 +31,5 @@ public class ExecutionRequest extends ParameterKeyValueDto {
 
     @Getter
     @Setter
-    private Long qpuId;
+    private UUID qpuId;
 }

@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
 import java.util.List;
+import java.util.UUID;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -36,7 +37,7 @@ public class QpuDto extends RepresentationModel<QpuDto> {
 
     @Getter
     @Setter
-    private Long id;
+    private UUID id;
 
     @Getter
     @Setter

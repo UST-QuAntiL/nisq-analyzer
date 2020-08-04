@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.repository;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Sdk;
@@ -30,7 +31,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
  * Repository to access {@link Implementation}s available in the data base with different queries.
  */
 @RepositoryRestResource(exported = false)
-public interface ImplementationRepository extends JpaRepository<Implementation, Long> {
+public interface ImplementationRepository extends JpaRepository<Implementation, UUID> {
 
     List<Implementation> findByImplementedAlgorithm(Long implementedAlgorithm);
 

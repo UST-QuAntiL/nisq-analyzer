@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.web.controller;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
@@ -59,7 +60,7 @@ public class ExecutionResultController {
     }
 
     @GetMapping("/")
-    public HttpEntity<ExecutionResultListDto> getExecutionResults(@PathVariable Long implId) {
+    public HttpEntity<ExecutionResultListDto> getExecutionResults(@PathVariable UUID implId) {
         LOG.debug("Get to retrieve all execution results for impl with id: {}.", implId);
 
         Optional<Implementation> implementationOptional = implementationRepository.findById(implId);
@@ -80,7 +81,7 @@ public class ExecutionResultController {
     }
 
     @GetMapping("/{resultId}")
-    public HttpEntity<ExecutionResultDto> getExecutionResult(@PathVariable Long implId, @PathVariable Long resultId) {
+    public HttpEntity<ExecutionResultDto> getExecutionResult(@PathVariable UUID implId, @PathVariable UUID resultId) {
         LOG.debug("Get to retrieve execution result with id: {}.", resultId);
 
         Optional<ExecutionResult> executionResultOptional = executionResultRepository.findById(resultId);

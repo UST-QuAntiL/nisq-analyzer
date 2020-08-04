@@ -21,6 +21,7 @@ package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
 import java.net.URL;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import lombok.Getter;
@@ -41,7 +42,7 @@ public class ImplementationDto extends RepresentationModel<ImplementationDto> {
 
     @Getter
     @Setter
-    private Long id;
+    private UUID id;
 
     @Getter
     @Setter
@@ -49,7 +50,7 @@ public class ImplementationDto extends RepresentationModel<ImplementationDto> {
 
     @Getter
     @Setter
-    private Long implementedAlgorithm;
+    private UUID implementedAlgorithm;
 
     @Getter
     @Setter

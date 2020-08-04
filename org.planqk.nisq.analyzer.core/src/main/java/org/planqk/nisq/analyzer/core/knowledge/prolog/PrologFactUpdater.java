@@ -22,6 +22,7 @@ package org.planqk.nisq.analyzer.core.knowledge.prolog;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.model.Implementation;
@@ -123,7 +124,7 @@ public class PrologFactUpdater {
      * @param maxGateTime   the maximum gate time for the given QPU
      * @param supportedSdks the list of supported SDKs of the QPU that is updated in the repository
      */
-    public void handleQpuUpdate(Long id, int qubitCount, List<String> supportedSdks, float t1Time, float maxGateTime) {
+    public void handleQpuUpdate(UUID id, int qubitCount, List<String> supportedSdks, float t1Time, float maxGateTime) {
         LOG.debug("Handling update of QPU with Id {} in Prolog knowledge base.", id);
 
         // deactivate and delete the Prolog file with the old facts
@@ -161,7 +162,7 @@ public class PrologFactUpdater {
     /**
      * Create a string containing all required prolog facts for an implementation.
      */
-    private String createImplementationFacts(Long implId, String usedSdk, Long implementedAlgoId, String selectionRule, String widthRule, String depthRule) {
+    private String createImplementationFacts(UUID implId, String usedSdk, UUID implementedAlgoId, String selectionRule, String widthRule, String depthRule) {
         // the following three lines are required to define the same predicate in multiple files
         String prologContent = ":- multifile implements/2." + newline;
         prologContent += ":- multifile requiredSdk/2." + newline;
@@ -188,7 +189,7 @@ public class PrologFactUpdater {
     /**
      * Create a string containing all required prolog fact for an QPU.
      */
-    private String createQpuFacts(Long qpuId, int qubitCount, List<String> supportedSdks, float t1Time, float maxGateTime) {
+    private String createQpuFacts(UUID qpuId, int qubitCount, List<String> supportedSdks, float t1Time, float maxGateTime) {
         // the following two lines are required to define the same predicate in multiple files
         String prologContent = ":- multifile providesQubits/2." + newline;
         prologContent += ":- multifile usedSdk/2." + newline;
@@ -209,7 +210,7 @@ public class PrologFactUpdater {
      * @param supportedSdks the list of SDKs that are supported by the QPU
      * @return the Prolog facts
      */
-    private String createUsesSdkFacts(Long qpuId, List<String> supportedSdks) {
+    private String createUsesSdkFacts(UUID qpuId, List<String> supportedSdks) {
         String prologContent = "";
         for (String supportedSdk : supportedSdks) {
             prologContent += "usedSdk(" + qpuId + "," + supportedSdk.toLowerCase() + ")." + newline;
@@ -224,7 +225,7 @@ public class PrologFactUpdater {
      * @param qubitCount the number of Qubits that are provided by the QPU
      * @return the Prolog fact
      */
-    private String createProvidesQubitFact(Long qpuId, int qubitCount) {
+    private String createProvidesQubitFact(UUID qpuId, int qubitCount) {
         return "providesQubits(" + qpuId + "," + qubitCount + ").";
     }
 
@@ -235,7 +236,7 @@ public class PrologFactUpdater {
      * @param t1Time the T1 time for the given QPU
      * @return the Prolog fact
      */
-    private String createT1TimeFact(Long qpuId, float t1Time) {
+    private String createT1TimeFact(UUID qpuId, float t1Time) {
         return "t1Time(" + qpuId + "," + t1Time + ").";
     }
 
@@ -246,7 +247,7 @@ public class PrologFactUpdater {
      * @param maxGateTime the time of the slowest gate of the QPU
      * @return the Prolog fact
      */
-    private String createMaxGateTimeFact(Long qpuId, float maxGateTime) {
+    private String createMaxGateTimeFact(UUID qpuId, float maxGateTime) {
         return "maxGateTime(" + qpuId + "," + maxGateTime + ").";
     }
 
@@ -257,7 +258,7 @@ public class PrologFactUpdater {
      * @param algoId the id of the algorithm
      * @return the Prolog fact
      */
-    private String createImplementsFact(Long implId, Long algoId) {
+    private String createImplementsFact(UUID implId, UUID algoId) {
         return "implements(" + implId + "," + algoId + ").";
     }
 
@@ -268,7 +269,7 @@ public class PrologFactUpdater {
      * @param sdkName the name of the SDK
      * @return the Prolog fact
      */
-    private String createRequiredSdkFact(Long implId, String sdkName) {
+    private String createRequiredSdkFact(UUID implId, String sdkName) {
         return "requiredSdk(" + implId + "," + sdkName + ").";
     }
 

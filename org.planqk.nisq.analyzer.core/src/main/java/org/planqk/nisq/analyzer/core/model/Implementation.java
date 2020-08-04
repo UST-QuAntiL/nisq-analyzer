@@ -23,6 +23,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -63,7 +64,7 @@ public class Implementation extends HasId {
 
     @Getter
     @Setter
-    private Long implementedAlgorithm;
+    private UUID implementedAlgorithm;
 
     @Getter
     @Setter

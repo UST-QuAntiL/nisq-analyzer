@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
@@ -153,7 +154,7 @@ public class NisqAnalyzerControlService {
             int estimatedCircuitDepth = Objects.isNull(execImplementation.getDepthRule()) ? 0 : prologQueryEngine.checkDepth(execImplementation.getDepthRule(), inputParameters);
 
             // get all suitable QPUs for the implementation based on the width and depth estimates
-            List<Long> suitableQpuIds = prologQueryEngine.getSuitableQpus(execImplementation.getId(), estimatedQubitCount, estimatedCircuitDepth);
+            List<UUID> suitableQpuIds = prologQueryEngine.getSuitableQpus(execImplementation.getId(), estimatedQubitCount, estimatedCircuitDepth);
             if (suitableQpuIds.isEmpty()) {
                 LOG.debug("Prolog query returns no suited QPUs. Skipping implementation {} for the selection!", execImplementation.getName());
                 continue;

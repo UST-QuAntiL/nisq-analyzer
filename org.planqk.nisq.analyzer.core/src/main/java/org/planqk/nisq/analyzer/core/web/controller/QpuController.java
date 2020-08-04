@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
@@ -84,7 +85,7 @@ public class QpuController {
     }
 
     @GetMapping("/{qpuId}")
-    public HttpEntity<QpuDto> getQpu(@PathVariable Long qpuId) {
+    public HttpEntity<QpuDto> getQpu(@PathVariable UUID qpuId) {
         LOG.debug("Get to retrieve QPU with id: {}.", qpuId);
 
         Optional<Qpu> qpuOptional = qpuRepository.findById(qpuId);
@@ -110,7 +111,7 @@ public class QpuController {
         List<Sdk> supportedSdks = new ArrayList<>();
         if (Objects.nonNull(qpuRequest.getSupportedSdkIds())) {
             LOG.debug("Supported SDKs are defined for the QPU.");
-            for (Long sdkId : qpuRequest.getSupportedSdkIds()) {
+            for (UUID sdkId : qpuRequest.getSupportedSdkIds()) {
                 Optional<Sdk> sdkOptional = sdkRepository.findById(sdkId);
                 if (!sdkOptional.isPresent()) {
                     LOG.error("Unable to retrieve SDK with id {} from the repository.", sdkId);

@@ -21,6 +21,7 @@ package org.planqk.nisq.analyzer.core.web.controller;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.model.Sdk;
@@ -75,7 +76,7 @@ public class SdkController {
     }
 
     @GetMapping("/{id}")
-    public HttpEntity<SdkDto> getSdk(@PathVariable Long id) {
+    public HttpEntity<SdkDto> getSdk(@PathVariable UUID id) {
         LOG.debug("Get to retrieve SDK with id: {}.", id);
 
         Optional<Sdk> sdkOptional = sdkRepository.findById(id);

@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
 import java.util.Map;
+import java.util.UUID;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -28,13 +29,13 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.springframework.hateoas.RepresentationModel;
 
 /**
- * Data transfer object for ExecutionResults ({@link org.planqk.atlas.core.model.ExecutionResult}).
+ * Data transfer object for ExecutionResults ({@link ExecutionResult}).
  */
 public class ExecutionResultDto extends RepresentationModel<ExecutionResultDto> {
 
     @Getter
     @Setter
-    private Long id;
+    private UUID id;
 
     @Getter
     @Setter
