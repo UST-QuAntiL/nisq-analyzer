@@ -17,35 +17,34 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.web.dtos.requests;
+package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import java.util.List;
-
-import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationDto;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuDto;
-
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 
-/**
- * Dto to return the list of suitable quantum algorithm implementations for a set of input parameters with the
- * corresponding QPUs on which they are executable.
- */
-@AllArgsConstructor
-public class SuitableImplQpuPairsDto {
+@Data
+public class AnalysisResultDto {
 
-    @Getter
-    @Setter
-    List<ImplQpuPair> implQpuPairs;
+    QpuDto qpu;
 
-    @Data
-    @AllArgsConstructor
-    public static class ImplQpuPair {
+    ImplementationDto implementation;
 
-        ImplementationDto implementation;
+    boolean estimate;
 
-        List<QpuDto> suitableQpus;
+    int analysedDepth;
+
+    int analysedWidth;
+
+    public static final class Converter {
+
+        public static AnalysisResultDto convert(final AnalysisResult object) {
+            AnalysisResultDto dto = new AnalysisResultDto();
+            dto.setQpu(QpuDto.Converter.convert(object.getQpu()));
+            dto.setImplementation(ImplementationDto.Converter.convert(object.getImplementation()));
+            dto.setEstimate(object.getEstimate());
+            dto.setAnalysedDepth(object.getAnalysedDepth());
+            dto.setAnalysedWidth(object.getAnalysedWidth());
+            return dto;
+        }
     }
 }

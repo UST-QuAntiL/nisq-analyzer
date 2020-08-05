@@ -213,7 +213,7 @@ public class PrologFactUpdater {
     private String createUsesSdkFacts(UUID qpuId, List<String> supportedSdks) {
         String prologContent = "";
         for (String supportedSdk : supportedSdks) {
-            prologContent += "usedSdk(" + qpuId + "," + supportedSdk.toLowerCase() + ")." + newline;
+            prologContent += "usedSdk('" + qpuId + "'," + supportedSdk.toLowerCase() + ")." + newline;
         }
         return prologContent;
     }
@@ -226,7 +226,7 @@ public class PrologFactUpdater {
      * @return the Prolog fact
      */
     private String createProvidesQubitFact(UUID qpuId, int qubitCount) {
-        return "providesQubits(" + qpuId + "," + qubitCount + ").";
+        return "providesQubits('" + qpuId + "'," + qubitCount + ").";
     }
 
     /**
@@ -237,7 +237,7 @@ public class PrologFactUpdater {
      * @return the Prolog fact
      */
     private String createT1TimeFact(UUID qpuId, float t1Time) {
-        return "t1Time(" + qpuId + "," + t1Time + ").";
+        return "t1Time('" + qpuId + "'," + t1Time + ").";
     }
 
     /**
@@ -248,7 +248,7 @@ public class PrologFactUpdater {
      * @return the Prolog fact
      */
     private String createMaxGateTimeFact(UUID qpuId, float maxGateTime) {
-        return "maxGateTime(" + qpuId + "," + maxGateTime + ").";
+        return "maxGateTime('" + qpuId + "'," + maxGateTime + ").";
     }
 
     /**
@@ -259,7 +259,7 @@ public class PrologFactUpdater {
      * @return the Prolog fact
      */
     private String createImplementsFact(UUID implId, UUID algoId) {
-        return "implements(" + implId + "," + algoId + ").";
+        return "implements('" + implId + "','" + algoId + "').";
     }
 
     /**
@@ -270,7 +270,7 @@ public class PrologFactUpdater {
      * @return the Prolog fact
      */
     private String createRequiredSdkFact(UUID implId, String sdkName) {
-        return "requiredSdk(" + implId + "," + sdkName + ").";
+        return "requiredSdk('" + implId + "'," + sdkName + ").";
     }
 
     /**

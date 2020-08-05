@@ -19,6 +19,8 @@
 
 package org.planqk.nisq.analyzer.core.web.controller;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,7 +36,6 @@ import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuRepository;
 import org.planqk.nisq.analyzer.core.repository.SdkRepository;
-import org.planqk.nisq.analyzer.core.utils.RestUtils;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationListDto;
@@ -83,6 +84,29 @@ public class ImplementationController {
         this.sdkRepository = sdkRepository;
         this.controlService = controlService;
         this.prologFactUpdater = prologFactUpdater;
+    }
+
+    /**
+     * Check if the given lists of input and output parameters are consistent and contain the required attributes to
+     * store them in the repository
+     *
+     * @param inputParameters  the list of input parameters
+     * @param outputParameters the list of output parameters
+     * @return <code>true</code> if all parameters are consistens, <code>false</code> otherwise
+     */
+    public static boolean parameterConsistent(List<ParameterDto> inputParameters, List<ParameterDto> outputParameters) {
+        // avoid changing the potential live lists that are passed
+        List<ParameterDto> parameters = new ArrayList<>();
+        parameters.addAll(inputParameters);
+        parameters.addAll(outputParameters);
+
+        for (ParameterDto param : parameters) {
+            if (Objects.isNull(param.getName()) || Objects.isNull(param.getType())) {
+                LOG.error("Invalid parameter: {}", param.toString());
+                return false;
+            }
+        }
+        return true;
     }
 
     @GetMapping("/")
@@ -139,7 +163,7 @@ public class ImplementationController {
         }
 
         // check consistency of passed parameters
-        if (!RestUtils.parameterConsistent(impl.getInputParameters().getParameters(), impl.getOutputParameters().getParameters())) {
+        if (!parameterConsistent(impl.getInputParameters().getParameters(), impl.getOutputParameters().getParameters())) {
             LOG.error("Received invalid parameter dto for post request.");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -246,7 +270,7 @@ public class ImplementationController {
         }
 
         try {
-            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(implementationOptional.get(), qpuOptional.get(), executionRequest.getParameters());
+            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(implementationOptional.get(), qpuOptional.get(), executionRequest.getParameters(), executionRequest.getAnalysedDepth(), executionRequest.getAnalysedWidth());
             ExecutionResultDto dto = ExecutionResultDto.Converter.convert(result);
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(implId, result.getId())).withSelfRel());
             return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);

@@ -17,27 +17,23 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.web.dtos.requests;
+package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import java.util.UUID;
+import java.util.List;
+import org.assertj.core.util.Lists;
 
 import lombok.Getter;
-import lombok.Setter;
 
-/**
- * Dto to exchange input and output parameters as key value pairs.
- */
-public class ExecutionRequest extends ParameterKeyValueDto {
+public class AnalysisResultListDto {
 
     @Getter
-    @Setter
-    private UUID qpuId;
+    private final List<AnalysisResultDto> analysisResultList = Lists.newArrayList();
 
-    @Getter
-    @Setter
-    private int analysedDepth;
+    public void add(final List<AnalysisResultDto> analysisResultDtos) {
+        this.analysisResultList.addAll(analysisResultDtos);
+    }
 
-    @Getter
-    @Setter
-    private int analysedWidth;
+    public void add(final AnalysisResultDto analysisResultDtos) {
+        this.analysisResultList.add(analysisResultDtos);
+    }
 }

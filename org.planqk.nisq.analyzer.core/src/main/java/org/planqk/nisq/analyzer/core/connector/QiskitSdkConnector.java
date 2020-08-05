@@ -167,7 +167,7 @@ public class QiskitSdkConnector implements SdkConnector {
     @Override
     public Set<Parameter> getSdkSpecificParameters() {
         // only the token is required
-        return new HashSet<>(Arrays.asList(new Parameter(TOKEN_PARAMETER, DataType.String, null, null)));
+        return new HashSet<>(Arrays.asList(new Parameter(TOKEN_PARAMETER, DataType.String, null, "Parameter for Qiskit SDK Plugin")));
     }
 
     /**
