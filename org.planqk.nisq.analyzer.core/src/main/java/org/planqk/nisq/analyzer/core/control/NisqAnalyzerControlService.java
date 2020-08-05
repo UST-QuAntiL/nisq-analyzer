@@ -152,8 +152,8 @@ public class NisqAnalyzerControlService {
             LOG.debug("Searching for suitable Qpu for implementation {} (Id: {}) which requires Sdk {}", execImplementation.getName(), execImplementation.getId(), execImplementation.getSdk().getName());
 
             // estimate the number of required qubits and the circuit depth by using the corresponding rules if set
-            int estimatedQubitCount = Objects.isNull(execImplementation.getWidthRule()) ? 0 : prologQueryEngine.checkWidth(execImplementation.getWidthRule(), inputParameters);
-            int estimatedCircuitDepth = Objects.isNull(execImplementation.getDepthRule()) ? 0 : prologQueryEngine.checkDepth(execImplementation.getDepthRule(), inputParameters);
+            int estimatedQubitCount = Objects.isNull(execImplementation.getWidthRule()) ? 0 : prologQueryEngine.checkDepthOrWidthRule(execImplementation.getWidthRule(), inputParameters);
+            int estimatedCircuitDepth = Objects.isNull(execImplementation.getDepthRule()) ? 0 : prologQueryEngine.checkDepthOrWidthRule(execImplementation.getDepthRule(), inputParameters);
 
             // get all suitable QPUs for the implementation based on the width and depth estimates
             List<UUID> suitableQpuIds = prologQueryEngine.getSuitableQpus(execImplementation.getId(), estimatedQubitCount, estimatedCircuitDepth);
@@ -173,7 +173,7 @@ public class NisqAnalyzerControlService {
                     .filter(executor -> executor.supportedSdk().equals(execImplementation.getSdk().getName()))
                     .findFirst().orElse(null);
 
-            if (Objects.isNull(selectedSdkConnector)) {
+            if (Objects.isNull(selectedSdkConnector) && estimatedCircuitDepth != 0 && estimatedQubitCount != 0) {
                 LOG.warn("Unable to find Sdk connector for Sdk: {}. Adding implementation and possibly suited QPUs to the result based on the estimates!", execImplementation.getSdk());
                 qpuCandidates.forEach(qpu -> analysisResult.add(new AnalysisResult(qpu, execImplementation, true, estimatedCircuitDepth, estimatedQubitCount)));
                 continue;
@@ -186,7 +186,11 @@ public class NisqAnalyzerControlService {
                 CircuitInformation circuitInformation = selectedSdkConnector.getCircuitProperties(execImplementation.getFileLocation(), qpu, inputParameters);
                 if (Objects.isNull(circuitInformation)) {
                     LOG.error("Circuit analysis by compiler failed. Using estimates...");
-                    analysisResult.add(new AnalysisResult(qpu, execImplementation, true, estimatedCircuitDepth, estimatedQubitCount));
+
+                    // only add if estimation was successful
+                    if (estimatedCircuitDepth != 0 && estimatedQubitCount != 0) {
+                        analysisResult.add(new AnalysisResult(qpu, execImplementation, true, estimatedCircuitDepth, estimatedQubitCount));
+                    }
                     continue;
                 }
 
@@ -281,8 +285,7 @@ public class NisqAnalyzerControlService {
      * @return <code>true</code> if all required parameters are contained in the provided parameters, <code>false</code>
      * otherwise
      */
-    private boolean parametersAvailable
-    (Set<Parameter> requiredParameters, Map<String, String> providedParameters) {
+    private boolean parametersAvailable(Set<Parameter> requiredParameters, Map<String, String> providedParameters) {
         LOG.debug("Checking if {} required parameters are available in the input map with {} provided parameters!", requiredParameters.size(), providedParameters.size());
         return requiredParameters.stream().allMatch(param -> providedParameters.containsKey(param.getName()));
     }

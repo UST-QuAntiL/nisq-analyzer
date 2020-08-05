@@ -67,27 +67,37 @@ public class PrologQueryEngine {
     }
 
     /**
-     * Evaluate the given prolog width rule with the given set of parameters to estimate the circuit width
+     * Evaluate the given prolog rule with the given set of parameters to estimate the circuit depth/width
      *
-     * @param widthRule the prolog width rule to evaluate to get the estimated circuit width
+     * @param rule the prolog rule to evaluate to get the estimated circuit depth/width
      * @param params    the set of parameters to use for the evaluation
-     * @return the estimated circuit width, or zero if an error occurs
+     * @return the estimated circuit depth/width, or zero if an error occurs
      */
-    public int checkWidth(String widthRule, Map<String, String> params) {
-        // TODO
-        return 0;
-    }
+    public int checkDepthOrWidthRule(String rule, Map<String, String> params) {
+        String query = assembleQueryForRule(rule, params, true);
+        if (Objects.isNull(query)) {
+            LOG.error("Unable to assemble query!");
+            return 0;
+        }
 
-    /**
-     * Evaluate the given prolog depth rule with the given set of parameters to estimate the circuit depth
-     *
-     * @param depthRule the prolog depth rule to evaluate to get the estimated circuit depth
-     * @param params    the set of parameters to use for the evaluation
-     * @return the estimated circuit depth, or zero if an error occurs
-     */
-    public int checkDepth(String depthRule, Map<String, String> params) {
-        // TODO
-        return 0;
+        // get the remaining variables for the depth/width rule
+        List<String> variables = PrologUtility.getVariablesForPrologRule(query);
+
+        // there must be exactly one variable to evaluate
+        if (variables.size() != 1) {
+            LOG.error("There must be exactly one variable to evaluate in the depth/width rule, but it contains {} variables!", variables.size());
+            return 0;
+        }
+
+        // check if there is a valid result
+        Map<String, Term>[] solutions = getSolutions(query);
+        if (Objects.isNull(solutions) || solutions.length == 0) {
+            LOG.error("Query evaluation returned no valid solution!");
+            return 0;
+        }
+
+        // take first result and evaluate the required variable
+        return solutions[0].get(variables.get(0)).intValue();
     }
 
     /**
@@ -98,32 +108,11 @@ public class PrologQueryEngine {
      * @return the evaluation result of the prolog rule
      */
     public boolean checkExecutability(String selectionRule, Map<String, String> params) {
-        // retrieve signature of the defined selection rule
-        String signature = PrologUtility.getSignatureOfRule(selectionRule);
-        String[] signatureParts = signature.split("\\(");
-
-        // rule is invalid as it does not contain brackets for the parameters
-        if (signatureParts.length < 2) {
-            LOG.error("Signature of selection rule is invalid: {}", signature);
+        String query = assembleQueryForRule(selectionRule, params, false);
+        if (Objects.isNull(query)) {
+            LOG.error("Unable to evaluate selection rule!");
             return false;
         }
-
-        String ruleName = signatureParts[0];
-        String parameterPart = signatureParts[1];
-
-        // replace the variables in the signature with the given parameters
-        for (String variable : PrologUtility.getVariablesForPrologRule(selectionRule)) {
-            if (!params.containsKey(variable)) {
-                LOG.error("Given parameter set to check executability does not contain required parameter: {}", variable);
-                return false;
-            }
-
-            // FIXME: avoid replacing parts of another variable where the name contains the searched variable, e.g., search for variable 'A' and replace part of variable 'AB' by accident
-            parameterPart = parameterPart.replaceFirst(variable, params.get(variable));
-        }
-
-        // add point to instruct prolog to evaluate the rule
-        String query = ruleName + "(" + parameterPart + ".";
 
         // evaluate the rule in the knowledge base
         boolean evaluationResult = prologKnowledgeBaseHandler.hasSolution(query);
@@ -175,5 +164,50 @@ public class PrologQueryEngine {
         }
 
         return suitableQPUs;
+    }
+
+    /**
+     * Assemble a query to evaluate the given rule with the given set of parameters
+     *
+     * @param rule      the rule to evaluate
+     * @param params    the set of parameters to insert for the evaluation
+     * @param skipFirst <code>true</code> if the first variable in the rule should not be replaced, <code>false</code>
+     *                  otherwise
+     * @return the query or <code>null</code> if the rule or parameters are invalid
+     */
+    private String assembleQueryForRule(String rule, Map<String, String> params, boolean skipFirst) {
+        // retrieve signature of the defined selection rule
+        String signature = PrologUtility.getSignatureOfRule(rule);
+        String[] signatureParts = signature.split("\\(");
+
+        // rule is invalid as it does not contain brackets for the parameters
+        if (signatureParts.length < 2) {
+            LOG.error("Signature of rule is invalid: {}", signature);
+            return null;
+        }
+
+        String ruleName = signatureParts[0];
+        String parameterPart = signatureParts[1];
+
+        List<String> variables = PrologUtility.getVariablesForPrologRule(rule);
+        for (int i = 0; i < variables.size(); i++) {
+            // do not replace the first variable if it is used for the evaluation of the rule
+            if (skipFirst && i == 0) {
+                continue;
+            }
+
+            // replace the variable in the signature if parameter is available
+            String variable = variables.get(i);
+            if (!params.containsKey(variable)) {
+                LOG.error("Given parameter set to evaluate rule does not contain required parameter: {}", variable);
+                return null;
+            }
+
+            // FIXME: avoid replacing parts of another variable where the name contains the searched variable, e.g., search for variable 'A' and replace part of variable 'AB' by accident
+            parameterPart = parameterPart.replaceFirst(variable, params.get(variable));
+        }
+
+        // add point to instruct prolog to evaluate the rule
+        return ruleName + "(" + parameterPart + ".";
     }
 }
