@@ -42,17 +42,25 @@ public class PrologUtility {
     /**
      * Get the set of parameters that are required to evaluate the given rule
      *
-     * @param rule the rule to retrieve the parameters from
+     * @param rule      the rule to retrieve the parameters from
+     * @param skipFirst <code>true</code> if the first variable is used for evaluating the rule (e.g. width rule) and
+     *                  is thus no parameter, <code>false</code> otherwise
      * @return the set of required parameters to evaluate the rule
      */
-    public static Set<Parameter> getParametersForRule(String rule) {
+    public static Set<Parameter> getParametersForRule(String rule, boolean skipFirst) {
         if (Objects.isNull(rule)) {
             return new HashSet<>();
         }
-        return getVariablesForPrologRule(rule)
-                .stream()
-                .map(param -> new Parameter(param, DataType.String, null, "Parameter of selection rule."))
-                .collect(Collectors.toSet());
+
+        Set<Parameter> result = new HashSet<>();
+        List<String> variables = getVariablesForPrologRule(rule);
+        for (int i = 0; i < variables.size(); i++) {
+            if (skipFirst && i == 0) {
+                continue;
+            }
+            result.add(new Parameter(variables.get(i), DataType.String, null, "Parameter of rule."));
+        }
+        return result;
     }
 
     /**

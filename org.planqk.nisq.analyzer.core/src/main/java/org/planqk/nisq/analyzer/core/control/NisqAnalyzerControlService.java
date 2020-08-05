@@ -270,9 +270,9 @@ public class NisqAnalyzerControlService {
         requiredParameters.addAll(impl.getInputParameters());
 
         // add parameters from rules
-        requiredParameters.addAll(PrologUtility.getParametersForRule(impl.getSelectionRule()));
-        requiredParameters.addAll(PrologUtility.getParametersForRule(impl.getWidthRule()));
-        requiredParameters.addAll(PrologUtility.getParametersForRule(impl.getDepthRule()));
+        requiredParameters.addAll(PrologUtility.getParametersForRule(impl.getSelectionRule(), false));
+        requiredParameters.addAll(PrologUtility.getParametersForRule(impl.getWidthRule(), true));
+        requiredParameters.addAll(PrologUtility.getParametersForRule(impl.getDepthRule(), true));
 
         return requiredParameters;
     }
