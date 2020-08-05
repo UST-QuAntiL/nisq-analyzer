@@ -19,16 +19,15 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import org.assertj.core.util.Lists;
 
 import lombok.Getter;
 
 public class AnalysisResultListDto {
 
     @Getter
-    private final Set<AnalysisResultDto> analysisResultList = new HashSet<>();
+    private final List<AnalysisResultDto> analysisResultList = Lists.newArrayList();
 
     public void add(final List<AnalysisResultDto> analysisResultDtos) {
         this.analysisResultList.addAll(analysisResultDtos);
