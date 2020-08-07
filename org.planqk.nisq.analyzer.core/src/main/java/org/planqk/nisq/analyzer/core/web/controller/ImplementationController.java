@@ -27,7 +27,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
@@ -64,7 +66,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 /**
  * Controller to access and manipulate implementations of quantum algorithms.
  */
-@io.swagger.v3.oas.annotations.tags.Tag(name = "implementation")
+@Tag(name = "implementation")
 @RestController
 @CrossOrigin(allowedHeaders = "*", origins = "*")
 @RequestMapping("/" + Constants.IMPLEMENTATIONS)
@@ -112,7 +114,8 @@ public class ImplementationController {
         return true;
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404")}, description = "Retrieve implementations for an algorithm")
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve implementations for an algorithm")
     @GetMapping("/")
     public HttpEntity<ImplementationListDto> getImplementations(@RequestParam(required = false) UUID algoId) {
         LOG.debug("Get to retrieve all implementations received.");
@@ -134,7 +137,8 @@ public class ImplementationController {
         return new ResponseEntity<>(dtoList, HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404")}, description = "Retrieve an implementation")
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve an implementation")
     @GetMapping("/{implId}")
     public HttpEntity<ImplementationDto> getImplementation(@PathVariable UUID implId) {
         LOG.debug("Get to retrieve implementation with id: {}.", implId);
@@ -148,7 +152,8 @@ public class ImplementationController {
         return new ResponseEntity<>(createImplementationDto(implementationOptional.get()), HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "201"), @ApiResponse(responseCode = "400")}, description = "Create an implementation")
+    @Operation(responses = {@ApiResponse(responseCode = "201"), @ApiResponse(responseCode = "400", content = @Content)},
+            description = "Create an implementation")
     @PostMapping("/")
     public HttpEntity<ImplementationDto> createImplementation(@RequestBody ImplementationDto impl) {
         LOG.debug("Post to create new implementation received.");
@@ -182,7 +187,8 @@ public class ImplementationController {
         return new ResponseEntity<>(createImplementationDto(implementation), HttpStatus.CREATED);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404")}, description = "Retrieve input parameters for an implementation")
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve input parameters for an implementation")
     @GetMapping("/{implId}/" + Constants.INPUT_PARAMS)
     public HttpEntity<ParameterListDto> getInputParameters(@PathVariable UUID implId) {
         LOG.debug("Get to retrieve input parameters for implementation with id: {}.", implId);
@@ -203,7 +209,8 @@ public class ImplementationController {
         return new ResponseEntity<>(parameterListDto, HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404")}, description = "Retrieve output parameters for an implementation")
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve output parameters for an implementation")
     @GetMapping("/{implId}/" + Constants.OUTPUT_PARAMS)
     public HttpEntity<ParameterListDto> getOutputParameters(@PathVariable UUID implId) {
         LOG.debug("Get to retrieve output parameters for implementation with id: {}.", implId);
@@ -224,7 +231,8 @@ public class ImplementationController {
         return new ResponseEntity<>(parameterListDto, HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "201"), @ApiResponse(responseCode = "404"), @ApiResponse(responseCode = "400")}, description = "Add input parameters to an implementation")
+    @Operation(responses = {@ApiResponse(responseCode = "201"), @ApiResponse(responseCode = "404", content = @Content),
+            @ApiResponse(responseCode = "400", content = @Content)}, description = "Add input parameters to an implementation")
     @PostMapping("/{implId}/" + Constants.INPUT_PARAMS)
     public HttpEntity<ParameterDto> addInputParameter(@PathVariable UUID implId, @RequestBody ParameterDto parameterDto) {
         LOG.debug("Post to add input parameter on implementation with id: {}.", implId);
@@ -243,7 +251,8 @@ public class ImplementationController {
         return new ResponseEntity<>(parameterDto, HttpStatus.CREATED);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "201"), @ApiResponse(responseCode = "404"), @ApiResponse(responseCode = "400")}, description = "Add output parameters to an implementation")
+    @Operation(responses = {@ApiResponse(responseCode = "201"), @ApiResponse(responseCode = "404", content = @Content),
+            @ApiResponse(responseCode = "400", content = @Content)}, description = "Add output parameters to an implementation")
     @PostMapping("/{implId}/" + Constants.OUTPUT_PARAMS)
     public HttpEntity<ParameterDto> addOutputParameter(@PathVariable UUID implId, @RequestBody ParameterDto parameterDto) {
         LOG.debug("Post to add output parameter on implementation with id: {}.", implId);
@@ -262,7 +271,8 @@ public class ImplementationController {
         return new ResponseEntity<>(parameterDto, HttpStatus.CREATED);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404"), @ApiResponse(responseCode = "500")}, description = "Execute an implementation")
+    @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
+            @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute an implementation")
     @PostMapping("/{implId}/" + Constants.EXECUTION)
     public HttpEntity<ExecutionResultDto> executeImplementation(@PathVariable UUID implId,
                                                                 @RequestBody ExecutionRequest executionRequest) {

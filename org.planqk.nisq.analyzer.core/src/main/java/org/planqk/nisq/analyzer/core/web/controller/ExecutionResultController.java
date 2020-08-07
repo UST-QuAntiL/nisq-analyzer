@@ -23,7 +23,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
@@ -47,7 +49,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 /**
  * Controller to retrieve the results of quantum algorithm implementation executions.
  */
-@io.swagger.v3.oas.annotations.tags.Tag(name = "execution-result")
+@Tag(name = "execution-result")
 @RestController
 @RequestMapping("/" + Constants.IMPLEMENTATIONS + "/{implId}/" + Constants.RESULTS)
 public class ExecutionResultController {
@@ -62,7 +64,8 @@ public class ExecutionResultController {
         this.executionResultRepository = executionResultRepository;
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404")}, description = "Retrieve all execution results for an Implementation")
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve all execution results for an Implementation")
     @GetMapping("/")
     public HttpEntity<ExecutionResultListDto> getExecutionResults(@PathVariable UUID implId) {
         LOG.debug("Get to retrieve all execution results for impl with id: {}.", implId);
@@ -84,7 +87,8 @@ public class ExecutionResultController {
         return new ResponseEntity<>(dtoList, HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404")}, description = "Retrieve a single execution result")
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve a single execution result")
     @GetMapping("/{resultId}")
     public HttpEntity<ExecutionResultDto> getExecutionResult(@PathVariable UUID implId, @PathVariable UUID resultId) {
         LOG.debug("Get to retrieve execution result with id: {}.", resultId);
