@@ -49,6 +49,14 @@ public class ExecutionResult extends HasId {
 
     @Getter
     @Setter
+    private int analyzedDepth;
+
+    @Getter
+    @Setter
+    private int analyzedWidth;
+
+    @Getter
+    @Setter
     @ManyToOne
     private Qpu executingQpu;
 

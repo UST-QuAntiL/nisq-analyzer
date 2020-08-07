@@ -17,19 +17,29 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.services;
+package org.planqk.nisq.analyzer.core.model;
 
-import java.util.Optional;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-import org.planqk.nisq.analyzer.core.model.Provider;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+/**
+ * Object to represent the result of a analysis for a certain qpu and implementation
+ */
+@Data
+@AllArgsConstructor
+public class AnalysisResult {
 
-public interface ProviderService {
+    Qpu qpu;
 
-    Provider save(Provider sdk);
+    Implementation implementation;
 
-    Page<Provider> findAll(Pageable pageable);
+    boolean estimate;
 
-    Optional<Provider> findById(Long algoId);
+    int analysedDepth;
+
+    int analysedWidth;
+
+    public boolean getEstimate() {
+        return estimate;
+    }
 }

@@ -19,8 +19,10 @@
 
 package org.planqk.nisq.analyzer.core.knowledge.prolog;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,17 +42,25 @@ public class PrologUtility {
     /**
      * Get the set of parameters that are required to evaluate the given rule
      *
-     * @param rule the rule to retrieve the parameters from
+     * @param rule      the rule to retrieve the parameters from
+     * @param skipFirst <code>true</code> if the first variable is used for evaluating the rule (e.g. width rule) and
+     *                  is thus no parameter, <code>false</code> otherwise
      * @return the set of required parameters to evaluate the rule
      */
-    public static Set<Parameter> getParametersForRule(String rule) {
+    public static Set<Parameter> getParametersForRule(String rule, boolean skipFirst) {
         if (Objects.isNull(rule)) {
             return new HashSet<>();
         }
-        return getVariablesForPrologRule(rule)
-                .stream()
-                .map(param -> new Parameter(param, DataType.String, null, "Parameter of selection rule."))
-                .collect(Collectors.toSet());
+
+        Set<Parameter> result = new HashSet<>();
+        List<String> variables = getVariablesForPrologRule(rule);
+        for (int i = 0; i < variables.size(); i++) {
+            if (skipFirst && i == 0) {
+                continue;
+            }
+            result.add(new Parameter(variables.get(i), DataType.String, null, "Parameter of rule."));
+        }
+        return result;
     }
 
     /**
@@ -67,12 +77,12 @@ public class PrologUtility {
     }
 
     /**
-     * Get the set of variables of the given rule
+     * Get the ordered list of variables of the given rule
      *
      * @param rule the rule to retrieve the parameters from
-     * @return the set of parameters
+     * @return the ordered list of parameters
      */
-    public static Set<String> getVariablesForPrologRule(String rule) {
+    public static List<String> getVariablesForPrologRule(String rule) {
         LOG.debug("Getting parameters for rule: {}", rule);
 
         // get String part between the brackets
@@ -80,7 +90,7 @@ public class PrologUtility {
 
         // rule is invalid as it does not contain brackets for the parameters
         if (ruleParts.length < 2) {
-            return new HashSet<>();
+            return new ArrayList<>();
         }
 
         // get the set of parameters
@@ -91,7 +101,7 @@ public class PrologUtility {
         return Arrays.stream(params)
                 .map(parameter -> parameter.replaceAll("\\s", ""))
                 .filter(PrologUtility::isVariable)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 
     /**

@@ -1,4 +1,4 @@
-/********************************************************************************
+/*******************************************************************************
  * Copyright (c) 2020 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
@@ -17,21 +17,23 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.services;
+package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
 import java.util.List;
-import java.util.Optional;
+import org.assertj.core.util.Lists;
 
-import org.planqk.nisq.analyzer.core.model.ExecutionResult;
-import org.planqk.nisq.analyzer.core.model.Implementation;
+import lombok.Getter;
 
-public interface ExecutionResultService {
+public class AnalysisResultListDto {
 
-    ExecutionResult save(ExecutionResult executionResult);
+    @Getter
+    private final List<AnalysisResultDto> analysisResultList = Lists.newArrayList();
 
-    Optional<ExecutionResult> findById(Long id);
+    public void add(final List<AnalysisResultDto> analysisResultDtos) {
+        this.analysisResultList.addAll(analysisResultDtos);
+    }
 
-    List<ExecutionResult> findByImplementation(Implementation implementation);
-
-    List<ExecutionResult> findAll();
+    public void add(final AnalysisResultDto analysisResultDtos) {
+        this.analysisResultList.add(analysisResultDtos);
+    }
 }

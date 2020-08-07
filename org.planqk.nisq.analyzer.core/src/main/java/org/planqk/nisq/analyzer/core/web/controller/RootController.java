@@ -19,13 +19,30 @@
 
 package org.planqk.nisq.analyzer.core.web.controller;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.planqk.nisq.analyzer.core.Constants;
+import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.requests.SelectionRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -39,16 +56,76 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @CrossOrigin(allowedHeaders = "*", origins = "*")
 public class RootController {
 
+    private final static Logger LOG = LoggerFactory.getLogger(RootController.class);
+
+    private final NisqAnalyzerControlService nisqAnalyzerService;
+
+    public RootController(NisqAnalyzerControlService nisqAnalyzerService) {
+        this.nisqAnalyzerService = nisqAnalyzerService;
+    }
+
     @GetMapping("/")
     public HttpEntity<RepresentationModel> root() {
         RepresentationModel responseEntity = new RepresentationModel<>();
 
         // add links to sub-controllers
         responseEntity.add(linkTo(methodOn(RootController.class).root()).withSelfRel());
-        responseEntity.add(linkTo(methodOn(AlgorithmController.class).getAlgorithms(Constants.DEFAULT_PAGE_NUMBER, Constants.DEFAULT_PAGE_SIZE)).withRel(Constants.ALGORITHMS));
-        responseEntity.add(linkTo(methodOn(ProviderController.class).getProviders(Constants.DEFAULT_PAGE_NUMBER, Constants.DEFAULT_PAGE_SIZE)).withRel(Constants.PROVIDERS));
-        responseEntity.add(linkTo(methodOn(SdkController.class).getSdks(Constants.DEFAULT_PAGE_NUMBER, Constants.DEFAULT_PAGE_SIZE)).withRel(Constants.SDKS));
+        responseEntity.add(linkTo(methodOn(ImplementationController.class).getImplementations(null)).withRel(Constants.IMPLEMENTATIONS));
+        responseEntity.add(linkTo(methodOn(QpuController.class).getQpus()).withRel(Constants.QPUS));
+        responseEntity.add(linkTo(methodOn(SdkController.class).getSdks()).withRel(Constants.SDKS));
+        responseEntity.add(linkTo(methodOn(RootController.class).getSelectionParams(null)).withRel(Constants.SELECTION_PARAMS));
+        responseEntity.add(linkTo(methodOn(RootController.class).selectImplementations(null)).withRel(Constants.SELECTION));
 
         return new ResponseEntity<>(responseEntity, HttpStatus.OK);
+    }
+
+    @GetMapping("/" + Constants.SELECTION_PARAMS)
+    public ResponseEntity getSelectionParams(@RequestParam UUID algoId) {
+        LOG.debug("Get to retrieve selection parameters for algorithm with Id {} received.", algoId);
+
+        if (Objects.isNull(algoId)) {
+            LOG.error("AlgoId have to be provided to get selection parameters!");
+            return new ResponseEntity<>("AlgoId have to be provided to get selection parameters!", HttpStatus.BAD_REQUEST);
+        }
+
+        // determine and return required selection parameters
+        List<ParameterDto> requiredParamsDto = nisqAnalyzerService.getRequiredSelectionParameters(algoId)
+                .stream()
+                .map(ParameterDto.Converter::convert)
+                .collect(Collectors.toList());
+        ParameterListDto dto = new ParameterListDto(requiredParamsDto);
+
+        // add required links
+        dto.add(linkTo(methodOn(RootController.class).getSelectionParams(algoId)).withSelfRel());
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    @PostMapping("/" + Constants.SELECTION)
+    public ResponseEntity selectImplementations(@RequestBody SelectionRequest params) {
+        LOG.debug("Post to select implementations for algorithm with Id {} received.", params.getAlgorithmId());
+
+        if (Objects.isNull(params.getAlgorithmId())) {
+            LOG.error("Algorithm Id for the selection is null.");
+            return new ResponseEntity<>("Algorithm Id for the selection is null.", HttpStatus.BAD_REQUEST);
+        }
+
+        if (Objects.isNull(params.getParameters())) {
+            LOG.error("Parameter set for the selection is null.");
+            return new ResponseEntity<>("Parameter set for the selection is null.", HttpStatus.BAD_REQUEST);
+        }
+        LOG.debug("Received {} parameters for the selection.", params.getParameters().size());
+
+        List<AnalysisResult> analysisResults;
+        try {
+            analysisResults = nisqAnalyzerService.performSelection(params.getAlgorithmId(), params.getParameters());
+        } catch (UnsatisfiedLinkError e) {
+            LOG.error("UnsatisfiedLinkError while activating prolog rule. Please make sure prolog is installed and configured correctly to use the NISQ analyzer functionality!");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("No prolog engine accessible from the server. Selection not possible!");
+        }
+
+        AnalysisResultListDto analysisResultListDto = new AnalysisResultListDto();
+        analysisResultListDto.add(analysisResults.stream().map(analysisResult -> AnalysisResultDto.Converter.convert(analysisResult)).collect(Collectors.toList()));
+
+        return new ResponseEntity<>(analysisResultListDto, HttpStatus.OK);
     }
 }

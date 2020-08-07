@@ -17,25 +17,34 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.services;
+package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import java.util.List;
-import java.util.Optional;
+import lombok.Data;
+import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 
-import org.planqk.nisq.analyzer.core.model.Algorithm;
-import org.planqk.nisq.analyzer.core.model.Implementation;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+@Data
+public class AnalysisResultDto {
 
-public interface ImplementationService {
+    QpuDto qpu;
 
-    Implementation save(Implementation tag);
+    ImplementationDto implementation;
 
-    List<Implementation> findAll();
+    boolean estimate;
 
-    Page<Implementation> findAll(Pageable pageable);
+    int analysedDepth;
 
-    Optional<Implementation> findById(Long algoId);
+    int analysedWidth;
 
-    List<Implementation> findByImplementedAlgorithm(Algorithm algorithm);
+    public static final class Converter {
+
+        public static AnalysisResultDto convert(final AnalysisResult object) {
+            AnalysisResultDto dto = new AnalysisResultDto();
+            dto.setQpu(QpuDto.Converter.convert(object.getQpu()));
+            dto.setImplementation(ImplementationDto.Converter.convert(object.getImplementation()));
+            dto.setEstimate(object.getEstimate());
+            dto.setAnalysedDepth(object.getAnalysedDepth());
+            dto.setAnalysedWidth(object.getAnalysedWidth());
+            return dto;
+        }
+    }
 }
