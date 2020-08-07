@@ -19,19 +19,21 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.print.DocFlavor;
-
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @AllArgsConstructor
 public class ParameterValue {
+
+    final private static Logger LOG = LoggerFactory.getLogger(ParameterValue.class);
 
     @Getter
     @Setter
@@ -60,7 +62,7 @@ public class ParameterValue {
         return untypedParameters;
     }
 
-    public static ParameterValue inferTypedParameterValue(List<Parameter> parameters, String parameterName, String value) throws IllegalArgumentException
+    public static ParameterValue inferTypedParameterValue(List<Parameter> parameters, String parameterName, String value)
     {
         try
         {
@@ -69,11 +71,12 @@ public class ParameterValue {
         }
         catch (Exception e)
         {
-            throw new IllegalArgumentException(String.format("Unable to infer type for parameter \"%s\"", parameterName), e);
+            LOG.warn("Unable to infer type for parameter \"%s\"", parameterName);
+            return new ParameterValue(DataType.Unknown, value);
         }
     }
 
-    public static Map<String, ParameterValue> inferTypedParameterValue(List<Parameter> parameters, Map<String, String> values) throws IllegalArgumentException
+    public static Map<String, ParameterValue> inferTypedParameterValue(List<Parameter> parameters, Map<String, String> values)
     {
         Map<String, ParameterValue> typedParameters = new HashMap<>();
         values.entrySet().stream().forEach( (entry) -> {
