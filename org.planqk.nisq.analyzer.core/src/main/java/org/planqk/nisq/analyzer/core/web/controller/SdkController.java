@@ -23,6 +23,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.planqk.nisq.analyzer.core.repository.SdkRepository;
@@ -47,6 +49,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 /**
  * Controller to access and manipulate software development kits (SDKs).
  */
+@io.swagger.v3.oas.annotations.tags.Tag(name = "sdks")
 @RestController
 @CrossOrigin(allowedHeaders = "*", origins = "*")
 @RequestMapping("/" + Constants.SDKS)
@@ -60,6 +63,7 @@ public class SdkController {
         this.sdkRepository = sdkRepository;
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200")}, description = "Retrieve all SDKs")
     @GetMapping("/")
     public HttpEntity<SdkListDto> getSdks() {
         LOG.debug("Get to retrieve all SDKs received.");
@@ -75,6 +79,7 @@ public class SdkController {
         return new ResponseEntity<>(sdkListDto, HttpStatus.OK);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404")}, description = "Retrieve a single SDK")
     @GetMapping("/{id}")
     public HttpEntity<SdkDto> getSdk(@PathVariable UUID id) {
         LOG.debug("Get to retrieve SDK with id: {}.", id);
@@ -88,8 +93,9 @@ public class SdkController {
         return new ResponseEntity<>(createSdkDto(sdkOptional.get()), HttpStatus.OK);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "201"), @ApiResponse(responseCode = "400")}, description = "Creates a new SDK")
     @PostMapping("/")
-    public HttpEntity<SdkDto> createImplementation(@RequestBody SdkDto sdkDto) {
+    public HttpEntity<SdkDto> createSDK(@RequestBody SdkDto sdkDto) {
         LOG.debug("Post to create new Sdk received.");
 
         if (Objects.isNull(sdkDto.getName())) {

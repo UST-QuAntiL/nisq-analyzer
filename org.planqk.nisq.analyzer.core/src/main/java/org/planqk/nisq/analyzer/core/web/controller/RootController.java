@@ -24,6 +24,8 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
@@ -52,6 +54,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
  * Root controller to access all entities within Quality, trigger the hardware selection, and execution of quantum
  * algorithms.
  */
+@io.swagger.v3.oas.annotations.tags.Tag(name = "root")
 @RestController
 @CrossOrigin(allowedHeaders = "*", origins = "*")
 public class RootController {
@@ -64,6 +67,7 @@ public class RootController {
         this.nisqAnalyzerService = nisqAnalyzerService;
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200")}, description = "Root operation, returns further links")
     @GetMapping("/")
     public HttpEntity<RepresentationModel> root() {
         RepresentationModel responseEntity = new RepresentationModel<>();
@@ -79,6 +83,7 @@ public class RootController {
         return new ResponseEntity<>(responseEntity, HttpStatus.OK);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400")}, description = "Retrieve selection parameters")
     @GetMapping("/" + Constants.SELECTION_PARAMS)
     public ResponseEntity getSelectionParams(@RequestParam UUID algoId) {
         LOG.debug("Get to retrieve selection parameters for algorithm with Id {} received.", algoId);
@@ -100,6 +105,7 @@ public class RootController {
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400"), @ApiResponse(responseCode = "500")}, description = "Select implementations for an algorithm")
     @PostMapping("/" + Constants.SELECTION)
     public ResponseEntity selectImplementations(@RequestBody SelectionRequest params) {
         LOG.debug("Post to select implementations for algorithm with Id {} received.", params.getAlgorithmId());

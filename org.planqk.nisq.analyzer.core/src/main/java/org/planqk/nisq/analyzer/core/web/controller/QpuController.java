@@ -25,6 +25,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
 import org.planqk.nisq.analyzer.core.model.Qpu;
@@ -53,6 +55,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 /**
  * Controller to access and manipulate quantum processing units (QPUs).
  */
+@io.swagger.v3.oas.annotations.tags.Tag(name = "qpu")
 @RestController
 @CrossOrigin(allowedHeaders = "*", origins = "*")
 @RequestMapping("/" + Constants.QPUS)
@@ -69,6 +72,7 @@ public class QpuController {
         this.prologFactUpdater = prologFactUpdater;
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200")}, description = "Retrieve all QPUs")
     @GetMapping("/")
     public HttpEntity<QpuListDto> getQpus() {
         LOG.debug("Get to retrieve all QPUs received.");
@@ -84,6 +88,7 @@ public class QpuController {
         return new ResponseEntity<>(qpuListDto, HttpStatus.OK);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404")}, description = "Retrieve a single QPU")
     @GetMapping("/{qpuId}")
     public HttpEntity<QpuDto> getQpu(@PathVariable UUID qpuId) {
         LOG.debug("Get to retrieve QPU with id: {}.", qpuId);
@@ -97,6 +102,7 @@ public class QpuController {
         return new ResponseEntity<>(createQpuDto(qpuOptional.get()), HttpStatus.OK);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "201"), @ApiResponse(responseCode = "400")}, description = "Create a QPU")
     @PostMapping("/")
     public HttpEntity<QpuDto> createQpu(@RequestBody CreateQpuRequest qpuRequest) {
         LOG.debug("Post to create new QPU received.");
@@ -124,7 +130,7 @@ public class QpuController {
         // store and return QPU
         Qpu qpu = qpuRepository.save(QpuDto.Converter.convert(qpuRequest, supportedSdks));
         prologFactUpdater.handleQpuInsertion(qpu);
-        return new ResponseEntity<>(createQpuDto(qpu), HttpStatus.OK);
+        return new ResponseEntity<>(createQpuDto(qpu), HttpStatus.CREATED);
     }
 
     /**
