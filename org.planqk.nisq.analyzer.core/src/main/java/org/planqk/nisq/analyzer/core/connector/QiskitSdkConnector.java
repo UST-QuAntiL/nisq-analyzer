@@ -59,9 +59,9 @@ public class QiskitSdkConnector implements SdkConnector {
     private URI executeAPIEndpoint;
 
     public QiskitSdkConnector(
-            @Value("${org.planqk.nisq.analyzer.connector.qiskit.hostname}") String hostname,
-            @Value("${org.planqk.nisq.analyzer.connector.qiskit.port}") int port,
-            @Value("${org.planqk.nisq.analyzer.connector.qiskit.version}") String version
+            @Value("${NISQ_HOSTNAME}") String hostname,
+            @Value("${NISQ_PORT}") int port,
+            @Value("${NISQ_VERSION}") String version
     ) {
         // compile the API endpoints
         transpileAPIEndpoint = URI.create(String.format("http://%s:%d/qiskit-service/api/%s/transpile", hostname, port, version));

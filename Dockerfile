@@ -1,7 +1,7 @@
 FROM maven:3-jdk-8 as builder
-COPY . /tmp/atlas
-WORKDIR /tmp/atlas
-RUN mvn package -DskipTests && mkdir /build && unzip /tmp/atlas/org.planqk.atlas.web/target/org.planqk.atlas.web.war -d /build/atlas
+COPY . /tmp/nisq
+WORKDIR /tmp/nisq
+RUN mvn package -DskipTests && mkdir /build && unzip /tmp/nisq/org.planqk.nisq.analyzer.core/target/org.planqk.nisq.analyzer.core.war -d /build/nisq-analyzer
 
 FROM ubuntu:18.04
 LABEL maintainer = "Benjamin Weder <benjamin.weder@iaas.uni-stuttgart.de>"
@@ -11,9 +11,13 @@ ARG TOMCAT_VERSION=9.0.8
 
 ENV POSTGRES_HOSTNAME localhost
 ENV POSTGRES_PORT 5432
-ENV POSTGRES_USER postgres
-ENV POSTGRES_PASSWORD postgres
-ENV POSTGRES_DB postgres
+ENV POSTGRES_USER nisq
+ENV POSTGRES_PASSWORD nisq
+ENV POSTGRES_DB nisq
+
+ENV NISQ_HOSTNAME: localhost
+ENV NISQ_PORT: 5000
+ENV NISQ_VERSION: v1.0
 
 RUN apt-get -qq update && apt-get install -qqy software-properties-common openjdk-8-jdk wget
 
@@ -36,12 +40,12 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
     && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
 
 RUN rm -rf ${CATALINA_HOME}/webapps/*
-COPY --from=builder /build/atlas ${CATALINA_HOME}/webapps/atlas
+COPY --from=builder /build/nisq-analyzer ${CATALINA_HOME}/webapps/nisq-analyzer
 
 EXPOSE 8080
 
 # configure application with template and docker environment variables
 ADD .docker/application.properties.tpl ${CATALINA_HOME}/webapps/application.properties.tpl
 
-CMD dockerize -template ${CATALINA_HOME}/webapps/application.properties.tpl:${CATALINA_HOME}/webapps/atlas/WEB-INF/classes/application.properties \
+CMD dockerize -template ${CATALINA_HOME}/webapps/application.properties.tpl:${CATALINA_HOME}/webapps/nisq-analyzer/WEB-INF/classes/application.properties \
     ${CATALINA_HOME}/bin/catalina.sh run
