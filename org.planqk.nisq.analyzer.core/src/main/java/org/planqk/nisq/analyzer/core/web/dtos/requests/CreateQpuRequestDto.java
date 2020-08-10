@@ -19,25 +19,20 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.requests;
 
+import java.util.List;
 import java.util.UUID;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.planqk.nisq.analyzer.core.model.Qpu;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuDto;
 
 /**
- * Dto to exchange input and output parameters as key value pairs.
+ * Request object which is passed to create a new {@link Qpu}.
  */
-public class ExecutionRequest extends ParameterKeyValueDto {
+public class CreateQpuRequestDto extends QpuDto {
 
     @Getter
     @Setter
-    private UUID qpuId;
-
-    @Getter
-    @Setter
-    private int analysedDepth;
-
-    @Getter
-    @Setter
-    private int analysedWidth;
+    private List<UUID> supportedSdkIds;
 }

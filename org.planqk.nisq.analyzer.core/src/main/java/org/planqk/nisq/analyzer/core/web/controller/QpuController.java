@@ -37,7 +37,7 @@ import org.planqk.nisq.analyzer.core.repository.QpuRepository;
 import org.planqk.nisq.analyzer.core.repository.SdkRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuListDto;
-import org.planqk.nisq.analyzer.core.web.dtos.requests.CreateQpuRequest;
+import org.planqk.nisq.analyzer.core.web.dtos.requests.CreateQpuRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -108,7 +108,7 @@ public class QpuController {
     @Operation(responses = {@ApiResponse(responseCode = "201"), @ApiResponse(responseCode = "400", content = @Content)},
             description = "Create a QPU")
     @PostMapping("/")
-    public HttpEntity<QpuDto> createQpu(@RequestBody CreateQpuRequest qpuRequest) {
+    public HttpEntity<QpuDto> createQpu(@RequestBody CreateQpuRequestDto qpuRequest) {
         LOG.debug("Post to create new QPU received.");
 
         // check consistency of the QPU object

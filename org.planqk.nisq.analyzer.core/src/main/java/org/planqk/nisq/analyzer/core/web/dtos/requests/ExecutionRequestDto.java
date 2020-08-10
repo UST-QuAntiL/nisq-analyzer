@@ -24,9 +24,20 @@ import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 
-public class SelectionRequest extends ParameterKeyValueDto {
+/**
+ * Dto to exchange input and output parameters as key value pairs.
+ */
+public class ExecutionRequestDto extends ParameterKeyValueDto {
 
     @Getter
     @Setter
-    private UUID algorithmId;
+    private UUID qpuId;
+
+    @Getter
+    @Setter
+    private int analysedDepth;
+
+    @Getter
+    @Setter
+    private int analysedWidth;
 }

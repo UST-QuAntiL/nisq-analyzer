@@ -45,7 +45,7 @@ import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterListDto;
-import org.planqk.nisq.analyzer.core.web.dtos.requests.ExecutionRequest;
+import org.planqk.nisq.analyzer.core.web.dtos.requests.ExecutionRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -275,7 +275,7 @@ public class ImplementationController {
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute an implementation")
     @PostMapping("/{implId}/" + Constants.EXECUTION)
     public HttpEntity<ExecutionResultDto> executeImplementation(@PathVariable UUID implId,
-                                                                @RequestBody ExecutionRequest executionRequest) {
+                                                                @RequestBody ExecutionRequestDto executionRequestDto) {
         LOG.debug("Post to execute implementation with Id: {}", implId);
 
         Optional<Implementation> implementationOptional = implementationRepository.findById(implId);
@@ -284,14 +284,14 @@ public class ImplementationController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        Optional<Qpu> qpuOptional = qpuRepository.findById(executionRequest.getQpuId());
+        Optional<Qpu> qpuOptional = qpuRepository.findById(executionRequestDto.getQpuId());
         if (!qpuOptional.isPresent()) {
-            LOG.error("Unable to retrieve qpu with id {} form the repository.", executionRequest.getQpuId());
+            LOG.error("Unable to retrieve qpu with id {} form the repository.", executionRequestDto.getQpuId());
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
         try {
-            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(implementationOptional.get(), qpuOptional.get(), executionRequest.getParameters(), executionRequest.getAnalysedDepth(), executionRequest.getAnalysedWidth());
+            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(implementationOptional.get(), qpuOptional.get(), executionRequestDto.getParameters(), executionRequestDto.getAnalysedDepth(), executionRequestDto.getAnalysedWidth());
             ExecutionResultDto dto = ExecutionResultDto.Converter.convert(result);
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(implId, result.getId())).withSelfRel());
             return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
