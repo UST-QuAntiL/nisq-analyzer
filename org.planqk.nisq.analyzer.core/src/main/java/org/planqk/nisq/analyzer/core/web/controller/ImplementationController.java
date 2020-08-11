@@ -35,6 +35,7 @@ import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
+import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
@@ -52,6 +53,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -187,6 +189,46 @@ public class ImplementationController {
         return new ResponseEntity<>(createImplementationDto(implementation), HttpStatus.CREATED);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content)},
+            description = "Update an implementation")
+    @PostMapping("/{implId}")
+    public HttpEntity<ImplementationDto> updateImplementation(@PathVariable UUID implId, @RequestBody ImplementationDto impl) {
+        LOG.debug("Post to create new implementation received.");
+
+        // check consistency of the implementation object
+        if (Objects.isNull(impl.getName())
+                || Objects.isNull(impl.getImplementedAlgorithm()) || Objects.isNull(impl.getSelectionRule())
+                || Objects.isNull(impl.getSdk()) || Objects.isNull(impl.getFileLocation())) {
+            LOG.error("Received invalid implementation object for post request: {}", impl.toString());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        // retrieve referenced Sdk and abort if not present
+        Optional<Sdk> sdkOptional = sdkRepository.findByName(impl.getSdk());
+        if (!sdkOptional.isPresent()) {
+            LOG.error("Unable to retrieve Sdk with name {} from the repository.", impl.getSdk());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        Optional<Implementation> implementationOptional = implementationRepository.findById(implId);
+        if (!implementationOptional.isPresent()) {
+            LOG.error("Unable to retrieve implementation with id {} from the repository.", implId);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        Implementation oldImpl = implementationOptional.get();
+        Implementation newImpl = ImplementationDto.Converter.convert(impl, sdkOptional.get());
+
+        // We can't take the parameter lists from our request, as they don't contain IDs
+        newImpl.setId(implId);
+        newImpl.setInputParameters(oldImpl.getInputParameters());
+        newImpl.setOutputParameters(oldImpl.getOutputParameters());
+
+        prologFactUpdater.handleImplementationInsertion(newImpl);
+        newImpl = implementationRepository.save(newImpl);
+        return new ResponseEntity<>(createImplementationDto(newImpl), HttpStatus.CREATED);
+    }
+
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve input parameters for an implementation")
     @GetMapping("/{implId}/" + Constants.INPUT_PARAMS)
@@ -249,6 +291,22 @@ public class ImplementationController {
         implementation.getInputParameters().add(ParameterDto.Converter.convert(parameterDto));
         implementationRepository.save(implementation);
         return new ResponseEntity<>(parameterDto, HttpStatus.CREATED);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Remove input parameters from an implementation")
+    @DeleteMapping("/{implId}/" +Constants.INPUT_PARAMS)
+    public HttpEntity<Void> deleteInputParameters(@PathVariable UUID implId, @RequestBody List<String> names) {
+        LOG.debug("Post to add input parameter on implementation with id: {}.", implId);
+        Optional<Implementation> implementationOptional = implementationRepository.findById(implId);
+        if (!implementationOptional.isPresent()) {
+            LOG.error("Unable to retrieve implementation with id {} from the repository.", implId);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        Implementation implementation = implementationOptional.get();
+        implementation.getInputParameters().removeIf(parameter -> names.contains(parameter.getName()));
+        implementationRepository.save(implementation);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "201"), @ApiResponse(responseCode = "404", content = @Content),
