@@ -62,7 +62,7 @@ public class ExecutionResult extends HasId {
 
     @Getter
     @Setter
-    @Column(length = 4096)
+    @Column(columnDefinition="text")
     private String result;
 
     @Getter

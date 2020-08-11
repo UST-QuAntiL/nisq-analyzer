@@ -276,19 +276,6 @@ public class ImplementationController {
         try {
             Implementation implementation = implementationOptional.get();
 
-            /*
-
-            Map<String, ParameterValue> typedParams = new HashMap<>();
-            executionRequest.getParameters().forEach( (key, value) -> {
-                Optional<Parameter> parameter = implementation.getInputParameters().stream().filter(p -> p.getName().equals(key)).findFirst();
-                if (parameter.isPresent()) {
-                    typedParams.put(key, new ParameterValue(parameter.get().getType(), value));
-                } else {
-                    LOG.error("Parameter set for the selection is not valid.");
-                }
-            });
-             */
-
             // Retrieve the type of the parameter from the algorithm definition
             Map<String,ParameterValue> typedParams = ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), executionRequest.getParameters());
 
