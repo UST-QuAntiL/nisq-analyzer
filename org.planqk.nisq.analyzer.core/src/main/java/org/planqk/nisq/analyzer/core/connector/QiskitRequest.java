@@ -25,6 +25,7 @@ import java.net.URL;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
 
 public class QiskitRequest {
 
@@ -41,13 +42,13 @@ public class QiskitRequest {
     @Getter
     @Setter
     @JsonProperty("input-params")
-    private Map<String, String> input_params;
+    private Map<String, ParameterValue> input_params;
 
     @Getter
     @Setter
     private String token;
 
-    public QiskitRequest(URL impl_url, String qpu_name, Map<String,String> input_params, String token)
+    public QiskitRequest(URL impl_url, String qpu_name, Map<String,ParameterValue> input_params, String token)
     {
         this.impl_url = impl_url;
         this.qpu_name = qpu_name;

@@ -41,6 +41,7 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.HasId;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
@@ -95,7 +96,8 @@ public class NisqAnalyzerControlService {
      * @return the ExecutionResult to track the current status and store the result
      * @throws RuntimeException is thrown in case the execution of the algorithm implementation fails
      */
-    public ExecutionResult executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, String> inputParameters, int circuitDepth, int circuitWidth) throws RuntimeException {
+
+    public ExecutionResult executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> inputParameters, int circuitDepth, int circuitWidth) throws RuntimeException {
         LOG.debug("Executing quantum algorithm implementation with Id: {} and name: {}", implementation.getId(), implementation.getName());
 
         // get suited Sdk connector plugin
@@ -109,7 +111,10 @@ public class NisqAnalyzerControlService {
 
         // create a object to store the execution results
         ExecutionResult executionResult =
-                executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED, "Passing execution to executor plugin.", circuitDepth, circuitWidth, qpu, null, implementation, inputParameters));
+                executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
+                        "Passing execution to executor plugin.",
+                        circuitDepth, circuitWidth, qpu,
+                        null, implementation, ParameterValue.convertToUntyped(inputParameters)));
 
         // execute implementation
         new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), qpu, inputParameters, executionResult, executionResultRepository)).start();
@@ -128,6 +133,7 @@ public class NisqAnalyzerControlService {
      * them
      * @throws UnsatisfiedLinkError Is thrown if the jpl driver is not on the java class path
      */
+
     public List<AnalysisResult> performSelection(UUID algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
         LOG.debug("Performing implementation and QPU selection for algorithm with Id: {}", algorithm);
         List<AnalysisResult> analysisResult = new ArrayList<>();
@@ -179,11 +185,14 @@ public class NisqAnalyzerControlService {
                 continue;
             }
 
+            // Try to infer the type of the parameters for the given implementation
+            Map<String, ParameterValue> execInputParameters = ParameterValue.inferTypedParameterValue(execImplementation.getInputParameters(), inputParameters);
+
             for (Qpu qpu : qpuCandidates) {
                 LOG.debug("Checking if QPU {} is suitable for implementation {}.", qpu.getName(), execImplementation.getName());
 
                 // analyze the quantum circuit by utilizing the capabilities of the suited plugin and retrieve important circuit properties
-                CircuitInformation circuitInformation = selectedSdkConnector.getCircuitProperties(execImplementation.getFileLocation(), qpu, inputParameters);
+                CircuitInformation circuitInformation = selectedSdkConnector.getCircuitProperties(execImplementation.getFileLocation(), qpu, execInputParameters);
                 if (Objects.isNull(circuitInformation)) {
                     LOG.error("Circuit analysis by compiler failed. Using estimates...");
 
@@ -285,8 +294,20 @@ public class NisqAnalyzerControlService {
      * @return <code>true</code> if all required parameters are contained in the provided parameters, <code>false</code>
      * otherwise
      */
-    private boolean parametersAvailable(Set<Parameter> requiredParameters, Map<String, String> providedParameters) {
-        LOG.debug("Checking if {} required parameters are available in the input map with {} provided parameters!", requiredParameters.size(), providedParameters.size());
-        return requiredParameters.stream().allMatch(param -> providedParameters.containsKey(param.getName()));
+    private boolean parametersAvailable(Set<Parameter> requiredParameters, Map<String, ?> providedParameters) {
+        return parametersAvailable(requiredParameters, providedParameters.keySet());
+    }
+
+    /**
+     * Check if all required parameters are contained in the provided parameters
+     *
+     * @param requiredParameters the set of required parameters
+     * @param providedParameterNames the set with the provided parameters
+     * @return <code>true</code> if all required parameters are contained in the provided parameters, <code>false</code>
+     * otherwise
+     */
+    private boolean parametersAvailable(Set<Parameter> requiredParameters, Set<String> providedParameterNames) {
+        LOG.debug("Checking if {} required parameters are available in the input map with {} provided parameters!", requiredParameters.size(), providedParameterNames.size());
+        return requiredParameters.stream().allMatch(param -> providedParameterNames.contains(param.getName()));
     }
 }
