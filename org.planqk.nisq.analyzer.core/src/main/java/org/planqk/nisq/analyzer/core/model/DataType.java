@@ -28,5 +28,6 @@ public enum DataType {
     Float,
     IntegerArray,
     FloatArray,
-    String;
+    String,
+    Unknown;
 }

@@ -19,6 +19,8 @@
 
 package org.planqk.nisq.analyzer.core.web.controller;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -31,6 +33,8 @@ import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
+import org.planqk.nisq.analyzer.core.model.Parameter;
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
@@ -270,7 +274,14 @@ public class ImplementationController {
         }
 
         try {
-            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(implementationOptional.get(), qpuOptional.get(), executionRequest.getParameters(), executionRequest.getAnalysedDepth(), executionRequest.getAnalysedWidth());
+            Implementation implementation = implementationOptional.get();
+
+            // Retrieve the type of the parameter from the algorithm definition
+            Map<String,ParameterValue> typedParams = ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), executionRequest.getParameters());
+
+            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(implementation, qpuOptional.get(),
+                    typedParams, executionRequest.getAnalysedDepth(), executionRequest.getAnalysedWidth());
+
             ExecutionResultDto dto = ExecutionResultDto.Converter.convert(result);
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(implId, result.getId())).withSelfRel());
             return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);

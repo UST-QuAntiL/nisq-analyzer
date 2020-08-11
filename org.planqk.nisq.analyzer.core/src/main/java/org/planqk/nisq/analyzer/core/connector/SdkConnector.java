@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
@@ -43,7 +44,7 @@ public interface SdkConnector {
      * @param resultRepository           the object to update the current state of the long running task and to add the
      *                                   results after completion
      */
-    void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters, ExecutionResult executionResult, ExecutionResultRepository resultRepository);
+    void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters, ExecutionResult executionResult, ExecutionResultRepository resultService);
 
     /**
      * Analyse the quantum algorithm implementation located at the given URL after transpiling it for the given QPU and
@@ -55,7 +56,7 @@ public interface SdkConnector {
      * @param parameters                 he input parameters for the quantum algorithm implementation
      * @return the object containing all analysed properties of the quantum circuit
      */
-    CircuitInformation getCircuitProperties(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters);
+    CircuitInformation getCircuitProperties(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters);
 
     /**
      * Returns the name of the Sdk that is supported by the connector

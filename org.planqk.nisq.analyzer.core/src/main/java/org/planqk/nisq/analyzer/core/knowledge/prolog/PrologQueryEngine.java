@@ -107,6 +107,7 @@ public class PrologQueryEngine {
      * @param params        the set of parameters to use for the evaluation
      * @return the evaluation result of the prolog rule
      */
+
     public boolean checkExecutability(String selectionRule, Map<String, String> params) {
         String query = assembleQueryForRule(selectionRule, params, false);
         if (Objects.isNull(query)) {

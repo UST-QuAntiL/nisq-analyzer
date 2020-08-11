@@ -30,6 +30,7 @@ import java.util.Set;
 import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
@@ -69,10 +70,10 @@ public class QiskitSdkConnector implements SdkConnector {
     }
 
     @Override
-    public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters, ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
+    public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters, ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
 
-        String token = getTokenFromInputParameters(parameters);
+        String token = getTokenFromInputParameters(ParameterValue.convertToUntyped(parameters));
         if (Objects.isNull(token)) {
             LOG.error("Required token parameter not provided!");
             return;
@@ -126,10 +127,10 @@ public class QiskitSdkConnector implements SdkConnector {
     }
 
     @Override
-    public CircuitInformation getCircuitProperties(URL algorithmImplementationURL, Qpu qpu, Map<String, String> parameters) {
+    public CircuitInformation getCircuitProperties(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters) {
         LOG.debug("Analysing quantum algorithm implementation with Qiskit Sdk connector plugin!");
 
-        String token = getTokenFromInputParameters(parameters);
+        String token = getTokenFromInputParameters(ParameterValue.convertToUntyped(parameters));
         if (Objects.isNull(token)) {
             LOG.error("Required token parameter not provided!");
             return null;
