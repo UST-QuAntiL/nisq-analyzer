@@ -71,7 +71,7 @@ public class ParameterValue {
         }
         catch (Exception e)
         {
-            LOG.warn("Unable to infer type for parameter \"%s\"", parameterName);
+            LOG.warn("Unable to infer type for parameter \"{}\". Continue with unknown type. This might influence the correct execution of the implementation.", parameterName);
             return new ParameterValue(DataType.Unknown, value);
         }
     }

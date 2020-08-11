@@ -276,7 +276,8 @@ public class ImplementationController {
         try {
             Implementation implementation = implementationOptional.get();
 
-            // Retrieve the type of the parameter from the algorithm definition
+            /*
+
             Map<String, ParameterValue> typedParams = new HashMap<>();
             executionRequest.getParameters().forEach( (key, value) -> {
                 Optional<Parameter> parameter = implementation.getInputParameters().stream().filter(p -> p.getName().equals(key)).findFirst();
@@ -286,7 +287,10 @@ public class ImplementationController {
                     LOG.error("Parameter set for the selection is not valid.");
                 }
             });
+             */
 
+            // Retrieve the type of the parameter from the algorithm definition
+            Map<String,ParameterValue> typedParams = ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), executionRequest.getParameters());
 
             ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(implementation, qpuOptional.get(),
                     typedParams, executionRequest.getAnalysedDepth(), executionRequest.getAnalysedWidth());
