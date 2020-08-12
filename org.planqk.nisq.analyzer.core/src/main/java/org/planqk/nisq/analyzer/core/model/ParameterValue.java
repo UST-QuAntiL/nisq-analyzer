@@ -20,14 +20,21 @@
 package org.planqk.nisq.analyzer.core.model;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 @AllArgsConstructor
 public class ParameterValue {
+
+
+    final private static Logger LOG = LoggerFactory.getLogger(ParameterValue.class);
 
     @Getter
     @Setter
@@ -54,5 +61,28 @@ public class ParameterValue {
         }
 
         return untypedParameters;
+    }
+
+    public static ParameterValue inferTypedParameterValue(List<Parameter> parameters, String parameterName, String value)
+    {
+        try
+        {
+            DataType inferredType = parameters.stream().filter(p -> p.name.equals(parameterName)).findFirst().get().type;
+            return new ParameterValue(inferredType, value);
+        }
+        catch (Exception e)
+        {
+            LOG.warn("Unable to infer type for parameter \"{}\". Continue with unknown type. This might influence the correct execution of the implementation.", parameterName);
+            return new ParameterValue(DataType.Unknown, value);
+        }
+    }
+
+    public static Map<String, ParameterValue> inferTypedParameterValue(List<Parameter> parameters, Map<String, String> values)
+    {
+        Map<String, ParameterValue> typedParameters = new HashMap<>();
+        values.entrySet().stream().forEach( (entry) -> {
+            typedParameters.put(entry.getKey(), inferTypedParameterValue(parameters, entry.getKey(), entry.getValue()));
+        });
+        return typedParameters;
     }
 }

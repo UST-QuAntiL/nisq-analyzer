@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.web.dtos.requests;
 
 import java.util.List;
+import java.util.UUID;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -33,5 +34,5 @@ public class CreateQpuRequest extends QpuDto {
 
     @Getter
     @Setter
-    private List<Long> supportedSdkIds;
+    private List<UUID> supportedSdkIds;
 }

@@ -49,12 +49,20 @@ public class ExecutionResult extends HasId {
 
     @Getter
     @Setter
+    private int analyzedDepth;
+
+    @Getter
+    @Setter
+    private int analyzedWidth;
+
+    @Getter
+    @Setter
     @ManyToOne
     private Qpu executingQpu;
 
     @Getter
     @Setter
-    @Column(length = 4096)
+    @Column(columnDefinition="text")
     private String result;
 
     @Getter

@@ -41,6 +41,4 @@ public class CircuitInformation {
     @Setter
     @JsonProperty("width")
     private int circuitWidth = 0;
-
-    // TODO: add further important circuit properites
 }

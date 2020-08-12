@@ -22,6 +22,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -29,19 +30,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.planqk.nisq.analyzer.core.Application;
 import org.planqk.nisq.analyzer.core.Constants;
-import org.planqk.nisq.analyzer.core.model.Algorithm;
 import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
-import org.planqk.nisq.analyzer.core.model.Provider;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.Sdk;
-import org.planqk.nisq.analyzer.core.services.AlgorithmService;
-import org.planqk.nisq.analyzer.core.services.ImplementationService;
-import org.planqk.nisq.analyzer.core.services.ProviderService;
-import org.planqk.nisq.analyzer.core.services.QpuService;
-import org.planqk.nisq.analyzer.core.services.SdkService;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.AlgorithmListDto;
+import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
+import org.planqk.nisq.analyzer.core.repository.QpuRepository;
+import org.planqk.nisq.analyzer.core.repository.SdkRepository;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.SdkListDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -65,19 +64,17 @@ public class ImplementationSelectionTest {
     
     // Services
     @Autowired
-    private ImplementationService implementationService;
+    private ImplementationRepository implementationRepository;
+    
+    @Autowired
+    private SdkRepository sdkRepository;
+    
+    @Autowired
+    private QpuRepository qpuRepository;
 
-    @Autowired
-    private AlgorithmService algorithmService;
-    
-    @Autowired
-    private ProviderService providerService;
-    
-    @Autowired
-    private SdkService sdkService;
-    
-    @Autowired
-    private QpuService qpuService;
+
+    // some useful UUIDs
+    private UUID shorAlgorithmUUID;
 
     @BeforeAll
     public void prepareTestDatabase(){
@@ -85,20 +82,12 @@ public class ImplementationSelectionTest {
         final String token = "";
 
         // Create the Shor Algorithm
-        Algorithm shorAlg = new Algorithm();
-        shorAlg.setName("Shor");
-        shorAlg.setInputParameters(Arrays.asList(
-                new Parameter("N", DataType.Integer, "N > 0,N odd", "Number to be factorized")
-        ));
-        shorAlg.setOutputParameters(Arrays.asList(
-                new Parameter("Factor", DataType.Integer, "", "")
-        ));
-        shorAlg = algorithmService.save(shorAlg);
+        shorAlgorithmUUID = UUID.randomUUID();
 
         // Create SDK
         Sdk qiskit = new Sdk();
         qiskit.setName("Qiskit");
-        qiskit = sdkService.save(qiskit);
+        qiskit = sdkRepository.save(qiskit);
 
         // Create Shor15 Implementation
         Implementation shor15Implementation = new Implementation();
@@ -119,8 +108,8 @@ public class ImplementationSelectionTest {
         ));
         shor15Implementation.setWidthRule("expectedWidth(W, shor-15-qiskit) :- W is 8.");
         shor15Implementation.setDepthRule("expectedDepth(D, shor-15-qiskit) :- D is 7.");
-        shor15Implementation.setImplementedAlgorithm(shorAlg);
-        implementationService.save(shor15Implementation);
+        shor15Implementation.setImplementedAlgorithm(shorAlgorithmUUID);
+        implementationRepository.save(shor15Implementation);
 
         // Create ShorGeneral Implementation
         Implementation shorGeneralImplementation = new Implementation();
@@ -141,15 +130,11 @@ public class ImplementationSelectionTest {
         ));
         shorGeneralImplementation.setWidthRule("expectedWidth(W, L, shor-general-qiskit) :- W is 2 * L + 3.");
         shorGeneralImplementation.setDepthRule("expectedDepth(D, L, shor-general-qiskit) :- D is L**3.");
-        shorGeneralImplementation.setImplementedAlgorithm(shorAlg);
-        implementationService.save(shorGeneralImplementation);
+        shorGeneralImplementation.setImplementedAlgorithm(shorAlgorithmUUID);
+        implementationRepository.save(shorGeneralImplementation);
 
         // Create Provider
-        Provider ibmQ = new Provider();
-        ibmQ.setName("IBM");
-        ibmQ.setAccessKey("");
-        ibmQ.setSecretKey(token);
-        providerService.save(ibmQ);
+        // ...
 
         List<Sdk> supportedSDK = new ArrayList<>();
         supportedSDK.add(qiskit);
@@ -161,8 +146,7 @@ public class ImplementationSelectionTest {
         ibmq16.setT1(50063.8361f);
         ibmq16.setMaxGateTime(1043);
         ibmq16.setSupportedSdks(supportedSDK);
-        ibmq16.setProvider(ibmQ);
-        qpuService.save(ibmq16);
+        qpuRepository.save(ibmq16);
 
         Qpu ibmq5 = new Qpu();
         ibmq5.setName("ibmq_5_yorktown");
@@ -172,8 +156,7 @@ public class ImplementationSelectionTest {
         ibmq5.setSupportedSdks(Arrays.asList(
                 qiskit
         ));
-        ibmq5.setProvider(ibmQ);
-        qpuService.save(ibmq5);
+        qpuRepository.save(ibmq5);
 
 
         Qpu ibmqsim = new Qpu();
@@ -184,13 +167,34 @@ public class ImplementationSelectionTest {
         ibmqsim.setSupportedSdks(Arrays.asList(
                 qiskit
         ));
+        qpuRepository.save(ibmqsim);
     }
 
     @Test
-    public void testSelection(){
+    public void testDatabaseEntries(){
 
-        ResponseEntity<AlgorithmListDto> algs = template.getForEntity("http://localhost:" + port + "/" + Constants.ALGORITHMS + "/", AlgorithmListDto.class);
+        String baseURL = "http://localhost:" + port + "/";
+
+        // Assert two Shor Algorithm implementations in the database
+        ResponseEntity<ImplementationListDto> algs = template.getForEntity( baseURL + Constants.IMPLEMENTATIONS + "/?algoId=" + shorAlgorithmUUID.toString(),
+                ImplementationListDto.class);
         Assertions.assertEquals(HttpStatus.OK, algs.getStatusCode());
-        Assertions.assertEquals(1, algs.getBody().getAlgorithmDtos().size());
+        Assertions.assertEquals(2, algs.getBody().getImplementationDtos().size());
+
+        // Assert one SDK in the database
+        ResponseEntity<SdkListDto> sdks = template.getForEntity(baseURL + Constants.SDKS + "/", SdkListDto.class);
+        Assertions.assertEquals(HttpStatus.OK, sdks.getStatusCode());
+        Assertions.assertEquals(1, sdks.getBody().getSdkDtos().size());
+
+        // Assert three QPUs in the database
+        ResponseEntity<QpuListDto> qpus = template.getForEntity(baseURL + Constants.QPUS + "/", QpuListDto.class);
+        Assertions.assertEquals(HttpStatus.OK, qpus.getStatusCode());
+        Assertions.assertEquals(3, qpus.getBody().getQpuDtoList().size());
+    }
+
+
+    @Test
+    public void testImplementationSelection(){
+
     }
 }

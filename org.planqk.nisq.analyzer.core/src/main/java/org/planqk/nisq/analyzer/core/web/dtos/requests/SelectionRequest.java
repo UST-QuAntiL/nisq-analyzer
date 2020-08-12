@@ -17,25 +17,16 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.web.dtos.entities;
+package org.planqk.nisq.analyzer.core.web.dtos.requests;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.UUID;
 
 import lombok.Getter;
-import org.assertj.core.util.Lists;
-import org.planqk.nisq.analyzer.core.model.Provider;
-import org.springframework.hateoas.RepresentationModel;
+import lombok.Setter;
 
-/**
- * Data transfer object for multiple {@link Provider}s.
- */
-public class ProviderListDto extends RepresentationModel<ProviderListDto> {
+public class SelectionRequest extends ParameterKeyValueDto {
 
     @Getter
-    private final List<ProviderDto> providerDtoList = Lists.newArrayList();
-
-    public void add(final ProviderDto... provider) {
-        this.providerDtoList.addAll(Arrays.asList(provider));
-    }
+    @Setter
+    private UUID algorithmId;
 }

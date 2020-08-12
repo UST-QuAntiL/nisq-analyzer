@@ -21,11 +21,13 @@ package org.planqk.nisq.analyzer.core.connector;
 
 import java.net.URL;
 import java.util.Map;
+import java.util.Set;
 
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
+import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.Qpu;
-import org.planqk.nisq.analyzer.core.services.ExecutionResultService;
+import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 
 /**
  * Interface for the interaction with a certain SDK.
@@ -39,11 +41,10 @@ public interface SdkConnector {
      *                                   be executed
      * @param qpu                        the QPU to execute the implementation on
      * @param parameters                 the input parameters for the quantum algorithm execution
-     * @param executionResult            the object to update the current state of the long running task and to add the
+     * @param resultRepository           the object to update the current state of the long running task and to add the
      *                                   results after completion
      */
-    void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters, ExecutionResult executionResult, ExecutionResultService resultService);
-
+    void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters, ExecutionResult executionResult, ExecutionResultRepository resultRepository);
 
     /**
      * Analyse the quantum algorithm implementation located at the given URL after transpiling it for the given QPU and
@@ -63,4 +64,12 @@ public interface SdkConnector {
      * @return the name of the supported SDK
      */
     String supportedSdk();
+
+    /**
+     * Get parameters which are required by the SDK to execute a quantum circuit and which are independent of
+     * problem-specific input data
+     *
+     * @return a Set of required parameters
+     */
+    Set<Parameter> getSdkSpecificParameters();
 }
