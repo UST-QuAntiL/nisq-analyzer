@@ -218,7 +218,7 @@ public class ImplementationSelectionTest {
         ResponseEntity<AnalysisResultListDto> selection = performSelection(15);
 
         Assertions.assertEquals(HttpStatus.OK, selection.getStatusCode());
-        Assertions.assertEquals(4,selection.getBody().getAnalysisResultList().size());
+        Assertions.assertEquals(3,selection.getBody().getAnalysisResultList().size());
 
         for (AnalysisResultDto r : selection.getBody().getAnalysisResultList()) {
 
@@ -244,7 +244,7 @@ public class ImplementationSelectionTest {
         ResponseEntity<AnalysisResultListDto> selection = performSelection(9);
 
         Assertions.assertEquals(HttpStatus.OK, selection.getStatusCode());
-        Assertions.assertEquals(2,selection.getBody().getAnalysisResultList().size());
+        Assertions.assertEquals(1,selection.getBody().getAnalysisResultList().size());
 
         for (AnalysisResultDto r : selection.getBody().getAnalysisResultList()) {
 
