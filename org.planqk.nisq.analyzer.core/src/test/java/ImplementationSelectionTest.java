@@ -22,6 +22,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Assertions;
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.planqk.nisq.analyzer.core.Application;
 import org.planqk.nisq.analyzer.core.Constants;
+import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
@@ -38,9 +40,12 @@ import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuRepository;
 import org.planqk.nisq.analyzer.core.repository.SdkRepository;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.SdkListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.requests.SelectionRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -79,8 +84,6 @@ public class ImplementationSelectionTest {
     @BeforeAll
     public void prepareTestDatabase(){
 
-        final String token = "";
-
         // Create the Shor Algorithm
         shorAlgorithmUUID = UUID.randomUUID();
 
@@ -94,7 +97,7 @@ public class ImplementationSelectionTest {
         shor15Implementation.setName("shor-15-qiskit");
         try{
             shor15Implementation.setFileLocation( new URL(
-                    "https://github.com/PlanQK/planqk-atlas-content/blob/master/example-data/example-implementations/shor-15-qiskit.py"
+                    "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/master/example-implementations/shor-15-qiskit.py"
             ));
         }catch (MalformedURLException e){
         }
@@ -116,7 +119,7 @@ public class ImplementationSelectionTest {
         shorGeneralImplementation.setName("shor-general-qiskit");
         try{
             shorGeneralImplementation.setFileLocation( new URL(
-                    "https://github.com/PlanQK/planqk-atlas-content/blob/master/example-data/example-implementations/shor-general-qiskit.py"
+                    "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/master/example-implementations/shor-general-qiskit.py"
             ));
         }catch (MalformedURLException e){
         }
@@ -161,7 +164,7 @@ public class ImplementationSelectionTest {
 
         Qpu ibmqsim = new Qpu();
         ibmqsim.setName("ibmq_qasm_simulator");
-        ibmqsim.setQubitCount(15);
+        ibmqsim.setQubitCount(64);
         ibmqsim.setT1(50063.8361f);
         ibmqsim.setMaxGateTime(1043);
         ibmqsim.setSupportedSdks(Arrays.asList(
@@ -192,9 +195,72 @@ public class ImplementationSelectionTest {
         Assertions.assertEquals(3, qpus.getBody().getQpuDtoList().size());
     }
 
+    private ResponseEntity<AnalysisResultListDto> performSelection(int N){
+        String token = System.getenv("token");
+        String baseURL = "http://localhost:" + port + "/";
+
+        // create a request object
+        SelectionRequest request = new SelectionRequest();
+        request.setAlgorithmId(shorAlgorithmUUID);
+        request.setParameters(Map.of(
+                "N", Integer.toString(N),
+                "L", Integer.toString((int)Math.floor(Math.log(N)/Math.log(2))),
+                "token", token
+        ));
+
+        ResponseEntity<AnalysisResultListDto> selection = template.postForEntity(baseURL + Constants.SELECTION + "/", request, AnalysisResultListDto.class);
+        return selection;
+    }
 
     @Test
-    public void testImplementationSelection(){
+    public void testImplementationSelectionN15(){
 
+        ResponseEntity<AnalysisResultListDto> selection = performSelection(15);
+
+        Assertions.assertEquals(HttpStatus.OK, selection.getStatusCode());
+        Assertions.assertEquals(4,selection.getBody().getAnalysisResultList().size());
+
+        for (AnalysisResultDto r : selection.getBody().getAnalysisResultList()) {
+
+            // Assert that the implementation was transpiled using Qiskit service
+            Assertions.assertFalse(r.isEstimate(), String.format("%s was not transpiled.", r.getQpu().getName()));
+
+            // Check transpiled width is always less than the number of available Qbits
+            Assertions.assertTrue(r.getAnalysedWidth() <= r.getQpu().getNumberOfQubits(), r.getQpu().getName());
+        }
+
+        Assertions.assertTrue(selection.getBody().getAnalysisResultList().stream().anyMatch(
+                r -> r.getImplementation().getName().contains("general")
+        ), "Shor General not in the result list.");
+
+        Assertions.assertTrue(selection.getBody().getAnalysisResultList().stream().anyMatch(
+                r -> r.getImplementation().getName().contains("shor-15")
+        ), "Shor 15 not in the result list.");
+    }
+
+    @Test
+    public void testImplementationSelectionN9(){
+
+        ResponseEntity<AnalysisResultListDto> selection = performSelection(9);
+
+        Assertions.assertEquals(HttpStatus.OK, selection.getStatusCode());
+        Assertions.assertEquals(2,selection.getBody().getAnalysisResultList().size());
+
+        for (AnalysisResultDto r : selection.getBody().getAnalysisResultList()) {
+
+            // Assert that the implementation was transpiled using Qiskit service
+            Assertions.assertFalse(r.isEstimate(), String.format("%s was not transpiled.", r.getQpu().getName()));
+
+            // Check transpiled width is always less than the number of available Qbits
+            Assertions.assertTrue(r.getAnalysedWidth() <= r.getQpu().getNumberOfQubits(), r.getQpu().getName());
+        }
+
+        Assertions.assertTrue(selection.getBody().getAnalysisResultList().stream().anyMatch(
+                r -> r.getImplementation().getName().contains("general")
+        ), "Shor General not in the result list.");
+
+        Assertions.assertFalse(selection.getBody().getAnalysisResultList().stream().anyMatch(
+                r -> r.getImplementation().getName().contains("shor-15")
+        ), "Shor 15 in the result list.");
     }
 }
