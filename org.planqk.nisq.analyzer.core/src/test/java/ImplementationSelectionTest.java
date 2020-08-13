@@ -17,6 +17,7 @@
  * limitations under the License.
  *******************************************************************************/
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -52,6 +54,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.event.annotation.BeforeTestClass;
 
 @SpringBootTest(
         classes = Application.class,
@@ -80,18 +83,27 @@ public class ImplementationSelectionTest {
 
     // some useful UUIDs
     private UUID shorAlgorithmUUID;
+    private UUID groverAlgorithmUUID;
 
-    @BeforeAll
-    public void prepareTestDatabase(){
+    @AfterAll
+    public void tearDownTestDocker(){
+        try {
+            Runtime.getRuntime().exec("docker stop planqk-test");
+        }catch (Exception e){
 
-        // Create the Shor Algorithm
-        shorAlgorithmUUID = UUID.randomUUID();
+        }
+    }
 
+    private Sdk createQiskitSDK(){
         // Create SDK
         Sdk qiskit = new Sdk();
         qiskit.setName("Qiskit");
         qiskit = sdkRepository.save(qiskit);
 
+        return qiskit;
+    }
+
+    private void createShorImplementations(Sdk qiskit){
         // Create Shor15 Implementation
         Implementation shor15Implementation = new Implementation();
         shor15Implementation.setName("shor-15-qiskit");
@@ -135,10 +147,9 @@ public class ImplementationSelectionTest {
         shorGeneralImplementation.setDepthRule("expectedDepth(D, L, shor-general-qiskit) :- D is L**3.");
         shorGeneralImplementation.setImplementedAlgorithm(shorAlgorithmUUID);
         implementationRepository.save(shorGeneralImplementation);
+    }
 
-        // Create Provider
-        // ...
-
+    private void createQPUs(Sdk qiskit){
         List<Sdk> supportedSDK = new ArrayList<>();
         supportedSDK.add(qiskit);
 
@@ -171,6 +182,25 @@ public class ImplementationSelectionTest {
                 qiskit
         ));
         qpuRepository.save(ibmqsim);
+    }
+
+    @BeforeAll
+    public void prepareTestDatabase(){
+
+        // Create the Qiskit SDK
+        Sdk qiskit = createQiskitSDK();
+
+        // Create the Shor Algorithm and its implementations
+        shorAlgorithmUUID = UUID.randomUUID();
+        createShorImplementations(qiskit);
+
+        // Create the Gover Algorithm and its implementations
+        groverAlgorithmUUID = UUID.randomUUID();
+
+
+        // Create the IBM QPUs
+        createQPUs(qiskit);
+
     }
 
     @Test
