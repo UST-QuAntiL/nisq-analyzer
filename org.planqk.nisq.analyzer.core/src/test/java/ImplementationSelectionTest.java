@@ -243,7 +243,7 @@ public class ImplementationSelectionTest {
     }
 
     @Test
-    public void testImplementationSelectionN15(){
+    public void testImplSelectionShorN15(){
 
         ResponseEntity<AnalysisResultListDto> selection = performSelection(15);
 
@@ -269,7 +269,7 @@ public class ImplementationSelectionTest {
     }
 
     @Test
-    public void testImplementationSelectionN9(){
+    public void testImplSelectionShorN9(){
 
         ResponseEntity<AnalysisResultListDto> selection = performSelection(9);
 

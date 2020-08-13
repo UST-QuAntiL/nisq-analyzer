@@ -25,7 +25,26 @@ API-Root: /atlas
 
 Swagger-Documentation: /atlas/swagger-ui
 
-Hal-Browser: /atlas/browser 
+Hal-Browser: /atlas/browser
+
+## Unit Tests
+In order to start the unit tests a few things have to be configured:
+
+1. In IntelliJ go to **Run>>Edit Configurations** and select the Run Configuration corresponding to the JUnit Test
+2. Under **VM Options** configure your Prolog path, e.g.
+    ```
+    -Djava.library.path=/usr/lib/swi-prolog/lib/amd64 -DSWI_HOME_DIR=/usr/bin/swipl
+    ```
+3. Select **Before Launch>>+>>External Tool** to add the startup of the docker container before the test is executed
+4. Add **Tool Setting>>Program**
+    ```
+   docker
+   ```
+5. Add **Tool Setings>>Arguments**
+    ```
+   run --name planqk-test --rm -d -p 5432:5432 -e POSTGRES_DB=planqk_test -e POSTGRES_PASSWORD=planqk -e POSTGRES_USER=planqk -d postgres
+   ```
+6. Apply
 
 ## License
 
