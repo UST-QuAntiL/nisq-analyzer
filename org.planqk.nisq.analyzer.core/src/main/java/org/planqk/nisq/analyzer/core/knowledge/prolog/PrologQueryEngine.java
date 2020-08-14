@@ -206,7 +206,16 @@ public class PrologQueryEngine {
             }
 
             // FIXME: avoid replacing parts of another variable where the name contains the searched variable, e.g., search for variable 'A' and replace part of variable 'AB' by accident
-            parameterPart = parameterPart.replaceFirst(variable, params.get(variable));
+
+            // Prepare the parameter for Prolog execution
+            String param = params.get(variable).trim();
+            if (!param.matches("-?\\s*[0-9]+\\.?[0-9]*"))
+            {
+                // make the parameter atomic if it is not a number literal
+                param = "'" + param + "'";
+            }
+
+            parameterPart = parameterPart.replaceFirst(variable, param);
         }
 
         // add point to instruct prolog to evaluate the rule
