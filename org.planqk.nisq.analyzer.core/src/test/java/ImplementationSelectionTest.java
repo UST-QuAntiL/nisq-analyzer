@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.xml.crypto.Data;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -103,6 +105,49 @@ public class ImplementationSelectionTest {
         return qiskit;
     }
 
+    private void createGroverImplementations(Sdk qiskit){
+
+        Implementation groverGeneralLogic = new Implementation();
+        groverGeneralLogic.setName("grover-general-logicalexpression-qiskit");
+        try{
+            groverGeneralLogic.setFileLocation(new URL(
+                    "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/master/example-implementations/grover-general-logicalexpression-qiskit.py"
+            ));
+        }catch (MalformedURLException e){}
+        groverGeneralLogic.setSelectionRule("executable(Oracle, grover-general-logicalexpression-qiskit) :- not(Oracle == null).");
+        groverGeneralLogic.setSdk(qiskit);
+        groverGeneralLogic.setInputParameters( Arrays.asList(
+                new Parameter("Oracle", DataType.String, "Oracle has to be a Boolean function", "Oracle for grover")
+        ));
+        groverGeneralLogic.setOutputParameters(Arrays.asList(
+                new Parameter("assignment", DataType.String, "", "Assignment of Boolean variables such that f evaluates to true")
+        ));
+        groverGeneralLogic.setWidthRule("expectedWidth(W, grover-general-logicalexpression-qiskit) :- W >= 2.");
+        groverGeneralLogic.setDepthRule("expectedDepth(D, grover-general-logicalexpression-qiskit) :- D >= 5.");
+        groverGeneralLogic.setImplementedAlgorithm(groverAlgorithmUUID);
+        implementationRepository.save(groverGeneralLogic);
+
+        Implementation groverGeneralTruthtable = new Implementation();
+        groverGeneralTruthtable.setName("grover-general-truthtable-qiskit");
+        try{
+            groverGeneralTruthtable.setFileLocation(new URL(
+                    "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/master/example-implementations/grover-general-truthtable-qiskit.py"
+            ));
+        }catch (MalformedURLException e){}
+        groverGeneralTruthtable.setSelectionRule("executable(Oracle, grover-general-truthtable-qiskit) :- not(Oracle == null).");
+        groverGeneralTruthtable.setSdk(qiskit);
+        groverGeneralTruthtable.setInputParameters(Arrays.asList(
+                new Parameter("Oracle", DataType.String, "Oracle has to be a a binary string of function f in a truth table", "Truth table oracle for grover")
+        ));
+        groverGeneralTruthtable.setOutputParameters(Arrays.asList(
+                new Parameter("assignment", DataType.String, "", "Assignment of Boolean variables such that f evaluates to true")
+        ));
+        groverGeneralTruthtable.setWidthRule("expectedWidth(W, grover-general-truthtable-qiskit) :- W >= 2.");
+        groverGeneralTruthtable.setDepthRule("expectedDepth(D, grover-general-truthtable-qiskit) :- D >= 5.");
+        groverGeneralTruthtable.setImplementedAlgorithm(groverAlgorithmUUID);
+        implementationRepository.save(groverGeneralTruthtable);
+    }
+
     private void createShorImplementations(Sdk qiskit){
         // Create Shor15 Implementation
         Implementation shor15Implementation = new Implementation();
@@ -111,8 +156,7 @@ public class ImplementationSelectionTest {
             shor15Implementation.setFileLocation( new URL(
                     "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/master/example-implementations/shor-15-qiskit.py"
             ));
-        }catch (MalformedURLException e){
-        }
+        }catch (MalformedURLException e){}
         shor15Implementation.setSelectionRule("executable(N, shor-15-qiskit) :- N is 15.");
         shor15Implementation.setSdk(qiskit);
         shor15Implementation.setInputParameters(Arrays.asList(
@@ -196,7 +240,7 @@ public class ImplementationSelectionTest {
 
         // Create the Gover Algorithm and its implementations
         groverAlgorithmUUID = UUID.randomUUID();
-
+        createGroverImplementations(qiskit);
 
         // Create the IBM QPUs
         createQPUs(qiskit);
