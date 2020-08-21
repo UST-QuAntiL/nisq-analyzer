@@ -2,6 +2,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import ch.qos.logback.core.CoreConstants;
 import com.sun.istack.Pool;
@@ -115,6 +117,23 @@ public class SimulatorExecutionTest extends NISQTestCase{
         return result;
     }
 
+    private Map<String,Integer> parseCounts(String result){
+
+        Map<String, Integer> counts = new HashMap<>();
+        String pattern = "[\\{\\s](?<key>[01]+)=(?<value>[0-9]+)[,}]";
+        Matcher m = Pattern.compile(pattern).matcher(result);
+
+        while(m.find()){
+            counts.put(m.group("key"), Integer.parseInt(m.group("value")));
+        }
+
+        return counts;
+    }
+
+    private String findMaxCountKey(Map<String,Integer> counts){
+        return counts.entrySet().stream().max((e1, e2) -> e1.getValue().compareTo(e2.getValue())).get().getKey();
+    }
+
     @Test
     void testShorGeneral(){
 
@@ -177,6 +196,9 @@ public class SimulatorExecutionTest extends NISQTestCase{
         Assertions.assertEquals(ExecutionResultStatus.FINISHED, finalResult.getStatus());
         System.out.println(finalResult.getResult());
         Assertions.assertTrue(finalResult.getResult().contains("counts"));
+
+        String maxKey = findMaxCountKey(parseCounts(finalResult.getResult()));
+        Assertions.assertEquals("111", maxKey);
     }
 
     @Test
@@ -198,6 +220,9 @@ public class SimulatorExecutionTest extends NISQTestCase{
         Assertions.assertEquals(ExecutionResultStatus.FINISHED, finalResult.getStatus());
         System.out.println(finalResult.getResult());
         Assertions.assertTrue(finalResult.getResult().contains("counts"));
+
+        String maxKey = findMaxCountKey(parseCounts(finalResult.getResult()));
+        Assertions.assertEquals("11", maxKey);
     }
 
 }
