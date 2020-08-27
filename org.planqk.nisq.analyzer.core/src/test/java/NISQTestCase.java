@@ -203,8 +203,8 @@ public class NISQTestCase {
         Qpu ibmqsim = new Qpu();
         ibmqsim.setName("ibmq_qasm_simulator");
         ibmqsim.setQubitCount(64);
-        ibmqsim.setT1(50063.8361f);
-        ibmqsim.setMaxGateTime(1043);
+        ibmqsim.setT1(1000000.0f); // dummy values for the simulator
+        ibmqsim.setMaxGateTime(1); // dummy values for the simulator
         ibmqsim.setSupportedSdks(Arrays.asList(
                 qiskit
         ));
