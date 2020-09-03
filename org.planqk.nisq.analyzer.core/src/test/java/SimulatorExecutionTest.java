@@ -1,13 +1,12 @@
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ch.qos.logback.core.CoreConstants;
-import com.sun.istack.Pool;
-import org.junit.Before;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,10 +16,8 @@ import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Qpu;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.requests.ExecutionRequest;
-import org.planqk.nisq.analyzer.core.web.dtos.requests.SelectionRequest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -99,13 +96,17 @@ public class SimulatorExecutionTest extends NISQTestCase{
     }
 
     private ExecutionResultDto waitForTermination(Implementation implementation, UUID resultID){
+        return waitForTermination(implementation,resultID,15000);
+    }
+
+    private ExecutionResultDto waitForTermination(Implementation implementation, UUID resultID, long timeout){
 
         ExecutionResultDto result;
 
         do {
             // wait
             try{
-                Thread.sleep(15000);
+                Thread.sleep(timeout);
             }catch (InterruptedException e){
 
             }finally {
@@ -170,7 +171,7 @@ public class SimulatorExecutionTest extends NISQTestCase{
                 "N", "15"
         ));
         UUID resultID = assertExecutionInitialized(result);
-        ExecutionResultDto finalResult = waitForTermination(shorImpl.get(), resultID);
+        ExecutionResultDto finalResult = waitForTermination(shorImpl.get(), resultID, 1000);
 
         Assertions.assertEquals(ExecutionResultStatus.FINISHED, finalResult.getStatus());
         System.out.println(finalResult.getResult());
@@ -223,6 +224,49 @@ public class SimulatorExecutionTest extends NISQTestCase{
 
         String maxKey = findMaxCountKey(parseCounts(finalResult.getResult()));
         Assertions.assertEquals("11", maxKey);
+    }
+
+    @Test
+    void testParallelExecutionShor(){
+
+        int numberOfJobs = 8;
+        float leastExpectedParallelSpeedUp = 1.5f;
+
+        // Determine time of a single execution
+        long singleExecutionStart = System.currentTimeMillis();
+        testShor15();
+        long singleExecutionEnd = System.currentTimeMillis();
+        long singleExucutionTime = singleExecutionEnd - singleExecutionStart;
+
+        // Try to find the shor 15 implementation in the database
+        Optional<Implementation> shorImpl = implementationRepository.findByImplementedAlgorithm(shorAlgorithmUUID).stream().filter(
+                (Implementation impl) -> impl.getName().contains("15")
+        ).findFirst();
+        Assertions.assertTrue(shorImpl.isPresent());
+
+        long parallelStart = System.currentTimeMillis();
+
+        // Start parallel execution
+        List<UUID> resultID = new ArrayList<>();
+        for(int i=0; i < numberOfJobs; i++){
+            ResponseEntity<ExecutionResultDto> result = execute(shorImpl.get(), qasmSim, Map.of(
+                    "N", "15"
+            ));
+            resultID.add(assertExecutionInitialized(result));
+        }
+
+        // wait for termination
+        for(UUID id : resultID){
+            ExecutionResultDto finalResult = waitForTermination(shorImpl.get(), id, 1000);
+
+            Assertions.assertEquals(ExecutionResultStatus.FINISHED, finalResult.getStatus());
+            System.out.println(finalResult.getResult());
+            Assertions.assertTrue(finalResult.getResult().contains("counts"));
+        }
+
+        long parallelEnd = System.currentTimeMillis();
+
+        Assertions.assertTrue((parallelEnd - parallelStart) < numberOfJobs * singleExucutionTime / leastExpectedParallelSpeedUp, "Execution too long.");
     }
 
 }
