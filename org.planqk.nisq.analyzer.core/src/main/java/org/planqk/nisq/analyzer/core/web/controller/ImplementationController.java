@@ -59,6 +59,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -193,15 +194,15 @@ public class ImplementationController {
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content)},
             description = "Update an implementation")
-    @PostMapping("/{implId}")
+    @PutMapping("/{implId}")
     public HttpEntity<ImplementationDto> updateImplementation(@PathVariable UUID implId, @RequestBody ImplementationDto impl) {
-        LOG.debug("Post to create new implementation received.");
+        LOG.debug("Post to update a new implementation received.");
 
         // check consistency of the implementation object
         if (Objects.isNull(impl.getName())
                 || Objects.isNull(impl.getImplementedAlgorithm()) || Objects.isNull(impl.getSelectionRule())
                 || Objects.isNull(impl.getSdk()) || Objects.isNull(impl.getFileLocation())) {
-            LOG.error("Received invalid implementation object for post request: {}", impl.toString());
+            LOG.error("Received invalid implementation object for put request: {}", impl.toString());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
@@ -299,7 +300,7 @@ public class ImplementationController {
             description = "Remove input parameters from an implementation")
     @DeleteMapping("/{implId}/" +Constants.INPUT_PARAMS)
     public HttpEntity<Void> deleteInputParameters(@PathVariable UUID implId, @RequestBody List<String> names) {
-        LOG.debug("Post to add input parameter on implementation with id: {}.", implId);
+        LOG.debug("Delete to remove input parameter from implementation with id: {}.", implId);
         Optional<Implementation> implementationOptional = implementationRepository.findById(implId);
         if (!implementationOptional.isPresent()) {
             LOG.error("Unable to retrieve implementation with id {} from the repository.", implId);
