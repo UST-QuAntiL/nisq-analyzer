@@ -25,6 +25,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
 import org.planqk.nisq.analyzer.core.model.Qpu;
@@ -33,7 +37,7 @@ import org.planqk.nisq.analyzer.core.repository.QpuRepository;
 import org.planqk.nisq.analyzer.core.repository.SdkRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuListDto;
-import org.planqk.nisq.analyzer.core.web.dtos.requests.CreateQpuRequest;
+import org.planqk.nisq.analyzer.core.web.dtos.requests.CreateQpuRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -53,6 +57,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 /**
  * Controller to access and manipulate quantum processing units (QPUs).
  */
+@Tag(name = "qpu")
 @RestController
 @CrossOrigin(allowedHeaders = "*", origins = "*")
 @RequestMapping("/" + Constants.QPUS)
@@ -69,6 +74,7 @@ public class QpuController {
         this.prologFactUpdater = prologFactUpdater;
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200")}, description = "Retrieve all QPUs")
     @GetMapping("/")
     public HttpEntity<QpuListDto> getQpus() {
         LOG.debug("Get to retrieve all QPUs received.");
@@ -84,6 +90,8 @@ public class QpuController {
         return new ResponseEntity<>(qpuListDto, HttpStatus.OK);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve a single QPU")
     @GetMapping("/{qpuId}")
     public HttpEntity<QpuDto> getQpu(@PathVariable UUID qpuId) {
         LOG.debug("Get to retrieve QPU with id: {}.", qpuId);
@@ -97,8 +105,10 @@ public class QpuController {
         return new ResponseEntity<>(createQpuDto(qpuOptional.get()), HttpStatus.OK);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "201"), @ApiResponse(responseCode = "400", content = @Content)},
+            description = "Create a QPU")
     @PostMapping("/")
-    public HttpEntity<QpuDto> createQpu(@RequestBody CreateQpuRequest qpuRequest) {
+    public HttpEntity<QpuDto> createQpu(@RequestBody CreateQpuRequestDto qpuRequest) {
         LOG.debug("Post to create new QPU received.");
 
         // check consistency of the QPU object
@@ -124,7 +134,7 @@ public class QpuController {
         // store and return QPU
         Qpu qpu = qpuRepository.save(QpuDto.Converter.convert(qpuRequest, supportedSdks));
         prologFactUpdater.handleQpuInsertion(qpu);
-        return new ResponseEntity<>(createQpuDto(qpu), HttpStatus.OK);
+        return new ResponseEntity<>(createQpuDto(qpu), HttpStatus.CREATED);
     }
 
     /**

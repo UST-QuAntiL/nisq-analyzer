@@ -24,6 +24,10 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
@@ -31,7 +35,7 @@ import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterListDto;
-import org.planqk.nisq.analyzer.core.web.dtos.requests.SelectionRequest;
+import org.planqk.nisq.analyzer.core.web.dtos.requests.SelectionRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.hateoas.RepresentationModel;
@@ -52,6 +56,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
  * Root controller to access all entities within Quality, trigger the hardware selection, and execution of quantum
  * algorithms.
  */
+@Tag(name = "root")
 @RestController
 @CrossOrigin(allowedHeaders = "*", origins = "*")
 public class RootController {
@@ -64,6 +69,7 @@ public class RootController {
         this.nisqAnalyzerService = nisqAnalyzerService;
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200")}, description = "Root operation, returns further links")
     @GetMapping("/")
     public HttpEntity<RepresentationModel> root() {
         RepresentationModel responseEntity = new RepresentationModel<>();
@@ -79,13 +85,15 @@ public class RootController {
         return new ResponseEntity<>(responseEntity, HttpStatus.OK);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content)},
+            description = "Retrieve selection parameters")
     @GetMapping("/" + Constants.SELECTION_PARAMS)
-    public ResponseEntity getSelectionParams(@RequestParam UUID algoId) {
+    public HttpEntity<ParameterListDto> getSelectionParams(@RequestParam UUID algoId) {
         LOG.debug("Get to retrieve selection parameters for algorithm with Id {} received.", algoId);
 
         if (Objects.isNull(algoId)) {
             LOG.error("AlgoId have to be provided to get selection parameters!");
-            return new ResponseEntity<>("AlgoId have to be provided to get selection parameters!", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity("AlgoId have to be provided to get selection parameters!", HttpStatus.BAD_REQUEST);
         }
 
         // determine and return required selection parameters
@@ -100,18 +108,20 @@ public class RootController {
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
+            @ApiResponse(responseCode = "500", content = @Content)}, description = "Select implementations for an algorithm")
     @PostMapping("/" + Constants.SELECTION)
-    public ResponseEntity selectImplementations(@RequestBody SelectionRequest params) {
+    public HttpEntity<AnalysisResultListDto> selectImplementations(@RequestBody SelectionRequestDto params) {
         LOG.debug("Post to select implementations for algorithm with Id {} received.", params.getAlgorithmId());
 
         if (Objects.isNull(params.getAlgorithmId())) {
             LOG.error("Algorithm Id for the selection is null.");
-            return new ResponseEntity<>("Algorithm Id for the selection is null.", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity("Algorithm Id for the selection is null.", HttpStatus.BAD_REQUEST);
         }
 
         if (Objects.isNull(params.getParameters())) {
             LOG.error("Parameter set for the selection is null.");
-            return new ResponseEntity<>("Parameter set for the selection is null.", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity("Parameter set for the selection is null.", HttpStatus.BAD_REQUEST);
         }
         LOG.debug("Received {} parameters for the selection.", params.getParameters().size());
 
@@ -120,7 +130,7 @@ public class RootController {
             analysisResults = nisqAnalyzerService.performSelection(params.getAlgorithmId(), params.getParameters());
         } catch (UnsatisfiedLinkError e) {
             LOG.error("UnsatisfiedLinkError while activating prolog rule. Please make sure prolog is installed and configured correctly to use the NISQ analyzer functionality!");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("No prolog engine accessible from the server. Selection not possible!");
+            return new ResponseEntity("No prolog engine accessible from the server. Selection not possible!", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         AnalysisResultListDto analysisResultListDto = new AnalysisResultListDto();

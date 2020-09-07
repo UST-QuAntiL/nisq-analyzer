@@ -76,7 +76,7 @@ public class Implementation extends HasId {
     private List<ExecutionResult> executionResults;
 
     @Setter
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     private List<Parameter> inputParameters;
 
     @Setter
