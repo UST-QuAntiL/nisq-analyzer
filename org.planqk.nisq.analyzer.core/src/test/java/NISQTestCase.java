@@ -2,7 +2,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterAll;
@@ -77,6 +79,15 @@ public class NISQTestCase {
         }catch (Exception e){
 
         }
+    }
+
+    protected static Map<String,String> inputParameters(String... v) {
+        Map<String, String> para = new HashMap<>();
+
+        for (int i = 0; i < v.length; i += 2) {
+            para.put(v[i], v[i + 1]);
+        }
+        return para;
     }
 
     private Sdk createQiskitSDK(){

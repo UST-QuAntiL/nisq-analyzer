@@ -72,7 +72,7 @@ public class ImplementationSelectionTest extends NISQTestCase {
         // create a request object
         SelectionRequest request = new SelectionRequest();
         request.setAlgorithmId(shorAlgorithmUUID);
-        request.setParameters(Map.of(
+        request.setParameters(NISQTestCase.inputParameters(
                 "N", Integer.toString(N),
                 "L", Integer.toString((int)Math.floor(Math.log(N)/Math.log(2))),
                 "token", token
@@ -89,7 +89,7 @@ public class ImplementationSelectionTest extends NISQTestCase {
         // create a request object
         SelectionRequest request = new SelectionRequest();
         request.setAlgorithmId(groverAlgorithmUUID);
-        request.setParameters(Map.of(
+        request.setParameters(NISQTestCase.inputParameters(
                 "Oracle", oracle,
                 "token", token
         ));

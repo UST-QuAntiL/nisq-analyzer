@@ -145,7 +145,7 @@ public class SimulatorExecutionTest extends NISQTestCase{
         Assertions.assertTrue(shorImpl.isPresent());
 
         // Start execution
-        ResponseEntity<ExecutionResultDto> result = execute(shorImpl.get(), qasmSim, Map.of(
+        ResponseEntity<ExecutionResultDto> result = execute(shorImpl.get(), qasmSim, NISQTestCase.inputParameters(
                 "N", "9",
                 "L", "4"
         ));
@@ -167,7 +167,7 @@ public class SimulatorExecutionTest extends NISQTestCase{
         Assertions.assertTrue(shorImpl.isPresent());
 
         // Start execution
-        ResponseEntity<ExecutionResultDto> result = execute(shorImpl.get(), qasmSim, Map.of(
+        ResponseEntity<ExecutionResultDto> result = execute(shorImpl.get(), qasmSim, NISQTestCase.inputParameters(
                 "N", "15"
         ));
         UUID resultID = assertExecutionInitialized(result);
@@ -188,7 +188,7 @@ public class SimulatorExecutionTest extends NISQTestCase{
         Assertions.assertTrue(groverImpl.isPresent());
 
         // Start execution
-        ResponseEntity<ExecutionResultDto> result = execute(groverImpl.get(), qasmSim, Map.of(
+        ResponseEntity<ExecutionResultDto> result = execute(groverImpl.get(), qasmSim, NISQTestCase.inputParameters(
                 "Oracle", "00000001"
         ));
         UUID resultID = assertExecutionInitialized(result);
@@ -212,7 +212,7 @@ public class SimulatorExecutionTest extends NISQTestCase{
         Assertions.assertTrue(groverImpl.isPresent());
 
         // Start execution
-        ResponseEntity<ExecutionResultDto> result = execute(groverImpl.get(), qasmSim, Map.of(
+        ResponseEntity<ExecutionResultDto> result = execute(groverImpl.get(), qasmSim, NISQTestCase.inputParameters(
                 "Oracle", "(A | B) & (A | ~B) & (~A | B)"
         ));
         UUID resultID = assertExecutionInitialized(result);
@@ -249,7 +249,7 @@ public class SimulatorExecutionTest extends NISQTestCase{
         // Start parallel execution
         List<UUID> resultID = new ArrayList<>();
         for(int i=0; i < numberOfJobs; i++){
-            ResponseEntity<ExecutionResultDto> result = execute(shorImpl.get(), qasmSim, Map.of(
+            ResponseEntity<ExecutionResultDto> result = execute(shorImpl.get(), qasmSim, NISQTestCase.inputParameters(
                     "N", "15"
             ));
             resultID.add(assertExecutionInitialized(result));
