@@ -49,7 +49,7 @@ import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.SdkListDto;
-import org.planqk.nisq.analyzer.core.web.dtos.requests.SelectionRequest;
+import org.planqk.nisq.analyzer.core.web.dtos.requests.SelectionRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -70,7 +70,7 @@ public class ImplementationSelectionTest extends NISQTestCase {
         String baseURL = "http://localhost:" + port + "/";
 
         // create a request object
-        SelectionRequest request = new SelectionRequest();
+        SelectionRequestDto request = new SelectionRequestDto();
         request.setAlgorithmId(shorAlgorithmUUID);
         request.setParameters(NISQTestCase.inputParameters(
                 "N", Integer.toString(N),
@@ -87,7 +87,7 @@ public class ImplementationSelectionTest extends NISQTestCase {
         String baseURL = "http://localhost:" + port + "/";
 
         // create a request object
-        SelectionRequest request = new SelectionRequest();
+        SelectionRequestDto request = new SelectionRequestDto();
         request.setAlgorithmId(groverAlgorithmUUID);
         request.setParameters(NISQTestCase.inputParameters(
                 "Oracle", oracle,

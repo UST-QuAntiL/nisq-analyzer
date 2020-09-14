@@ -28,12 +28,15 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
-import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.Sdk;
@@ -45,16 +48,18 @@ import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterListDto;
-import org.planqk.nisq.analyzer.core.web.dtos.requests.ExecutionRequest;
+import org.planqk.nisq.analyzer.core.web.dtos.requests.ExecutionRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -66,6 +71,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 /**
  * Controller to access and manipulate implementations of quantum algorithms.
  */
+@Tag(name = "implementation")
 @RestController
 @CrossOrigin(allowedHeaders = "*", origins = "*")
 @RequestMapping("/" + Constants.IMPLEMENTATIONS)
@@ -113,6 +119,8 @@ public class ImplementationController {
         return true;
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve implementations for an algorithm")
     @GetMapping("/")
     public HttpEntity<ImplementationListDto> getImplementations(@RequestParam(required = false) UUID algoId) {
         LOG.debug("Get to retrieve all implementations received.");
@@ -134,6 +142,8 @@ public class ImplementationController {
         return new ResponseEntity<>(dtoList, HttpStatus.OK);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve an implementation")
     @GetMapping("/{implId}")
     public HttpEntity<ImplementationDto> getImplementation(@PathVariable UUID implId) {
         LOG.debug("Get to retrieve implementation with id: {}.", implId);
@@ -147,6 +157,8 @@ public class ImplementationController {
         return new ResponseEntity<>(createImplementationDto(implementationOptional.get()), HttpStatus.OK);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "201"), @ApiResponse(responseCode = "400", content = @Content)},
+            description = "Create an implementation")
     @PostMapping("/")
     public HttpEntity<ImplementationDto> createImplementation(@RequestBody ImplementationDto impl) {
         LOG.debug("Post to create new implementation received.");
@@ -180,6 +192,48 @@ public class ImplementationController {
         return new ResponseEntity<>(createImplementationDto(implementation), HttpStatus.CREATED);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content)},
+            description = "Update an implementation")
+    @PutMapping("/{implId}")
+    public HttpEntity<ImplementationDto> updateImplementation(@PathVariable UUID implId, @RequestBody ImplementationDto impl) {
+        LOG.debug("Post to update a new implementation received.");
+
+        // check consistency of the implementation object
+        if (Objects.isNull(impl.getName())
+                || Objects.isNull(impl.getImplementedAlgorithm()) || Objects.isNull(impl.getSelectionRule())
+                || Objects.isNull(impl.getSdk()) || Objects.isNull(impl.getFileLocation())) {
+            LOG.error("Received invalid implementation object for put request: {}", impl.toString());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        // retrieve referenced Sdk and abort if not present
+        Optional<Sdk> sdkOptional = sdkRepository.findByName(impl.getSdk());
+        if (!sdkOptional.isPresent()) {
+            LOG.error("Unable to retrieve Sdk with name {} from the repository.", impl.getSdk());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        Optional<Implementation> implementationOptional = implementationRepository.findById(implId);
+        if (!implementationOptional.isPresent()) {
+            LOG.error("Unable to retrieve implementation with id {} from the repository.", implId);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        Implementation oldImpl = implementationOptional.get();
+        Implementation newImpl = ImplementationDto.Converter.convert(impl, sdkOptional.get());
+
+        // We can't take the parameter lists from our request, as they don't contain IDs
+        newImpl.setId(implId);
+        newImpl.setInputParameters(oldImpl.getInputParameters());
+        newImpl.setOutputParameters(oldImpl.getOutputParameters());
+
+        prologFactUpdater.handleImplementationInsertion(newImpl);
+        newImpl = implementationRepository.save(newImpl);
+        return new ResponseEntity<>(createImplementationDto(newImpl), HttpStatus.CREATED);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve input parameters for an implementation")
     @GetMapping("/{implId}/" + Constants.INPUT_PARAMS)
     public HttpEntity<ParameterListDto> getInputParameters(@PathVariable UUID implId) {
         LOG.debug("Get to retrieve input parameters for implementation with id: {}.", implId);
@@ -200,6 +254,8 @@ public class ImplementationController {
         return new ResponseEntity<>(parameterListDto, HttpStatus.OK);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve output parameters for an implementation")
     @GetMapping("/{implId}/" + Constants.OUTPUT_PARAMS)
     public HttpEntity<ParameterListDto> getOutputParameters(@PathVariable UUID implId) {
         LOG.debug("Get to retrieve output parameters for implementation with id: {}.", implId);
@@ -220,6 +276,8 @@ public class ImplementationController {
         return new ResponseEntity<>(parameterListDto, HttpStatus.OK);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "201"), @ApiResponse(responseCode = "404", content = @Content),
+            @ApiResponse(responseCode = "400", content = @Content)}, description = "Add input parameters to an implementation")
     @PostMapping("/{implId}/" + Constants.INPUT_PARAMS)
     public HttpEntity<ParameterDto> addInputParameter(@PathVariable UUID implId, @RequestBody ParameterDto parameterDto) {
         LOG.debug("Post to add input parameter on implementation with id: {}.", implId);
@@ -238,6 +296,24 @@ public class ImplementationController {
         return new ResponseEntity<>(parameterDto, HttpStatus.CREATED);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Remove input parameters from an implementation")
+    @DeleteMapping("/{implId}/" +Constants.INPUT_PARAMS)
+    public HttpEntity<Void> deleteInputParameters(@PathVariable UUID implId, @RequestBody List<String> names) {
+        LOG.debug("Delete to remove input parameter from implementation with id: {}.", implId);
+        Optional<Implementation> implementationOptional = implementationRepository.findById(implId);
+        if (!implementationOptional.isPresent()) {
+            LOG.error("Unable to retrieve implementation with id {} from the repository.", implId);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        Implementation implementation = implementationOptional.get();
+        implementation.getInputParameters().removeIf(parameter -> names.contains(parameter.getName()));
+        implementationRepository.save(implementation);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "201"), @ApiResponse(responseCode = "404", content = @Content),
+            @ApiResponse(responseCode = "400", content = @Content)}, description = "Add output parameters to an implementation")
     @PostMapping("/{implId}/" + Constants.OUTPUT_PARAMS)
     public HttpEntity<ParameterDto> addOutputParameter(@PathVariable UUID implId, @RequestBody ParameterDto parameterDto) {
         LOG.debug("Post to add output parameter on implementation with id: {}.", implId);
@@ -256,9 +332,11 @@ public class ImplementationController {
         return new ResponseEntity<>(parameterDto, HttpStatus.CREATED);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
+            @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute an implementation")
     @PostMapping("/{implId}/" + Constants.EXECUTION)
     public HttpEntity<ExecutionResultDto> executeImplementation(@PathVariable UUID implId,
-                                                                @RequestBody ExecutionRequest executionRequest) {
+                                                                @RequestBody ExecutionRequestDto executionRequestDto) {
         LOG.debug("Post to execute implementation with Id: {}", implId);
 
         Optional<Implementation> implementationOptional = implementationRepository.findById(implId);
@@ -267,10 +345,10 @@ public class ImplementationController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        Optional<Qpu> qpuOptional = qpuRepository.findById(executionRequest.getQpuId());
+        Optional<Qpu> qpuOptional = qpuRepository.findById(executionRequestDto.getQpuId());
 
         if (!qpuOptional.isPresent()) {
-            LOG.error("Unable to retrieve qpu with id {} form the repository.", executionRequest.getQpuId());
+            LOG.error("Unable to retrieve qpu with id {} form the repository.", executionRequestDto.getQpuId());
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
@@ -278,10 +356,10 @@ public class ImplementationController {
             Implementation implementation = implementationOptional.get();
 
             // Retrieve the type of the parameter from the algorithm definition
-            Map<String,ParameterValue> typedParams = ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), executionRequest.getParameters());
+            Map<String,ParameterValue> typedParams = ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), executionRequestDto.getParameters());
 
             ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(implementation, qpuOptional.get(),
-                    typedParams, executionRequest.getAnalysedDepth(), executionRequest.getAnalysedWidth());
+                    typedParams, executionRequestDto.getAnalysedDepth(), executionRequestDto.getAnalysedWidth());
 
             ExecutionResultDto dto = ExecutionResultDto.Converter.convert(result);
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(implId, result.getId())).withSelfRel());

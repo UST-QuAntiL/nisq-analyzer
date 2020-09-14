@@ -191,6 +191,8 @@ public class NisqAnalyzerControlService {
 
                 // analyze the quantum circuit by utilizing the capabilities of the suited plugin and retrieve important circuit properties
                 CircuitInformation circuitInformation = selectedSdkConnector.getCircuitProperties(execImplementation.getFileLocation(), qpu, execInputParameters);
+
+                // fall back to estimates if something unexpected happened
                 if (Objects.isNull(circuitInformation)) {
                     LOG.error("Circuit analysis by compiler failed. Using estimates...");
 
@@ -198,6 +200,13 @@ public class NisqAnalyzerControlService {
                     if (estimatedCircuitDepth != 0 && estimatedQubitCount != 0) {
                         analysisResult.add(new AnalysisResult(qpu, execImplementation, true, estimatedCircuitDepth, estimatedQubitCount));
                     }
+                    continue;
+                }
+
+                // skip qpu if some (expected) error occured during transpilation,
+                // e.g. too many qubits required or the input wasn't suitable for the implementation
+                if (!circuitInformation.wasTranspilationSuccessfull()) {
+                    LOG.error("Transpilation of circuit impossible: {}. Skipping Qpu.", circuitInformation.getError());
                     continue;
                 }
 

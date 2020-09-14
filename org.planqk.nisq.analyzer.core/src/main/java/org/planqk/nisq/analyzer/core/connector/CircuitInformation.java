@@ -41,4 +41,17 @@ public class CircuitInformation {
     @Setter
     @JsonProperty("width")
     private int circuitWidth = 0;
+
+    @Getter
+    @Setter
+    private String error;
+
+    /**
+     * Returns whether the transpilation was successfull
+     * @return
+     */
+    public boolean wasTranspilationSuccessfull()
+    {
+        return this.error == null;
+    }
 }

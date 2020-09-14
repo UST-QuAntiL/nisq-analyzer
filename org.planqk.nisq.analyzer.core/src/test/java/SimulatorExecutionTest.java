@@ -17,7 +17,7 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
-import org.planqk.nisq.analyzer.core.web.dtos.requests.ExecutionRequest;
+import org.planqk.nisq.analyzer.core.web.dtos.requests.ExecutionRequestDto;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,7 +65,7 @@ public class SimulatorExecutionTest extends NISQTestCase{
         p.putIfAbsent("token", token);
 
         // create a request object
-        ExecutionRequest request = new ExecutionRequest();
+        ExecutionRequestDto request = new ExecutionRequestDto();
         request.setQpuId(qpu.getId());
         request.setAnalysedDepth(0);
         request.setAnalysedWidth(0);
