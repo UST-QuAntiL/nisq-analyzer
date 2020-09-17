@@ -47,6 +47,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -121,13 +122,8 @@ public class QpuController {
         List<Sdk> supportedSdks = new ArrayList<>();
         if (Objects.nonNull(qpuRequest.getSupportedSdkIds())) {
             LOG.debug("Supported SDKs are defined for the QPU.");
-            for (UUID sdkId : qpuRequest.getSupportedSdkIds()) {
-                Optional<Sdk> sdkOptional = sdkRepository.findById(sdkId);
-                if (!sdkOptional.isPresent()) {
-                    LOG.error("Unable to retrieve SDK with id {} from the repository.", sdkId);
-                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-                }
-                supportedSdks.add(sdkOptional.get());
+            if (!populateSupportedSdks(qpuRequest, supportedSdks)) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
         }
 
@@ -135,6 +131,52 @@ public class QpuController {
         Qpu qpu = qpuRepository.save(QpuDto.Converter.convert(qpuRequest, supportedSdks));
         prologFactUpdater.handleQpuInsertion(qpu);
         return new ResponseEntity<>(createQpuDto(qpu), HttpStatus.CREATED);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content)},
+            description = "Update a QPU")
+    @PutMapping("/{qpuId}")
+    public HttpEntity<QpuDto> updateQpu(@PathVariable UUID qpuId, @RequestBody CreateQpuRequestDto qpuRequest) {
+        LOG.debug("Put to update an existing QPU received.");
+
+        Optional<Qpu> qpuOptional = qpuRepository.findById(qpuId);
+        if (!qpuOptional.isPresent()) {
+            LOG.error("Unable to retrieve QPU with id {} from the repository.", qpuId);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        Qpu qpu = qpuOptional.get();
+        qpu.setQubitCount(qpuRequest.getNumberOfQubits());
+        qpu.setT1(qpuRequest.getT1());
+        qpu.setMaxGateTime(qpuRequest.getMaxGateTime());
+
+        // Allow the user to replace the list of supported SDKs
+        if (Objects.nonNull(qpuRequest.getSupportedSdkIds())) {
+            LOG.debug("Replacing QPU SDKs: old {} new {}",
+                    qpu.getSupportedSdks().size(), qpuRequest.getSupportedSdkIds().size());
+            List<Sdk> supportedSdks = new ArrayList<>();
+            if (!populateSupportedSdks(qpuRequest, supportedSdks)) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+            qpu.setSupportedSdks(supportedSdks);
+        }
+
+        // store and return QPU
+        qpu = qpuRepository.save(qpu);
+        prologFactUpdater.handleQpuInsertion(qpu);
+        return new ResponseEntity<>(createQpuDto(qpu), HttpStatus.OK);
+    }
+
+    private boolean populateSupportedSdks(CreateQpuRequestDto qpuRequest, List<Sdk> supportedSdks) {
+        for (UUID sdkId : qpuRequest.getSupportedSdkIds()) {
+            Optional<Sdk> sdkOptional = sdkRepository.findById(sdkId);
+            if (!sdkOptional.isPresent()) {
+                LOG.error("Unable to retrieve SDK with id {} from the repository.", sdkId);
+                return false;
+            }
+            supportedSdks.add(sdkOptional.get());
+        }
+        return true;
     }
 
     /**
