@@ -33,6 +33,9 @@ ENV PATH $PATH:$CATALINA_HOME/bin
 # setup SWI prolog
 RUN apt-get update && apt-get install -qqy swi-prolog swi-prolog-java
 ENV SWI_HOME_DIR /usr/bin/swipl
+RUN echo "pack_install(regex)." > /tmp/prolog_setup.pl
+RUN swipl -s /tmp/prolog_setup.pl --quiet
+RUN rm /tmp/prolog_setup.pl
 
 # install dockerize for configuration templating
 RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
