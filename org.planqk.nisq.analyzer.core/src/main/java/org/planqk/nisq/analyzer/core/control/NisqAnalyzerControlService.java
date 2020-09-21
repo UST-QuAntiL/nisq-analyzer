@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
@@ -44,6 +45,7 @@ import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
+import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuRepository;
@@ -54,6 +56,7 @@ import org.springframework.stereotype.Service;
 /**
  * Control service that handles all internal control flow and invokes the required functionality on behalf of the API.
  */
+@RequiredArgsConstructor
 @Service
 public class NisqAnalyzerControlService {
 
@@ -63,6 +66,8 @@ public class NisqAnalyzerControlService {
 
     final private ImplementationRepository implementationRepository;
 
+    final private AnalysisResultRepository analysisResultRepository;
+
     final private ExecutionResultRepository executionResultRepository;
 
     final private QpuRepository qpuRepository;
@@ -70,20 +75,6 @@ public class NisqAnalyzerControlService {
     final private PrologQueryEngine prologQueryEngine;
 
     final private PrologKnowledgeBaseHandler prologKnowledgeBaseHandler;
-
-    public NisqAnalyzerControlService(List<SdkConnector> connectorList,
-                                      ImplementationRepository implementationRepository,
-                                      ExecutionResultRepository executionResultRepository,
-                                      QpuRepository qpuRepository,
-                                      PrologQueryEngine prologQueryEngine,
-                                      PrologKnowledgeBaseHandler prologKnowledgeBaseHandler) {
-        this.connectorList = connectorList;
-        this.implementationRepository = implementationRepository;
-        this.executionResultRepository = executionResultRepository;
-        this.qpuRepository = qpuRepository;
-        this.prologQueryEngine = prologQueryEngine;
-        this.prologKnowledgeBaseHandler = prologKnowledgeBaseHandler;
-    }
 
     /**
      * Execute the given quantum algorithm implementation with the given input parameters and return the corresponding
@@ -113,7 +104,7 @@ public class NisqAnalyzerControlService {
         // create a object to store the execution results
         ExecutionResult executionResult =
                 executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
-                        "Passing execution to executor plugin.",
+                        "Passing execution to executor plugin.", null,
                         circuitDepth, circuitWidth, qpu,
                         null, implementation, ParameterValue.convertToUntyped(inputParameters)));
 
@@ -207,7 +198,7 @@ public class NisqAnalyzerControlService {
 
                 if (prologQueryEngine.isQpuSuitable(execImplementation.getId(), qpu.getId(), circuitInformation.getCircuitWidth(), circuitInformation.getCircuitDepth())) {
                     // qpu is suited candidate to execute the implementation
-                    analysisResult.add(new AnalysisResult(qpu, execImplementation, circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth()));
+                    analysisResult.add(analysisResultRepository.save(new AnalysisResult(algorithm, qpu, execImplementation, inputParameters, circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth())));
                     LOG.debug("QPU {} suitable for implementation {}.", qpu.getName(), execImplementation.getName());
                 } else {
                     LOG.debug("QPU {} not suitable for implementation {}.", qpu.getName(), execImplementation.getName());

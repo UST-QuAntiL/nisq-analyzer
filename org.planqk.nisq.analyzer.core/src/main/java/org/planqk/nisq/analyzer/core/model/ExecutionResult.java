@@ -49,6 +49,11 @@ public class ExecutionResult extends HasId {
 
     @Getter
     @Setter
+    @ManyToOne
+    private AnalysisResult analysisResult;
+
+    @Getter
+    @Setter
     private int analyzedDepth;
 
     @Getter

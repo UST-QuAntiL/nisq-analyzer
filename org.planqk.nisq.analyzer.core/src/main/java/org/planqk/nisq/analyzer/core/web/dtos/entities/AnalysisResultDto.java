@@ -20,10 +20,13 @@
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import org.springframework.hateoas.RepresentationModel;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
-public class AnalysisResultDto {
+public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
 
     QpuDto qpu;
 

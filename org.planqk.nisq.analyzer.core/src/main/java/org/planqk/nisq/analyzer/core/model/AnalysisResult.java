@@ -19,21 +19,38 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Object to represent the result of a analysis for a certain qpu and implementation
  */
+@EqualsAndHashCode(callSuper = true)
+@Entity
 @Data
 @AllArgsConstructor
-public class AnalysisResult {
+public class AnalysisResult extends HasId {
+    private UUID implementedAlgorithm;
 
-    Qpu qpu;
+    @ManyToOne
+    private Qpu qpu;
 
-    Implementation implementation;
+    @ManyToOne
+    private Implementation implementation;
 
-    int analysedDepth;
+    @ElementCollection
+    private Map<String, String> inputParameters;
 
-    int analysedWidth;
+    private int analysedDepth;
+    private int analysedWidth;
 }

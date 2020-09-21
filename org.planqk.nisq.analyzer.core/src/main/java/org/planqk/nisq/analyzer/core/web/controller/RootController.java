@@ -129,7 +129,7 @@ public class RootController {
         try {
             analysisResults = nisqAnalyzerService.performSelection(params.getAlgorithmId(), params.getParameters());
         } catch (UnsatisfiedLinkError e) {
-            LOG.error("UnsatisfiedLinkError while activating prolog rule. Please make sure prolog is installed and configured correctly to use the NISQ analyzer functionality!");
+            LOG.error("UnsatisfiedLinkError while activating prolog rule. Please make sure prolog is installed and configured correctly to use the NISQ analyzer functionality!", e);
             return new ResponseEntity("No prolog engine accessible from the server. Selection not possible!", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 

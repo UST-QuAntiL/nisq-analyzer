@@ -23,8 +23,9 @@ import java.util.List;
 import org.assertj.core.util.Lists;
 
 import lombok.Getter;
+import org.springframework.hateoas.RepresentationModel;
 
-public class AnalysisResultListDto {
+public class AnalysisResultListDto extends RepresentationModel<AnalysisResultListDto> {
 
     @Getter
     private final List<AnalysisResultDto> analysisResultList = Lists.newArrayList();

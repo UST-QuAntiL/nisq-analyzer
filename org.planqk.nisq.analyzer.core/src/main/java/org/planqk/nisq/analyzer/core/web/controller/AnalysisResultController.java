@@ -1,0 +1,105 @@
+package org.planqk.nisq.analyzer.core.web.controller;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.planqk.nisq.analyzer.core.Constants;
+import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
+import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import org.planqk.nisq.analyzer.core.model.ExecutionResult;
+import org.planqk.nisq.analyzer.core.model.Implementation;
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
+import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
+import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
+@RequiredArgsConstructor
+@Tag(name = "analysis-result")
+@RestController
+@CrossOrigin(allowedHeaders = "*", origins = "*")
+@RequestMapping("/" + Constants.RESULTS)
+public class AnalysisResultController {
+    private final static Logger LOG = LoggerFactory.getLogger(AnalysisResultController.class);
+
+    private final AnalysisResultRepository analysisResultRepository;
+    private final ExecutionResultRepository executionResultRepository;
+    private final NisqAnalyzerControlService controlService;
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve all execution results for an Implementation")
+    @GetMapping("/{algoId}")
+    public HttpEntity<AnalysisResultListDto> getAnalysisResults(@PathVariable UUID algoId) {
+        LOG.debug("Get to retrieve all execution results for impl with id: {}.", algoId);
+
+        AnalysisResultListDto dtoList = new AnalysisResultListDto();
+        for (AnalysisResult result : analysisResultRepository.findByImplementedAlgorithm(algoId)) {
+            dtoList.add(createAnalysisResultDto(result));
+        }
+
+        dtoList.add(linkTo(methodOn(AnalysisResultController.class).getAnalysisResults(algoId)).withSelfRel());
+        return new ResponseEntity<>(dtoList, HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
+            @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute an implementation")
+    @PostMapping("/{resId}/" + Constants.EXECUTION)
+    public HttpEntity<ExecutionResultDto> executeAnalysisResult(@PathVariable UUID resId) {
+        LOG.debug("Post to execute analysis result with id: {}", resId);
+
+        Optional<AnalysisResult> analysisResultOptional = analysisResultRepository.findById(resId);
+        if (!analysisResultOptional.isPresent()) {
+            LOG.error("Unable to retrieve analysis result with id {} from the repository.", resId);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        final AnalysisResult analysisResult = analysisResultOptional.get();
+
+        try {
+            Implementation implementation = analysisResult.getImplementation();
+
+            // Retrieve the type of the parameter from the algorithm definition
+            Map<String, ParameterValue> typedParams = ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), analysisResult.getInputParameters());
+
+            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(implementation, analysisResult.getQpu(),
+                    typedParams, analysisResult.getAnalysedDepth(), analysisResult.getAnalysedWidth());
+
+            ExecutionResultDto dto = ExecutionResultDto.Converter.convert(result);
+            dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(implementation.getId(), result.getId())).withSelfRel());
+            return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
+        } catch (RuntimeException e) {
+            LOG.error("Error while executing implementation: {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private AnalysisResultDto createAnalysisResultDto(AnalysisResult result) {
+        AnalysisResultDto dto = AnalysisResultDto.Converter.convert(result);
+        for (ExecutionResult executionResult : executionResultRepository.findByAnalysisResult(result)) {
+            dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(result.getImplementation().getId(),
+                    executionResult.getId())).withRel(Constants.EXECUTION + "-" + executionResult.getId()));
+        }
+        return dto;
+    }
+}
