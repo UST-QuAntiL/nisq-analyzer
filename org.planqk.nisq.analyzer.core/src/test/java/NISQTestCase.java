@@ -163,6 +163,27 @@ public class NISQTestCase {
         groverGeneralTruthtable.setImplementedAlgorithm(groverAlgorithmUUID);
         implementationRepository.save(groverGeneralTruthtable);
         //------------------------------------------------------------------------
+
+        // Grover Fixed Truthtable
+        //------------------------------------------------------------------------
+        Implementation groverFixTruthtable = new Implementation();
+        groverFixTruthtable.setName("grover-fix-truthtable-qiskit");
+        try{
+            groverFixTruthtable.setFileLocation(new URL(
+                    "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations/Grover-Truthtable/grover-fix-truthtable-qiskit.py"
+            ));
+        }catch (MalformedURLException e){}
+        groverFixTruthtable.setSelectionRule("processable(Oracle, grover-fix-truthtable-qiskit) :- Oracle = '0010000000000000'.");
+        groverFixTruthtable.setSdk(qiskit);
+        groverFixTruthtable.setInputParameters(Arrays.asList(
+                new Parameter("Oracle", DataType.String, "Oracle = '0010000000000000'", "Truth table oracle for grover")
+        ));
+        groverFixTruthtable.setOutputParameters(Arrays.asList(
+                new Parameter("assignment", DataType.String, "", "Assignment of Boolean variables such that f evaluates to true")
+        ));
+        groverFixTruthtable.setImplementedAlgorithm(groverAlgorithmUUID);
+        implementationRepository.save(groverFixTruthtable);
+        //------------------------------------------------------------------------
     }
 
     private void createShorImplementations(Sdk qiskit){
