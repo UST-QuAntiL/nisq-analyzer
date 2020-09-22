@@ -187,7 +187,8 @@ public class NISQTestCase {
     }
 
     private void createShorImplementations(Sdk qiskit){
-        // Create Shor15 Implementation
+        // Shor 15
+        //------------------------------------------------------------------------
         Implementation shor15Implementation = new Implementation();
         shor15Implementation.setName("shor-15-qiskit");
         try{
@@ -207,17 +208,19 @@ public class NISQTestCase {
         shor15Implementation.setDepthRule("expectedDepth(D, shor-15-qiskit) :- D is 7.");
         shor15Implementation.setImplementedAlgorithm(shorAlgorithmUUID);
         implementationRepository.save(shor15Implementation);
+        //------------------------------------------------------------------------
 
-        // Create ShorGeneral Implementation
+        // Shor General
+        //------------------------------------------------------------------------
         Implementation shorGeneralImplementation = new Implementation();
         shorGeneralImplementation.setName("shor-general-qiskit");
         try{
             shorGeneralImplementation.setFileLocation( new URL(
-                    "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/old/example-implementations/shor-general-qiskit.py"
+                    "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations/Shor/shor-general-qiskit.py"
             ));
         }catch (MalformedURLException e){
         }
-        shorGeneralImplementation.setSelectionRule("executable(N, shor-general-qiskit) :- N > 2.");
+        shorGeneralImplementation.setSelectionRule("processable(N, shor-general-qiskit) :- N > 2, 1 is mod(N, 2).");
         shorGeneralImplementation.setSdk(qiskit);
         shorGeneralImplementation.setInputParameters(Arrays.asList(
                 new Parameter("N", DataType.Integer, "N > 2", "Integer to be factored")
@@ -225,10 +228,9 @@ public class NISQTestCase {
         shorGeneralImplementation.setOutputParameters(Arrays.asList(
                 new Parameter("phases", DataType.String, "", "Phases of N")
         ));
-        shorGeneralImplementation.setWidthRule("expectedWidth(W, L, shor-general-qiskit) :- W is 2 * L + 3.");
-        shorGeneralImplementation.setDepthRule("expectedDepth(D, L, shor-general-qiskit) :- D is L**3.");
         shorGeneralImplementation.setImplementedAlgorithm(shorAlgorithmUUID);
         implementationRepository.save(shorGeneralImplementation);
+        //------------------------------------------------------------------------
     }
 
     private void createQPUs(Sdk qiskit){
