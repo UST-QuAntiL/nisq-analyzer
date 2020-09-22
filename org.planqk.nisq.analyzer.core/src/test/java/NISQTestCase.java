@@ -101,25 +101,23 @@ public class NISQTestCase {
 
     private void createGroverImplementations(Sdk qiskit){
 
-        Implementation groverGeneralLogic = new Implementation();
-        groverGeneralLogic.setName("grover-general-logicalexpression-qiskit");
+        Implementation groverGeneralSat = new Implementation();
+        groverGeneralSat.setName("grover-general-sat-qiskit");
         try{
-            groverGeneralLogic.setFileLocation(new URL(
-                    "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/old/example-implementations/grover-general-logicalexpression-qiskit.py"
+            groverGeneralSat.setFileLocation(new URL(
+                    "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations/Grover-SAT/grover-general-sat-qiskit.py"
             ));
         }catch (MalformedURLException e){}
-        groverGeneralLogic.setSelectionRule("executable(Oracle, grover-general-logicalexpression-qiskit) :- not(Oracle == null).");
-        groverGeneralLogic.setSdk(qiskit);
-        groverGeneralLogic.setInputParameters( Arrays.asList(
+        groverGeneralSat.setSelectionRule("processable(Oracle, grover-general-sat-qiskit) :- Oracle =~ '^[0-9A-Za-z|&()~^ ]+$'.");
+        groverGeneralSat.setSdk(qiskit);
+        groverGeneralSat.setInputParameters( Arrays.asList(
                 new Parameter("Oracle", DataType.String, "Oracle has to be a Boolean function", "Oracle for grover")
         ));
-        groverGeneralLogic.setOutputParameters(Arrays.asList(
+        groverGeneralSat.setOutputParameters(Arrays.asList(
                 new Parameter("assignment", DataType.String, "", "Assignment of Boolean variables such that f evaluates to true")
         ));
-        groverGeneralLogic.setWidthRule("expectedWidth(W, grover-general-logicalexpression-qiskit) :- W >= 2.");
-        groverGeneralLogic.setDepthRule("expectedDepth(D, grover-general-logicalexpression-qiskit) :- D >= 5.");
-        groverGeneralLogic.setImplementedAlgorithm(groverAlgorithmUUID);
-        implementationRepository.save(groverGeneralLogic);
+        groverGeneralSat.setImplementedAlgorithm(groverAlgorithmUUID);
+        implementationRepository.save(groverGeneralSat);
 
         Implementation groverGeneralTruthtable = new Implementation();
         groverGeneralTruthtable.setName("grover-general-truthtable-qiskit");
