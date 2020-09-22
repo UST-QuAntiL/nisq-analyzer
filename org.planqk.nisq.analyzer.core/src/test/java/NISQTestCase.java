@@ -149,10 +149,10 @@ public class NISQTestCase {
         groverGeneralTruthtable.setName("grover-general-truthtable-qiskit");
         try{
             groverGeneralTruthtable.setFileLocation(new URL(
-                    "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/old/example-implementations/grover-general-truthtable-qiskit.py"
+                    "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations/Grover-Truthtable/grover-general-truthtable-qiskit.py"
             ));
         }catch (MalformedURLException e){}
-        groverGeneralTruthtable.setSelectionRule("executable(Oracle, grover-general-truthtable-qiskit) :- not(Oracle == null).");
+        groverGeneralTruthtable.setSelectionRule("processable(Oracle, grover-general-truthtable-qiskit) :- not(Oracle == null).");
         groverGeneralTruthtable.setSdk(qiskit);
         groverGeneralTruthtable.setInputParameters(Arrays.asList(
                 new Parameter("Oracle", DataType.String, "Oracle has to be a a binary string of function f in a truth table", "Truth table oracle for grover")
@@ -160,10 +160,9 @@ public class NISQTestCase {
         groverGeneralTruthtable.setOutputParameters(Arrays.asList(
                 new Parameter("assignment", DataType.String, "", "Assignment of Boolean variables such that f evaluates to true")
         ));
-        groverGeneralTruthtable.setWidthRule("expectedWidth(W, grover-general-truthtable-qiskit) :- W >= 2.");
-        groverGeneralTruthtable.setDepthRule("expectedDepth(D, grover-general-truthtable-qiskit) :- D >= 5.");
         groverGeneralTruthtable.setImplementedAlgorithm(groverAlgorithmUUID);
         implementationRepository.save(groverGeneralTruthtable);
+        //------------------------------------------------------------------------
     }
 
     private void createShorImplementations(Sdk qiskit){
