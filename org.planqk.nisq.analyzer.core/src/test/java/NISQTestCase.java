@@ -105,7 +105,7 @@ public class NISQTestCase {
         groverGeneralLogic.setName("grover-general-logicalexpression-qiskit");
         try{
             groverGeneralLogic.setFileLocation(new URL(
-                    "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/master/example-implementations/grover-general-logicalexpression-qiskit.py"
+                    "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/old/example-implementations/grover-general-logicalexpression-qiskit.py"
             ));
         }catch (MalformedURLException e){}
         groverGeneralLogic.setSelectionRule("executable(Oracle, grover-general-logicalexpression-qiskit) :- not(Oracle == null).");
@@ -125,7 +125,7 @@ public class NISQTestCase {
         groverGeneralTruthtable.setName("grover-general-truthtable-qiskit");
         try{
             groverGeneralTruthtable.setFileLocation(new URL(
-                    "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/master/example-implementations/grover-general-truthtable-qiskit.py"
+                    "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/old/example-implementations/grover-general-truthtable-qiskit.py"
             ));
         }catch (MalformedURLException e){}
         groverGeneralTruthtable.setSelectionRule("executable(Oracle, grover-general-truthtable-qiskit) :- not(Oracle == null).");
@@ -148,7 +148,7 @@ public class NISQTestCase {
         shor15Implementation.setName("shor-15-qiskit");
         try{
             shor15Implementation.setFileLocation( new URL(
-                    "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/master/example-implementations/shor-15-qiskit.py"
+                    "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/old/example-implementations/shor-15-qiskit.py"
             ));
         }catch (MalformedURLException e){}
         shor15Implementation.setSelectionRule("executable(N, shor-15-qiskit) :- N is 15.");
@@ -169,7 +169,7 @@ public class NISQTestCase {
         shorGeneralImplementation.setName("shor-general-qiskit");
         try{
             shorGeneralImplementation.setFileLocation( new URL(
-                    "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/master/example-implementations/shor-general-qiskit.py"
+                    "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/old/example-implementations/shor-general-qiskit.py"
             ));
         }catch (MalformedURLException e){
         }
