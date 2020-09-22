@@ -33,8 +33,14 @@ ENV PATH $PATH:$CATALINA_HOME/bin
 # setup SWI prolog
 RUN apt-get update && apt-get install -qqy swi-prolog swi-prolog-java
 ENV SWI_HOME_DIR /usr/bin/swipl
-RUN echo "pack_install(regex)." > /tmp/prolog_setup.pl
-RUN swipl -s /tmp/prolog_setup.pl --quiet
+RUN swipl --version
+RUN echo "?- true.\n\
+	  ?- [library(prolog_pack)].\n\
+          ?- set_setting(prolog_pack:server, 'https://www.swi-prolog.org/pack/').\n\
+	  ?- pack_install(regex, [interactive(false)]).\n\ 
+          ?- pack_info(regex).\n\
+          ?- halt." > /tmp/prolog_setup.pl
+RUN swipl /tmp/prolog_setup.pl
 RUN rm /tmp/prolog_setup.pl
 
 # install dockerize for configuration templating
