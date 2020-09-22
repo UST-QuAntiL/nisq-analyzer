@@ -163,8 +163,14 @@ public class PrologFactUpdater {
      * Create a string containing all required prolog facts for an implementation.
      */
     private String createImplementationFacts(UUID implId, String usedSdk, UUID implementedAlgoId, String selectionRule, String widthRule, String depthRule) {
+
+        String prologContent = "";
+
+        // import prolog packages
+        prologContent += ":- use_module(library(regex))." + newline;
+
         // the following three lines are required to define the same predicate in multiple files
-        String prologContent = ":- multifile implements/2." + newline;
+        prologContent += ":- multifile implements/2." + newline;
         prologContent += ":- multifile requiredSdk/2." + newline;
         prologContent += ":- multifile " + getNameOfPredicate(selectionRule) + "/" + PrologUtility.getNumberOfParameters(selectionRule) + "." + newline;
         if (Objects.nonNull(widthRule)) {
@@ -190,8 +196,13 @@ public class PrologFactUpdater {
      * Create a string containing all required prolog fact for an QPU.
      */
     private String createQpuFacts(UUID qpuId, int qubitCount, List<String> supportedSdks, float t1Time, float maxGateTime) {
+        String prologContent = "";
+
+        // import prolog packages
+        prologContent += ":- use_module(library(regex))." + newline;
+
         // the following two lines are required to define the same predicate in multiple files
-        String prologContent = ":- multifile providesQubits/2." + newline;
+        prologContent += ":- multifile providesQubits/2." + newline;
         prologContent += ":- multifile usedSdk/2." + newline;
         prologContent += ":- multifile t1Time/2." + newline;
         prologContent += ":- multifile maxGateTime/2." + newline;
