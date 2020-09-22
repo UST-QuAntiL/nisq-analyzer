@@ -190,13 +190,13 @@ public class NISQTestCase {
         // Shor 15
         //------------------------------------------------------------------------
         Implementation shor15Implementation = new Implementation();
-        shor15Implementation.setName("shor-15-qiskit");
+        shor15Implementation.setName("shor-fix-15-qiskit");
         try{
             shor15Implementation.setFileLocation( new URL(
-                    "https://raw.githubusercontent.com/PlanQK/nisq-analyzer-content/old/example-implementations/shor-15-qiskit.py"
+                    "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations/Shor/shor-fix-15-qiskit.py"
             ));
         }catch (MalformedURLException e){}
-        shor15Implementation.setSelectionRule("executable(N, shor-15-qiskit) :- N is 15.");
+        shor15Implementation.setSelectionRule("processable(N, shor-fix-15-qiskit) :- N is 15.");
         shor15Implementation.setSdk(qiskit);
         shor15Implementation.setInputParameters(Arrays.asList(
                 new Parameter("N", DataType.Integer, "N = 15", "Integer to be factored.")
@@ -204,8 +204,6 @@ public class NISQTestCase {
         shor15Implementation.setOutputParameters(Arrays.asList(
                 new Parameter("phases", DataType.String, "", "Phases of N")
         ));
-        shor15Implementation.setWidthRule("expectedWidth(W, shor-15-qiskit) :- W is 8.");
-        shor15Implementation.setDepthRule("expectedDepth(D, shor-15-qiskit) :- D is 7.");
         shor15Implementation.setImplementedAlgorithm(shorAlgorithmUUID);
         implementationRepository.save(shor15Implementation);
         //------------------------------------------------------------------------
