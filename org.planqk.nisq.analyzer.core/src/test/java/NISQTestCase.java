@@ -20,6 +20,8 @@ import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuRepository;
 import org.planqk.nisq.analyzer.core.repository.SdkRepository;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.SdkListDto;
@@ -285,6 +287,42 @@ public class NISQTestCase {
 
     }
 
+    public void assertImpl(String impl, AnalysisResultListDto results){
+        Assertions.assertTrue(results.getAnalysisResultList().stream().anyMatch(
+                r -> r.getImplementation().getName().contains(impl)
+        ), impl + " not in the result list.");
+    }
+
+    public void assertNotImpl(String impl, AnalysisResultListDto results){
+        Assertions.assertFalse(results.getAnalysisResultList().stream().anyMatch(
+                r -> r.getImplementation().getName().contains(impl)
+        ), impl + " in the result list.");
+    }
+
+    public void assertImplQPUPair(String impl, String qpu, AnalysisResultListDto results){
+        Assertions.assertTrue(results.getAnalysisResultList().stream().anyMatch(
+                r -> (r.getImplementation().getName().contains(impl) && r.getQpu().getName().contains(qpu))
+        ), "(" + impl + " | " + qpu + ") not in the result list.");
+    }
+
+    public void assertNotImplQPUPair(String impl, String qpu, AnalysisResultListDto results){
+        Assertions.assertFalse(results.getAnalysisResultList().stream().anyMatch(
+                r -> (r.getImplementation().getName().contains(impl) && r.getQpu().getName().contains(qpu))
+        ), "(" + impl + " | " + qpu + ") in the result list.");
+    }
+
+    public void assertConsistentAnalysisResultList(AnalysisResultListDto results){
+
+        for (AnalysisResultDto r : results.getAnalysisResultList()) {
+
+            // Assert that the implementation was transpiled using Qiskit service
+            Assertions.assertFalse(r.isEstimate(), String.format("%s was not transpiled.", r.getQpu().getName()));
+
+            // Check transpiled width is always less than the number of available Qbits
+            Assertions.assertTrue(r.getAnalysedWidth() <= r.getQpu().getNumberOfQubits(), String.format("QBits exceeded on %s." ,r.getQpu().getName()));
+        }
+    }
+
     @Test
     public void testDatabaseEntries(){
 
@@ -298,12 +336,12 @@ public class NISQTestCase {
             Assertions.assertEquals(2, algs.getBody().getImplementationDtos().size());
         }
 
-        // Assert two Grover Algorithm implementations in the database
+        // Assert four Grover Algorithm implementations in the database
         {
             ResponseEntity<ImplementationListDto> algs = template.getForEntity(baseURL + Constants.IMPLEMENTATIONS + "/?algoId=" + groverAlgorithmUUID.toString(),
                     ImplementationListDto.class);
             Assertions.assertEquals(HttpStatus.OK, algs.getStatusCode());
-            Assertions.assertEquals(2, algs.getBody().getImplementationDtos().size());
+            Assertions.assertEquals(4, algs.getBody().getImplementationDtos().size());
         }
 
         // Assert one SDK in the database

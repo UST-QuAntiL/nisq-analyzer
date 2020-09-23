@@ -102,77 +102,71 @@ public class ImplementationSelectionTest extends NISQTestCase {
     public void testImplSelectionShorN15(){
 
         ResponseEntity<AnalysisResultListDto> selection = performShorSelection(15);
-
         Assertions.assertEquals(HttpStatus.OK, selection.getStatusCode());
-        Assertions.assertEquals(3,selection.getBody().getAnalysisResultList().size());
 
-        for (AnalysisResultDto r : selection.getBody().getAnalysisResultList()) {
+        assertConsistentAnalysisResultList(selection.getBody());
 
-            // Assert that the implementation was transpiled using Qiskit service
-            Assertions.assertFalse(r.isEstimate(), String.format("%s was not transpiled.", r.getQpu().getName()));
+        // Assert implementations
+        assertImpl("shor-general", selection.getBody());
+        assertImpl("shor-fix-15", selection.getBody());
 
-            // Check transpiled width is always less than the number of available Qbits
-            Assertions.assertTrue(r.getAnalysedWidth() <= r.getQpu().getNumberOfQubits(), r.getQpu().getName());
-        }
+        // Assert specific QPUs
+        assertImplQPUPair("shor-general", "ibmq_qasm", selection.getBody());
+        assertNotImplQPUPair("shor-general", "ibmq_16", selection.getBody());
+        assertNotImplQPUPair("shor-general", "ibmq_5", selection.getBody());
+        assertImplQPUPair("shor-fix-15", "ibmq_qasm", selection.getBody());
+        assertImplQPUPair("shor-fix-15", "ibmq_16", selection.getBody());
+        assertImplQPUPair("shor-fix-15", "ibmq_5", selection.getBody());
 
-        Assertions.assertTrue(selection.getBody().getAnalysisResultList().stream().anyMatch(
-                r -> r.getImplementation().getName().contains("general")
-        ), "Shor General not in the result list.");
-
-        Assertions.assertTrue(selection.getBody().getAnalysisResultList().stream().anyMatch(
-                r -> r.getImplementation().getName().contains("shor-15")
-        ), "Shor 15 not in the result list.");
+        // Assert result count
+        Assertions.assertEquals(4,selection.getBody().getAnalysisResultList().size());
     }
 
     @Test
     public void testImplSelectionShorN9(){
 
         ResponseEntity<AnalysisResultListDto> selection = performShorSelection(9);
-
         Assertions.assertEquals(HttpStatus.OK, selection.getStatusCode());
+
+        assertConsistentAnalysisResultList(selection.getBody());
+
+        // Assert implementations
+        assertImpl("shor-general", selection.getBody());
+        assertNotImpl("shor-fix-15", selection.getBody());
+
+        // Assert specific QPUs
+        assertImplQPUPair("shor-general", "ibmq_qasm", selection.getBody());
+        assertNotImplQPUPair("shor-general", "ibmq_16", selection.getBody());
+        assertNotImplQPUPair("shor-general", "ibmq_5", selection.getBody());
+
+        // Assert result count
         Assertions.assertEquals(1,selection.getBody().getAnalysisResultList().size());
-
-        for (AnalysisResultDto r : selection.getBody().getAnalysisResultList()) {
-
-            // Assert that the implementation was transpiled using Qiskit service
-            Assertions.assertFalse(r.isEstimate(), String.format("%s was not transpiled.", r.getQpu().getName()));
-
-            // Check transpiled width is always less than the number of available Qbits
-            Assertions.assertTrue(r.getAnalysedWidth() <= r.getQpu().getNumberOfQubits(), r.getQpu().getName());
-        }
-
-        Assertions.assertTrue(selection.getBody().getAnalysisResultList().stream().anyMatch(
-                r -> r.getImplementation().getName().contains("general")
-        ), "Shor General not in the result list.");
-
-        Assertions.assertFalse(selection.getBody().getAnalysisResultList().stream().anyMatch(
-                r -> r.getImplementation().getName().contains("shor-15")
-        ), "Shor 15 in the result list.");
     }
 
     @Test
-    public void testImplSelectionGroverLogic(){
+    public void testImplSelectionGroverSat(){
 
         ResponseEntity<AnalysisResultListDto> selection = performGroverSelection("(A | B) & (A | ~B) & (~A | B)");
         Assertions.assertEquals(HttpStatus.OK, selection.getStatusCode());
-        Assertions.assertEquals(1, selection.getBody().getAnalysisResultList().size());
 
-        for (AnalysisResultDto r : selection.getBody().getAnalysisResultList()) {
+        assertConsistentAnalysisResultList(selection.getBody());
 
-            // Assert that the implementation was transpiled using Qiskit service
-            Assertions.assertFalse(r.isEstimate(), String.format("%s was not transpiled.", r.getQpu().getName()));
+        // Assert implementations
+        assertImpl("grover-general-sat", selection.getBody());
+        assertImpl("grover-fix-sat", selection.getBody());
+        assertNotImpl("grover-general-truthtable", selection.getBody());
+        assertNotImpl("grover-fix-truthtable", selection.getBody());
 
-            // Check transpiled width is always less than the number of available Qbits
-            Assertions.assertTrue(r.getAnalysedWidth() <= r.getQpu().getNumberOfQubits(), r.getQpu().getName());
-        }
+        // Assert specific QPUs
+        assertImplQPUPair("grover-fix-sat", "ibmq_16", selection.getBody());
+        assertImplQPUPair("grover-fix-sat", "ibmq_qasm", selection.getBody());
+        assertNotImplQPUPair("grover-fix-sat", "ibmq_5", selection.getBody());
+        assertImplQPUPair("grover-general-sat", "ibmq_16", selection.getBody());
+        assertImplQPUPair("grover-general-sat", "ibmq_qasm", selection.getBody());
+        assertNotImplQPUPair("grover-general-sat", "ibmq_5", selection.getBody());
 
-        Assertions.assertTrue(selection.getBody().getAnalysisResultList().stream().anyMatch(
-                r -> r.getImplementation().getName().contains("grover-general-logicalexpression")
-        ), "Grover General Logical Expression not in the result list.");
-
-        Assertions.assertFalse(selection.getBody().getAnalysisResultList().stream().anyMatch(
-                r -> r.getImplementation().getName().contains("grover-general-truthtable")
-        ), "Grover General Truthtable in the result list.");
+        // Assert result count
+        Assertions.assertEquals(4,selection.getBody().getAnalysisResultList().size());
     }
 
     @Test
@@ -180,24 +174,21 @@ public class ImplementationSelectionTest extends NISQTestCase {
 
         ResponseEntity<AnalysisResultListDto> selection = performGroverSelection("00000001");
         Assertions.assertEquals(HttpStatus.OK, selection.getStatusCode());
-        Assertions.assertEquals(2, selection.getBody().getAnalysisResultList().size());
 
-        for (AnalysisResultDto r : selection.getBody().getAnalysisResultList()) {
+        assertConsistentAnalysisResultList(selection.getBody());
 
-            // Assert that the implementation was transpiled using Qiskit service
-            Assertions.assertFalse(r.isEstimate(), String.format("%s was not transpiled.", r.getQpu().getName()));
+        // Assert implementations
+        assertNotImpl("grover-general-sat", selection.getBody());
+        assertNotImpl("grover-fix-sat", selection.getBody());
+        assertImpl("grover-general-truthtable", selection.getBody());
+        assertNotImpl("grover-fix-truthtable", selection.getBody());
 
-            // Check transpiled width is always less than the number of available Qbits
-            Assertions.assertTrue(r.getAnalysedWidth() <= r.getQpu().getNumberOfQubits(), r.getQpu().getName());
-        }
+        // Assert specific QPUs
+        assertNotImplQPUPair("grover-general-truthtable", "ibmq_16", selection.getBody()); // too deep
+        assertImplQPUPair("grover-general-truthtable", "ibmq_5", selection.getBody());
+        assertImplQPUPair("grover-general-truthtable", "ibmq_qasm", selection.getBody());
 
-        Assertions.assertTrue(selection.getBody().getAnalysisResultList().stream().anyMatch(
-                r -> r.getImplementation().getName().contains("grover-general-truthtable")
-        ), "Grover General Truthtable not in the result list.");
-
-        Assertions.assertFalse(selection.getBody().getAnalysisResultList().stream().anyMatch(
-                r -> r.getImplementation().getName().contains("grover-general-logicalexpression")
-        ), "Grover General Logical Expression in the result list.");
-
+        // Assert result count
+        Assertions.assertEquals(2,selection.getBody().getAnalysisResultList().size());
     }
 }
