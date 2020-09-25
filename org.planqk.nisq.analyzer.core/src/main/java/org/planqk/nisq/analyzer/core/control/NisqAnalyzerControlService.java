@@ -36,6 +36,7 @@ import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologKnowledgeBaseHandler
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologQueryEngine;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologUtility;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.HasId;
@@ -149,7 +150,7 @@ public class NisqAnalyzerControlService {
         LOG.debug("Found {} implementations for the algorithm.", implementations.size());
         List<Implementation> executableImplementations = implementations.stream()
                 .filter(implementation -> parametersAvailable(getRequiredParameters(implementation), inputParameters))
-                .filter(implementation -> prologQueryEngine.checkExecutability(implementation.getSelectionRule(), inputParameters))
+                .filter(implementation -> prologQueryEngine.checkExecutability(implementation.getSelectionRule(), convertToTypedPrologLiterals(inputParameters, implementation)))
                 .collect(Collectors.toList());
         LOG.debug("{} implementations are executable for the given input parameters after applying the selection rules.", executableImplementations.size());
 
@@ -293,6 +294,49 @@ public class NisqAnalyzerControlService {
         requiredParameters.addAll(PrologUtility.getParametersForRule(impl.getDepthRule(), true));
 
         return requiredParameters;
+    }
+
+    /**
+     * Converts the given parameters to typed literals using the provided data type definition in the implementation.
+     * @param parameters
+     * @param implementation
+     * @return
+     */
+    private Map<String, String> convertToTypedPrologLiterals(Map<String, String> parameters, Implementation implementation) {
+
+        class EntryParameterPair {
+
+            private Map.Entry<String, String> entry;
+            private Optional<Parameter> parameter;
+
+            public EntryParameterPair(Map.Entry<String,String> entry, Optional<Parameter> parameter) {
+                this.entry = entry;
+                this.parameter = parameter;
+            }
+
+            public Optional<Parameter> getParameter() {
+                return this.parameter;
+            }
+
+            public String getKey() {
+                return this.entry.getKey();
+            }
+
+            public String getValue() {
+                return this.entry.getValue();
+            }
+        }
+
+        return parameters.entrySet().stream().map(
+                // map parameters that are defined in the implementation
+                e -> new EntryParameterPair(e, implementation.getInputParameters().stream().filter(p -> p.getName().equals(e.getValue())).findFirst())
+        ).filter(
+                // filter undefined parameters
+                e -> e.getParameter().isPresent()
+        ).collect(
+                // collect the new map of typed Prolog literals
+                Collectors.toMap(e -> e.getKey(), e -> e.getParameter().get().getType() == DataType.String ? "'" + e.getValue() + "'" : e.getValue())
+        );
     }
 
     /**
