@@ -329,7 +329,7 @@ public class NisqAnalyzerControlService {
 
         return parameters.entrySet().stream().map(
                 // map parameters that are defined in the implementation
-                e -> new EntryParameterPair(e, implementation.getInputParameters().stream().filter(p -> p.getName().equals(e.getValue())).findFirst())
+                e -> new EntryParameterPair(e, implementation.getInputParameters().stream().filter(p -> p.getName().equals(e.getKey())).findFirst())
         ).filter(
                 // filter undefined parameters
                 e -> e.getParameter().isPresent()
