@@ -19,10 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import java.util.Map;
-
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
@@ -54,19 +51,6 @@ public class ExecutionResult extends HasId {
 
     @Getter
     @Setter
-    private int analyzedDepth;
-
-    @Getter
-    @Setter
-    private int analyzedWidth;
-
-    @Getter
-    @Setter
-    @ManyToOne
-    private Qpu executingQpu;
-
-    @Getter
-    @Setter
     @Column(columnDefinition="text")
     private String result;
 
@@ -74,9 +58,4 @@ public class ExecutionResult extends HasId {
     @Setter
     @ManyToOne
     private Implementation executedImplementation;
-
-    @Getter
-    @Setter
-    @ElementCollection
-    private Map<String, String> inputParameters;
 }

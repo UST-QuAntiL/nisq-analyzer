@@ -119,9 +119,9 @@ public class ExecutionResultController {
         dto.add(linkTo(methodOn(ImplementationController.class)
                 .getImplementation(executionResult.getExecutedImplementation().getId()))
                 .withRel(Constants.EXECUTED_ALGORITHM_LINK));
-        dto.add(linkTo(methodOn(QpuController.class)
-                .getQpu(executionResult.getExecutingQpu().getId()))
-                .withRel(Constants.USED_QPU_LINK));
+        dto.add(linkTo(methodOn(AnalysisResultController.class)
+                .getAnalysisResult(executionResult.getAnalysisResult().getId()))
+                .withRel(Constants.USED_ANALYSIS_RESULT));
         return dto;
     }
 }

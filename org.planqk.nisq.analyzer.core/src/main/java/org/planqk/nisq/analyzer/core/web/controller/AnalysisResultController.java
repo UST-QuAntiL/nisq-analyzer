@@ -22,6 +22,8 @@ import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springdoc.data.rest.converters.PageableAsQueryParam;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,17 +51,33 @@ public class AnalysisResultController {
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve all execution results for an Implementation")
-    @GetMapping("/{algoId}")
-    public HttpEntity<AnalysisResultListDto> getAnalysisResults(@PathVariable UUID algoId) {
-        LOG.debug("Get to retrieve all execution results for impl with id: {}.", algoId);
+    @PageableAsQueryParam
+    @GetMapping("/algorithm/{algoId}")
+    public HttpEntity<AnalysisResultListDto> getAnalysisResults(@PathVariable UUID algoId, Pageable pageable) {
+        LOG.debug("Get to retrieve all analysis results for impl with id: {}.", algoId);
 
         AnalysisResultListDto dtoList = new AnalysisResultListDto();
-        for (AnalysisResult result : analysisResultRepository.findByImplementedAlgorithm(algoId)) {
+        for (AnalysisResult result : analysisResultRepository.findByImplementedAlgorithm(algoId, pageable)) {
             dtoList.add(createAnalysisResultDto(result));
         }
 
-        dtoList.add(linkTo(methodOn(AnalysisResultController.class).getAnalysisResults(algoId)).withSelfRel());
+        dtoList.add(linkTo(methodOn(AnalysisResultController.class).getAnalysisResults(algoId, pageable)).withSelfRel());
         return new ResponseEntity<>(dtoList, HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve all execution results for an Implementation")
+    @GetMapping("/{resId}")
+    public HttpEntity<AnalysisResultDto> getAnalysisResult(@PathVariable UUID resId) {
+        LOG.debug("Get to retrieve analysis result with id: {}.", resId);
+
+        Optional<AnalysisResult> result = analysisResultRepository.findById(resId);
+        if (!result.isPresent()) {
+            LOG.error("Unable to retrieve analysis result with id {} from the repository.", resId);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(createAnalysisResultDto(result.get()), HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
@@ -82,8 +100,7 @@ public class AnalysisResultController {
             // Retrieve the type of the parameter from the algorithm definition
             Map<String, ParameterValue> typedParams = ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), analysisResult.getInputParameters());
 
-            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(implementation, analysisResult.getQpu(),
-                    typedParams, analysisResult.getAnalysedDepth(), analysisResult.getAnalysedWidth());
+            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(analysisResult, typedParams);
 
             ExecutionResultDto dto = ExecutionResultDto.Converter.convert(result);
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(implementation.getId(), result.getId())).withSelfRel());
@@ -96,6 +113,15 @@ public class AnalysisResultController {
 
     private AnalysisResultDto createAnalysisResultDto(AnalysisResult result) {
         AnalysisResultDto dto = AnalysisResultDto.Converter.convert(result);
+        dto.add(linkTo(methodOn(AnalysisResultController.class)
+                .getAnalysisResult(result.getId()))
+                .withSelfRel());
+        dto.add(linkTo(methodOn(ImplementationController.class)
+                .getImplementation(result.getImplementation().getId()))
+                .withRel(Constants.EXECUTED_ALGORITHM_LINK));
+        dto.add(linkTo(methodOn(QpuController.class)
+                .getQpu(result.getQpu().getId()))
+                .withRel(Constants.USED_QPU_LINK));
         for (ExecutionResult executionResult : executionResultRepository.findByAnalysisResult(result)) {
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(result.getImplementation().getId(),
                     executionResult.getId())).withRel(Constants.EXECUTION + "-" + executionResult.getId()));

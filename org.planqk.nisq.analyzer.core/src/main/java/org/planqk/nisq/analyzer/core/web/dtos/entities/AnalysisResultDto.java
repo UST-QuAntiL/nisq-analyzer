@@ -19,6 +19,9 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
+import java.util.Map;
+import java.util.UUID;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
@@ -27,6 +30,8 @@ import org.springframework.hateoas.RepresentationModel;
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
+
+    UUID id;
 
     QpuDto qpu;
 
@@ -38,14 +43,18 @@ public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
 
     int analysedWidth;
 
+    private Map<String, String> inputParameters;
+
     public static final class Converter {
 
         public static AnalysisResultDto convert(final AnalysisResult object) {
             AnalysisResultDto dto = new AnalysisResultDto();
+            dto.setId(object.getId());
             dto.setQpu(QpuDto.Converter.convert(object.getQpu()));
             dto.setImplementation(ImplementationDto.Converter.convert(object.getImplementation()));
             dto.setAnalysedDepth(object.getAnalysedDepth());
             dto.setAnalysedWidth(object.getAnalysedWidth());
+            dto.setInputParameters(object.getInputParameters());
             return dto;
         }
     }

@@ -332,43 +332,6 @@ public class ImplementationController {
         return new ResponseEntity<>(parameterDto, HttpStatus.CREATED);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
-            @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute an implementation")
-    @PostMapping("/{implId}/" + Constants.EXECUTION)
-    public HttpEntity<ExecutionResultDto> executeImplementation(@PathVariable UUID implId,
-                                                                @RequestBody ExecutionRequestDto executionRequestDto) {
-        LOG.debug("Post to execute implementation with Id: {}", implId);
-
-        Optional<Implementation> implementationOptional = implementationRepository.findById(implId);
-        if (!implementationOptional.isPresent()) {
-            LOG.error("Unable to retrieve implementation with id {} from the repository.", implId);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
-        Optional<Qpu> qpuOptional = qpuRepository.findById(executionRequestDto.getQpuId());
-        if (!qpuOptional.isPresent()) {
-            LOG.error("Unable to retrieve qpu with id {} form the repository.", executionRequestDto.getQpuId());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
-        try {
-            Implementation implementation = implementationOptional.get();
-
-            // Retrieve the type of the parameter from the algorithm definition
-            Map<String,ParameterValue> typedParams = ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), executionRequestDto.getParameters());
-
-            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(implementation, qpuOptional.get(),
-                    typedParams, executionRequestDto.getAnalysedDepth(), executionRequestDto.getAnalysedWidth());
-
-            ExecutionResultDto dto = ExecutionResultDto.Converter.convert(result);
-            dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(implId, result.getId())).withSelfRel());
-            return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
-        } catch (RuntimeException e) {
-            LOG.error("Error while executing implementation: {}", e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
     /**
      * Create a DTO object for a given {@link Implementation} with the contained data and the links to related objects.
      *

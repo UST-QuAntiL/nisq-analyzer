@@ -80,16 +80,14 @@ public class NisqAnalyzerControlService {
      * Execute the given quantum algorithm implementation with the given input parameters and return the corresponding
      * output of the execution.
      *
-     * @param implementation  the quantum algorithm implementation that shall be executed
-     * @param qpu             the quantum processing unit to execute the implementation
+     * @param result          the analysis result that shall be executed
      * @param inputParameters the input parameters for the execution as key/value pairs
-     * @param circuitDepth    the analyzed depth of the circuit to execute
-     * @param circuitWidth    the analyzed width of the circuit to execute
      * @return the ExecutionResult to track the current status and store the result
      * @throws RuntimeException is thrown in case the execution of the algorithm implementation fails
      */
 
-    public ExecutionResult executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> inputParameters, int circuitDepth, int circuitWidth) throws RuntimeException {
+    public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result, Map<String, ParameterValue> inputParameters) throws RuntimeException {
+        Implementation implementation = result.getImplementation();
         LOG.debug("Executing quantum algorithm implementation with Id: {} and name: {}", implementation.getId(), implementation.getName());
 
         // get suited Sdk connector plugin
@@ -104,12 +102,11 @@ public class NisqAnalyzerControlService {
         // create a object to store the execution results
         ExecutionResult executionResult =
                 executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
-                        "Passing execution to executor plugin.", null,
-                        circuitDepth, circuitWidth, qpu,
-                        null, implementation, ParameterValue.convertToUntyped(inputParameters)));
+                        "Passing execution to executor plugin.", result,
+                        null, implementation));
 
         // execute implementation
-        new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), qpu, inputParameters, executionResult, executionResultRepository)).start();
+        new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), result.getQpu(), inputParameters, executionResult, executionResultRepository)).start();
 
         return executionResult;
     }
