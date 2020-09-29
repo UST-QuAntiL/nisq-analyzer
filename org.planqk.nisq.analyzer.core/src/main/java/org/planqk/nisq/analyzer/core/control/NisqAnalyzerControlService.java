@@ -157,14 +157,8 @@ public class NisqAnalyzerControlService {
         for (Implementation execImplementation : executableImplementations) {
             LOG.debug("Searching for suitable Qpu for implementation {} (Id: {}) which requires Sdk {}", execImplementation.getName(), execImplementation.getId(), execImplementation.getSdk().getName());
 
-            /*
-            // estimate the number of required qubits and the circuit depth by using the corresponding rules if set
-            int estimatedQubitCount = Objects.isNull(execImplementation.getWidthRule()) ? 0 : prologQueryEngine.checkDepthOrWidthRule(execImplementation.getWidthRule(), inputParameters);
-            int estimatedCircuitDepth = Objects.isNull(execImplementation.getDepthRule()) ? 0 : prologQueryEngine.checkDepthOrWidthRule(execImplementation.getDepthRule(), inputParameters);
 
-            */
-
-            // get all suitable QPUs for the implementation based on the width and depth estimates
+            // get all suitable QPUs for the implementation based on the provided SDK
             List<UUID> suitableQpuIds = prologQueryEngine.getSuitableQpus(execImplementation.getId());
             if (suitableQpuIds.isEmpty()) {
                 LOG.debug("Prolog query returns no suited QPUs. Skipping implementation {} for the selection!", execImplementation.getName());
@@ -176,7 +170,7 @@ public class NisqAnalyzerControlService {
                     .map(qpuRepository::findById)
                     .filter(Optional::isPresent)
                     .map(Optional::get).collect(Collectors.toList());
-            LOG.debug("Filtering based on estimates returned {} QPU candidate(s).", qpuCandidates.size());
+            LOG.debug("After Prolog query {} QPU candidate(s) exist.", qpuCandidates.size());
 
             // get suited Sdk connector plugin for the Sdk of the implementation
             SdkConnector selectedSdkConnector = connectorList.stream()
@@ -184,8 +178,7 @@ public class NisqAnalyzerControlService {
                     .findFirst().orElse(null);
 
             if (Objects.isNull(selectedSdkConnector)) {
-                LOG.warn("Unable to find Sdk connector for Sdk: {}. Adding implementation and possibly suited QPUs to the result based on the estimates!", execImplementation.getSdk());
-                //qpuCandidates.forEach(qpu -> analysisResult.add(new AnalysisResult(qpu, execImplementation, true, estimatedCircuitDepth, estimatedQubitCount)));
+                LOG.warn("Unable to find Sdk connector for Sdk: {}.", execImplementation.getSdk());
                 continue;
             }
 
@@ -211,30 +204,14 @@ public class NisqAnalyzerControlService {
                     continue;
                 }
 
-                /*
-                // skip qpu if the number of required qubits is greater than the provided
-                if (circuitInformation.getCircuitWidth() > qpu.getQubitCount()) {
-                    LOG.debug("Required qubit number ({}) is greater than provided number ({}). Skipping Qpu.",
-                            circuitInformation.getCircuitWidth(), qpu.getQubitCount());
-                    continue;
-                }
-
-                // skip qpu if the maximum circuit depth is greater than the required circuit depth
-                double maxCircuitDepth = Math.floor(qpu.getT1() / qpu.getMaxGateTime());
-                if (circuitInformation.getCircuitDepth() > maxCircuitDepth) {
-                    LOG.debug("Required circuit depth ({}) is greater than estimated maximum circuit depth ({}). Skipping Qpu.",
-                            circuitInformation.getCircuitDepth(), maxCircuitDepth);
-                    continue;
-                }*/
-
                 if (prologQueryEngine.isQpuSuitable(execImplementation.getId(), qpu.getId(), circuitInformation.getCircuitWidth(), circuitInformation.getCircuitDepth())) {
                     // qpu is suited candidate to execute the implementation
-                    analysisResult.add(new AnalysisResult(qpu, execImplementation, false, circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth()));
+                    analysisResult.add(new AnalysisResult(qpu, execImplementation, circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth()));
+                    LOG.debug("QPU {} suitable for implementation {}.", qpu.getName(), execImplementation.getName());
                 } else {
                     LOG.debug("QPU {} not suitable for implementation {}.", qpu.getName(), execImplementation.getName());
+                    continue;
                 }
-
-
             }
         }
 

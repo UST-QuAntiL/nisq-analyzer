@@ -41,7 +41,6 @@ public class AnalysisResultDto {
             AnalysisResultDto dto = new AnalysisResultDto();
             dto.setQpu(QpuDto.Converter.convert(object.getQpu()));
             dto.setImplementation(ImplementationDto.Converter.convert(object.getImplementation()));
-            dto.setEstimate(object.getEstimate());
             dto.setAnalysedDepth(object.getAnalysedDepth());
             dto.setAnalysedWidth(object.getAnalysedWidth());
             return dto;

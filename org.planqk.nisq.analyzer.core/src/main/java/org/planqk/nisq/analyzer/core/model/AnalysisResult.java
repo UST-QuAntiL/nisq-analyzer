@@ -33,13 +33,7 @@ public class AnalysisResult {
 
     Implementation implementation;
 
-    boolean estimate;
-
     int analysedDepth;
 
     int analysedWidth;
-
-    public boolean getEstimate() {
-        return estimate;
-    }
 }

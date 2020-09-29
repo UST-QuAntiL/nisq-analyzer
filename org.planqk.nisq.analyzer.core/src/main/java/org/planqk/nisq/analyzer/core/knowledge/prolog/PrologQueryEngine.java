@@ -29,7 +29,6 @@ import java.util.UUID;
 import org.jpl7.PrologException;
 import org.jpl7.Query;
 import org.jpl7.Term;
-import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -65,40 +64,6 @@ public class PrologQueryEngine {
             LOG.warn("Prolog error while executing query. Procedure may not exist in knowledge base...");
             return null;
         }
-    }
-
-    /**
-     * Evaluate the given prolog rule with the given set of parameters to estimate the circuit depth/width
-     *
-     * @param rule the prolog rule to evaluate to get the estimated circuit depth/width
-     * @param params    the set of parameters to use for the evaluation
-     * @return the estimated circuit depth/width, or zero if an error occurs
-     */
-    public int checkDepthOrWidthRule(String rule, Map<String, String> params) {
-        String query = assembleQueryForRule(rule, params, true);
-        if (Objects.isNull(query)) {
-            LOG.error("Unable to assemble query!");
-            return 0;
-        }
-
-        // get the remaining variables for the depth/width rule
-        List<String> variables = PrologUtility.getVariablesForPrologRule(query);
-
-        // there must be exactly one variable to evaluate
-        if (variables.size() != 1) {
-            LOG.error("There must be exactly one variable to evaluate in the depth/width rule, but it contains {} variables!", variables.size());
-            return 0;
-        }
-
-        // check if there is a valid result
-        Map<String, Term>[] solutions = getSolutions(query);
-        if (Objects.isNull(solutions) || solutions.length == 0) {
-            LOG.error("Query evaluation returned no valid solution!");
-            return 0;
-        }
-
-        // take first result and evaluate the required variable
-        return solutions[0].get(variables.get(0)).intValue();
     }
 
     /**
@@ -148,7 +113,7 @@ public class PrologQueryEngine {
         // determine the suited QPU for the implementation and the width/depth through the Prolog knowledge base
         String query = "executableOnQpu(" + requiredQubits + "," + circuitDepth + ",'" + implementationId + "','" + qpuId + "').";
         boolean evaluationResult = prologKnowledgeBaseHandler.hasSolution(query);
-        LOG.debug("Executing the following query to determine if the QPU is suitable: {} with result {}", query, evaluationResult);
+        LOG.debug("Executing the following query to determine if the QPU is suitable: {} with result {}.", query, evaluationResult);
         return evaluationResult;
     }
 
