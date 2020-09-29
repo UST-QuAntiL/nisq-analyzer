@@ -182,7 +182,7 @@ public class SimulatorExecutionTest extends NISQTestCase{
     void testGroverTruthtable(){
 
         // Try to find the grover truthtable implementation in the database
-        Optional<Implementation> groverImpl = implementationRepository.findByImplementedAlgorithm(groverAlgorithmUUID).stream().filter(
+        Optional<Implementation> groverImpl = implementationRepository.findByImplementedAlgorithm(groverTruthtableAlgorithmUUID).stream().filter(
                 (Implementation impl) -> impl.getName().contains("truthtable")
         ).findFirst();
         Assertions.assertTrue(groverImpl.isPresent());
@@ -206,14 +206,14 @@ public class SimulatorExecutionTest extends NISQTestCase{
     void testGroverLogicalExpression(){
 
         // Try to find the grover logical expression implementation in the database
-        Optional<Implementation> groverImpl = implementationRepository.findByImplementedAlgorithm(groverAlgorithmUUID).stream().filter(
+        Optional<Implementation> groverImpl = implementationRepository.findByImplementedAlgorithm(groverSATAlgorithmUUID).stream().filter(
                 (Implementation impl) -> impl.getName().contains("logicalexpression")
         ).findFirst();
         Assertions.assertTrue(groverImpl.isPresent());
 
         // Start execution
         ResponseEntity<ExecutionResultDto> result = execute(groverImpl.get(), qasmSim, NISQTestCase.inputParameters(
-                "Oracle", "(A | B) & (A | ~B) & (~A | B)"
+                "Formula", "(A | B) & (A | ~B) & (~A | B)"
         ));
         UUID resultID = assertExecutionInitialized(result);
         ExecutionResultDto finalResult = waitForTermination(groverImpl.get(), resultID);

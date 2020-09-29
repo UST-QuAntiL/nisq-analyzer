@@ -82,13 +82,29 @@ public class ImplementationSelectionTest extends NISQTestCase {
         return selection;
     }
 
-    private ResponseEntity<AnalysisResultListDto> performGroverSelection(String oracle){
+    private ResponseEntity<AnalysisResultListDto> performGroverSATSelection(String formula){
         String token = System.getenv("token");
         String baseURL = "http://localhost:" + port + "/";
 
         // create a request object
         SelectionRequestDto request = new SelectionRequestDto();
-        request.setAlgorithmId(groverAlgorithmUUID);
+        request.setAlgorithmId(groverSATAlgorithmUUID);
+        request.setParameters(NISQTestCase.inputParameters(
+                "Formula", formula,
+                "token", token
+        ));
+
+        ResponseEntity<AnalysisResultListDto> selection = template.postForEntity(baseURL + Constants.SELECTION + "/", request, AnalysisResultListDto.class);
+        return selection;
+    }
+
+    private ResponseEntity<AnalysisResultListDto> performGroverTruthtableSelection(String oracle){
+        String token = System.getenv("token");
+        String baseURL = "http://localhost:" + port + "/";
+
+        // create a request object
+        SelectionRequestDto request = new SelectionRequestDto();
+        request.setAlgorithmId(groverTruthtableAlgorithmUUID);
         request.setParameters(NISQTestCase.inputParameters(
                 "Oracle", oracle,
                 "token", token
@@ -146,7 +162,7 @@ public class ImplementationSelectionTest extends NISQTestCase {
     @Test
     public void testImplSelectionGroverSat(){
 
-        ResponseEntity<AnalysisResultListDto> selection = performGroverSelection("(A | B) & (A | ~B) & (~A | B)");
+        ResponseEntity<AnalysisResultListDto> selection = performGroverSATSelection("(A | B) & (A | ~B) & (~A | B)");
         Assertions.assertEquals(HttpStatus.OK, selection.getStatusCode());
 
         assertConsistentAnalysisResultList(selection.getBody());
@@ -172,7 +188,7 @@ public class ImplementationSelectionTest extends NISQTestCase {
     @Test
     public void testImplSelectionGroverTruthtable(){
 
-        ResponseEntity<AnalysisResultListDto> selection = performGroverSelection("00000001");
+        ResponseEntity<AnalysisResultListDto> selection = performGroverTruthtableSelection("00000001");
         Assertions.assertEquals(HttpStatus.OK, selection.getStatusCode());
 
         assertConsistentAnalysisResultList(selection.getBody());

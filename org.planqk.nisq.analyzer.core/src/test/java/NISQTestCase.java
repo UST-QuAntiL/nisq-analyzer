@@ -72,7 +72,8 @@ public class NISQTestCase {
 
     // some useful UUIDs
     protected UUID shorAlgorithmUUID;
-    protected UUID groverAlgorithmUUID;
+    protected UUID groverSATAlgorithmUUID;
+    protected UUID groverTruthtableAlgorithmUUID;
 
     @AfterAll
     public void tearDownTestDocker(){
@@ -112,15 +113,15 @@ public class NISQTestCase {
                     "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations/Grover-SAT/grover-general-sat-qiskit.py"
             ));
         }catch (MalformedURLException e){}
-        groverGeneralSat.setSelectionRule("processable(Oracle, grover-general-sat-qiskit) :- Oracle =~ '^[0-9A-Za-z|&()~^ ]+$'.");
+        groverGeneralSat.setSelectionRule("processable(Formula, grover-general-sat-qiskit) :- Formula =~ '^[0-9A-Za-z|&()~^ ]+$'.");
         groverGeneralSat.setSdk(qiskit);
         groverGeneralSat.setInputParameters( Arrays.asList(
-                new Parameter("Oracle", DataType.String, "Oracle has to be a Boolean function", "Oracle for grover")
+                new Parameter("Formula", DataType.String, "Formula has to be a Boolean function", "Oracle for grover")
         ));
         groverGeneralSat.setOutputParameters(Arrays.asList(
                 new Parameter("assignment", DataType.String, "", "Assignment of Boolean variables such that f evaluates to true")
         ));
-        groverGeneralSat.setImplementedAlgorithm(groverAlgorithmUUID);
+        groverGeneralSat.setImplementedAlgorithm(groverSATAlgorithmUUID);
         implementationRepository.save(groverGeneralSat);
         //------------------------------------------------------------------------
 
@@ -133,15 +134,15 @@ public class NISQTestCase {
                     "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations/Grover-SAT/grover-fix-sat-qiskit.py"
             ));
         }catch (MalformedURLException e){}
-        groverFixSat.setSelectionRule("processable(Oracle, grover-fix-sat-qiskit) :- Oracle = '(A | B) & (A | ~B) & (~A | B)'.");
+        groverFixSat.setSelectionRule("processable(Formula, grover-fix-sat-qiskit) :- Formula = '(A | B) & (A | ~B) & (~A | B)'.");
         groverFixSat.setSdk(qiskit);
         groverFixSat.setInputParameters( Arrays.asList(
-                new Parameter("Oracle", DataType.String, "Oracle = (A | B) & (A | ~B) & (~A | B)", "Oracle for grover")
+                new Parameter("Formula", DataType.String, "Formula = (A | B) & (A | ~B) & (~A | B)", "Oracle for grover")
         ));
         groverFixSat.setOutputParameters(Arrays.asList(
                 new Parameter("assignment", DataType.String, "", "Assignment of Boolean variables such that f evaluates to true")
         ));
-        groverFixSat.setImplementedAlgorithm(groverAlgorithmUUID);
+        groverFixSat.setImplementedAlgorithm(groverSATAlgorithmUUID);
         implementationRepository.save(groverFixSat);
         //------------------------------------------------------------------------
 
@@ -162,7 +163,7 @@ public class NISQTestCase {
         groverGeneralTruthtable.setOutputParameters(Arrays.asList(
                 new Parameter("assignment", DataType.String, "", "Assignment of Boolean variables such that f evaluates to true")
         ));
-        groverGeneralTruthtable.setImplementedAlgorithm(groverAlgorithmUUID);
+        groverGeneralTruthtable.setImplementedAlgorithm(groverTruthtableAlgorithmUUID);
         implementationRepository.save(groverGeneralTruthtable);
         //------------------------------------------------------------------------
 
@@ -183,7 +184,7 @@ public class NISQTestCase {
         groverFixTruthtable.setOutputParameters(Arrays.asList(
                 new Parameter("assignment", DataType.String, "", "Assignment of Boolean variables such that f evaluates to true")
         ));
-        groverFixTruthtable.setImplementedAlgorithm(groverAlgorithmUUID);
+        groverFixTruthtable.setImplementedAlgorithm(groverTruthtableAlgorithmUUID);
         implementationRepository.save(groverFixTruthtable);
         //------------------------------------------------------------------------
     }
@@ -279,7 +280,8 @@ public class NISQTestCase {
         createShorImplementations(qiskit);
 
         // Create the Gover Algorithm and its implementations
-        groverAlgorithmUUID = UUID.randomUUID();
+        groverSATAlgorithmUUID = UUID.randomUUID();
+        groverTruthtableAlgorithmUUID = UUID.randomUUID();
         createGroverImplementations(qiskit);
 
         // Create the IBM QPUs
@@ -336,12 +338,20 @@ public class NISQTestCase {
             Assertions.assertEquals(2, algs.getBody().getImplementationDtos().size());
         }
 
-        // Assert four Grover Algorithm implementations in the database
+        // Assert two Grover SAT Algorithm implementations in the database
         {
-            ResponseEntity<ImplementationListDto> algs = template.getForEntity(baseURL + Constants.IMPLEMENTATIONS + "/?algoId=" + groverAlgorithmUUID.toString(),
+            ResponseEntity<ImplementationListDto> algs = template.getForEntity(baseURL + Constants.IMPLEMENTATIONS + "/?algoId=" + groverSATAlgorithmUUID.toString(),
                     ImplementationListDto.class);
             Assertions.assertEquals(HttpStatus.OK, algs.getStatusCode());
-            Assertions.assertEquals(4, algs.getBody().getImplementationDtos().size());
+            Assertions.assertEquals(2, algs.getBody().getImplementationDtos().size());
+        }
+
+        // Assert two Grover Truthtable Algorithm implementations in the database
+        {
+            ResponseEntity<ImplementationListDto> algs = template.getForEntity(baseURL + Constants.IMPLEMENTATIONS + "/?algoId=" + groverTruthtableAlgorithmUUID.toString(),
+                    ImplementationListDto.class);
+            Assertions.assertEquals(HttpStatus.OK, algs.getStatusCode());
+            Assertions.assertEquals(2, algs.getBody().getImplementationDtos().size());
         }
 
         // Assert one SDK in the database
