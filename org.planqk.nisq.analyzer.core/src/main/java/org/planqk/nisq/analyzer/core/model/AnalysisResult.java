@@ -19,14 +19,13 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import java.util.List;
+import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.UUID;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -50,6 +49,8 @@ public class AnalysisResult extends HasId {
 
     @ElementCollection
     private Map<String, String> inputParameters;
+
+    private OffsetDateTime time;
 
     private int analysedDepth;
     private int analysedWidth;

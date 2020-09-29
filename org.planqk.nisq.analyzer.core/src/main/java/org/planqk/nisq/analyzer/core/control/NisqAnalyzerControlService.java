@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.control;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -195,7 +196,8 @@ public class NisqAnalyzerControlService {
 
                 if (prologQueryEngine.isQpuSuitable(execImplementation.getId(), qpu.getId(), circuitInformation.getCircuitWidth(), circuitInformation.getCircuitDepth())) {
                     // qpu is suited candidate to execute the implementation
-                    analysisResult.add(analysisResultRepository.save(new AnalysisResult(algorithm, qpu, execImplementation, inputParameters, circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth())));
+                    analysisResult.add(analysisResultRepository.save(new AnalysisResult(algorithm, qpu, execImplementation, inputParameters, OffsetDateTime.now(),
+                            circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth())));
                     LOG.debug("QPU {} suitable for implementation {}.", qpu.getName(), execImplementation.getName());
                 } else {
                     LOG.debug("QPU {} not suitable for implementation {}.", qpu.getName(), execImplementation.getName());
@@ -323,7 +325,7 @@ public class NisqAnalyzerControlService {
     /**
      * Check if all required parameters are contained in the provided parameters
      *
-     * @param requiredParameters the set of required parameters
+     * @param requiredParameters     the set of required parameters
      * @param providedParameterNames the set with the provided parameters
      * @return <code>true</code> if all required parameters are contained in the provided parameters, <code>false</code>
      * otherwise

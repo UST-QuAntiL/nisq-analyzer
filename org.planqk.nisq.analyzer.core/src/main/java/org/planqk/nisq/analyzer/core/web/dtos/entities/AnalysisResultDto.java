@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
+import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -26,7 +27,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.springframework.hateoas.RepresentationModel;
+import org.springframework.hateoas.server.core.Relation;
 
+@Relation(itemRelation = "analysisResult", collectionRelation = "analysisResults")
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
@@ -45,6 +48,8 @@ public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
 
     private Map<String, String> inputParameters;
 
+    private OffsetDateTime time;
+
     public static final class Converter {
 
         public static AnalysisResultDto convert(final AnalysisResult object) {
@@ -55,6 +60,7 @@ public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
             dto.setAnalysedDepth(object.getAnalysedDepth());
             dto.setAnalysedWidth(object.getAnalysedWidth());
             dto.setInputParameters(object.getInputParameters());
+            dto.setTime(object.getTime());
             return dto;
         }
     }
