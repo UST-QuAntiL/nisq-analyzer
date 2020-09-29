@@ -174,15 +174,15 @@ public class ImplementationSelectionTest extends NISQTestCase {
         assertNotImpl("grover-fix-truthtable", selection.getBody());
 
         // Assert specific QPUs
-        assertImplQPUPair("grover-fix-sat", "ibmq_16", selection.getBody());
+        assertNotImplQPUPair("grover-fix-sat", "ibmq_16", selection.getBody()); // too deep
         assertImplQPUPair("grover-fix-sat", "ibmq_qasm", selection.getBody());
-        assertNotImplQPUPair("grover-fix-sat", "ibmq_5", selection.getBody());
-        assertImplQPUPair("grover-general-sat", "ibmq_16", selection.getBody());
+        assertNotImplQPUPair("grover-fix-sat", "ibmq_5", selection.getBody()); // too many qbits
+        assertNotImplQPUPair("grover-general-sat", "ibmq_16", selection.getBody()); // Too deep
         assertImplQPUPair("grover-general-sat", "ibmq_qasm", selection.getBody());
-        assertNotImplQPUPair("grover-general-sat", "ibmq_5", selection.getBody());
+        assertNotImplQPUPair("grover-general-sat", "ibmq_5", selection.getBody()); // too many qbits
 
         // Assert result count
-        Assertions.assertEquals(4,selection.getBody().getAnalysisResultList().size());
+        Assertions.assertEquals(2,selection.getBody().getAnalysisResultList().size());
     }
 
     @Test
