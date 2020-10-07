@@ -67,40 +67,6 @@ public class PrologQueryEngine {
     }
 
     /**
-     * Evaluate the given prolog rule with the given set of parameters to estimate the circuit depth/width
-     *
-     * @param rule the prolog rule to evaluate to get the estimated circuit depth/width
-     * @param params    the set of parameters to use for the evaluation
-     * @return the estimated circuit depth/width, or zero if an error occurs
-     */
-    public int checkDepthOrWidthRule(String rule, Map<String, String> params) {
-        String query = assembleQueryForRule(rule, params, true);
-        if (Objects.isNull(query)) {
-            LOG.error("Unable to assemble query!");
-            return 0;
-        }
-
-        // get the remaining variables for the depth/width rule
-        List<String> variables = PrologUtility.getVariablesForPrologRule(query);
-
-        // there must be exactly one variable to evaluate
-        if (variables.size() != 1) {
-            LOG.error("There must be exactly one variable to evaluate in the depth/width rule, but it contains {} variables!", variables.size());
-            return 0;
-        }
-
-        // check if there is a valid result
-        Map<String, Term>[] solutions = getSolutions(query);
-        if (Objects.isNull(solutions) || solutions.length == 0) {
-            LOG.error("Query evaluation returned no valid solution!");
-            return 0;
-        }
-
-        // take first result and evaluate the required variable
-        return solutions[0].get(variables.get(0)).intValue();
-    }
-
-    /**
      * Evaluate the given prolog selection rule with the given set of parameters
      *
      * @param selectionRule the prolog selection rule to evaluate to check the executability
@@ -122,30 +88,58 @@ public class PrologQueryEngine {
     }
 
     /**
-     * Check the prolog knowledge base for QPUs that can handle the given implementation and return them
+     * Check the prolog knowledge base if the QPU can handle the given implementation
      *
      * @param implementationId the id of the implementation for which
+     * @param qpuId the id of the qpu
      * @param requiredQubits   the number of qubits that are required for the execution
      * @param circuitDepth     the depth of the circuit representation of the implementation
-     * @return a list with an Id for each QPU that can execute the given implementation
+     * @return
      */
-    public List<UUID> getSuitableQpus(UUID implementationId, int requiredQubits, int circuitDepth) {
+    public boolean isQpuSuitable(UUID implementationId, UUID qpuId, int requiredQubits, int circuitDepth) {
+
         // check if file with required rule exists and create otherwise
         if (!prologKnowledgeBaseHandler.doesPrologFileExist(Constants.QPU_RULE_NAME)) {
             try {
                 prologKnowledgeBaseHandler.persistPrologFile(Constants.QPU_RULE_CONTENT, Constants.QPU_RULE_NAME);
             } catch (IOException e) {
                 LOG.error("Unable to persist prolog file with QPU selection rule. Unable to determine suitable QPUs!");
-                return new ArrayList<>();
+                return false;
             }
         }
         prologKnowledgeBaseHandler.activatePrologFile(Constants.QPU_RULE_NAME);
+
+
+        // determine the suited QPU for the implementation and the width/depth through the Prolog knowledge base
+        String query = "executableOnQpu(" + requiredQubits + "," + circuitDepth + ",'" + implementationId + "','" + qpuId + "').";
+        boolean evaluationResult = prologKnowledgeBaseHandler.hasSolution(query);
+        LOG.debug("Executing the following query to determine if the QPU is suitable: {} with result {}.", query, evaluationResult);
+        return evaluationResult;
+    }
+
+    /**
+     * Check the prolog knowledge base for QPUs that can handle the given implementation and return them
+     *
+     * @param implementationId the id of the implementation for which
+     * @return a list with an Id for each QPU that can execute the given implementation
+     */
+    public List<UUID> getSuitableQpus(UUID implementationId) {
+        // check if file with required rule exists and create otherwise
+        if (!prologKnowledgeBaseHandler.doesPrologFileExist(Constants.QPU_TRANSP_RULE_NAME)) {
+            try {
+                prologKnowledgeBaseHandler.persistPrologFile(Constants.QPU_TRANSP_RULE_CONTENT, Constants.QPU_TRANSP_RULE_NAME);
+            } catch (IOException e) {
+                LOG.error("Unable to persist prolog file with QPU selection rule. Unable to determine suitable QPUs!");
+                return new ArrayList<>();
+            }
+        }
+        prologKnowledgeBaseHandler.activatePrologFile(Constants.QPU_TRANSP_RULE_NAME);
 
         List<UUID> suitableQPUs = new ArrayList<>();
 
         // determine the suited QPUs for the implementation and the width/depth through the Prolog knowledge base
         String qpuVariable = "Qpu";
-        String query = "executableOnQpu(" + requiredQubits + "," + circuitDepth + ",'" + implementationId + "'," + qpuVariable + ").";
+        String query = "transpilableOnQpu('" + implementationId + "'," + qpuVariable + ").";
         LOG.debug("Executing the following query to determine the suitable QPUs: {}", query);
         Map<String, Term>[] solutions = getSolutions(query);
 

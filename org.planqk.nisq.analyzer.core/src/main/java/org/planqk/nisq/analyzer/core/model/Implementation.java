@@ -52,14 +52,6 @@ public class Implementation extends HasId {
 
     @Getter
     @Setter
-    private String widthRule;
-
-    @Getter
-    @Setter
-    private String depthRule;
-
-    @Getter
-    @Setter
     private URL fileLocation;
 
     @Getter
