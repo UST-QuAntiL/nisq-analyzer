@@ -59,9 +59,7 @@ public class PrologFactUpdater {
         String prologContent = createImplementationFacts(implementation.getId(),
                 implementation.getSdk().getName().toLowerCase(),
                 implementation.getImplementedAlgorithm(),
-                implementation.getSelectionRule(),
-                implementation.getWidthRule(),
-                implementation.getDepthRule());
+                implementation.getSelectionRule());
         try {
             prologKnowledgeBaseHandler.persistPrologFile(prologContent, implementation.getId().toString());
         } catch (IOException e) {
@@ -105,9 +103,7 @@ public class PrologFactUpdater {
         String prologContent = createImplementationFacts(implementation.getId(),
                 implementation.getSdk().getName().toLowerCase(),
                 implementation.getImplementedAlgorithm(),
-                implementation.getSelectionRule(),
-                implementation.getWidthRule(),
-                implementation.getDepthRule());
+                implementation.getSelectionRule());
         try {
             prologKnowledgeBaseHandler.persistPrologFile(prologContent, implementation.toString());
         } catch (IOException e) {
@@ -162,7 +158,7 @@ public class PrologFactUpdater {
     /**
      * Create a string containing all required prolog facts for an implementation.
      */
-    private String createImplementationFacts(UUID implId, String usedSdk, UUID implementedAlgoId, String selectionRule, String widthRule, String depthRule) {
+    private String createImplementationFacts(UUID implId, String usedSdk, UUID implementedAlgoId, String selectionRule) {
 
         String prologContent = "";
 
@@ -173,22 +169,11 @@ public class PrologFactUpdater {
         prologContent += ":- multifile implements/2." + newline;
         prologContent += ":- multifile requiredSdk/2." + newline;
         prologContent += ":- multifile " + getNameOfPredicate(selectionRule) + "/" + PrologUtility.getNumberOfParameters(selectionRule) + "." + newline;
-        if (Objects.nonNull(widthRule)) {
-            prologContent += ":- multifile " + getNameOfPredicate(widthRule) + "/" + PrologUtility.getNumberOfParameters(widthRule) + "." + newline;
-        }
-        if (Objects.nonNull(depthRule)) {
-            prologContent += ":- multifile " + getNameOfPredicate(depthRule) + "/" + PrologUtility.getNumberOfParameters(depthRule) + "." + newline;
-        }
 
         prologContent += createImplementsFact(implId, implementedAlgoId) + newline;
         prologContent += createRequiredSdkFact(implId, usedSdk) + newline;
         prologContent += selectionRule + newline;
-        if (Objects.nonNull(widthRule)) {
-            prologContent += widthRule + newline;
-        }
-        if (Objects.nonNull(depthRule)) {
-            prologContent += depthRule + newline;
-        }
+
         return prologContent;
     }
 

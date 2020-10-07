@@ -191,7 +191,7 @@ public class NisqAnalyzerControlService {
                 // analyze the quantum circuit by utilizing the capabilities of the suited plugin and retrieve important circuit properties
                 CircuitInformation circuitInformation = selectedSdkConnector.getCircuitProperties(execImplementation.getFileLocation(), qpu, execInputParameters);
 
-                // fall back to estimates if something unexpected happened
+                // if something unexpected happened
                 if (Objects.isNull(circuitInformation)) {
                     LOG.error("Circuit analysis by compiler unexpectedly failed.");
                     continue;
@@ -272,8 +272,6 @@ public class NisqAnalyzerControlService {
 
         // add parameters from rules
         requiredParameters.addAll(PrologUtility.getParametersForRule(impl.getSelectionRule(), false));
-        requiredParameters.addAll(PrologUtility.getParametersForRule(impl.getWidthRule(), true));
-        requiredParameters.addAll(PrologUtility.getParametersForRule(impl.getDepthRule(), true));
 
         return requiredParameters;
     }
