@@ -3,9 +3,14 @@ package org.planqk.nisq.analyzer.core.web.controller;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +27,8 @@ import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springdoc.data.rest.converters.PageableAsQueryParam;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,21 +53,24 @@ public class AnalysisResultController {
     private final AnalysisResultRepository analysisResultRepository;
     private final ExecutionResultRepository executionResultRepository;
     private final NisqAnalyzerControlService controlService;
+    private PagedResourcesAssembler<AnalysisResultDto> analysisResultListAssembler;
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve all execution results for an Implementation")
-    @PageableAsQueryParam
+    @Parameter(in = ParameterIn.QUERY
+            , description = "Sorting criteria in the format: property(,asc|desc). "
+            + "Default sort order is ascending. " + "Multiple sort criteria are supported."
+            , name = "sort"
+            , content = @Content(array = @ArraySchema(schema = @Schema(type = "string"))))
     @GetMapping("/algorithm/{algoId}")
-    public HttpEntity<AnalysisResultListDto> getAnalysisResults(@PathVariable UUID algoId, Pageable pageable) {
+    public HttpEntity<AnalysisResultListDto> getAnalysisResults(@PathVariable UUID algoId,
+                                                                @Parameter(hidden = true) Sort sort) {
         LOG.debug("Get to retrieve all analysis results for impl with id: {}.", algoId);
-
-        AnalysisResultListDto dtoList = new AnalysisResultListDto();
-        for (AnalysisResult result : analysisResultRepository.findByImplementedAlgorithm(algoId, pageable)) {
-            dtoList.add(createAnalysisResultDto(result));
-        }
-
-        dtoList.add(linkTo(methodOn(AnalysisResultController.class).getAnalysisResults(algoId, pageable)).withSelfRel());
-        return new ResponseEntity<>(dtoList, HttpStatus.OK);
+        AnalysisResultListDto model = new AnalysisResultListDto();
+        model.add(analysisResultRepository.findByImplementedAlgorithm(algoId, sort)
+                .stream().map(this::createAnalysisResultDto).collect(Collectors.toList()));
+        model.add(linkTo(methodOn(AnalysisResultController.class).getAnalysisResults(algoId, sort)).withSelfRel());
+        return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
@@ -106,7 +114,7 @@ public class AnalysisResultController {
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(implementation.getId(), result.getId())).withSelfRel());
             return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
         } catch (RuntimeException e) {
-            LOG.error("Error while executing implementation: {}", e.getMessage());
+            LOG.error("Error while executing implementation", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
