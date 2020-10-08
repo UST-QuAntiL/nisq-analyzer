@@ -19,30 +19,46 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import lombok.Data;
-import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import java.time.OffsetDateTime;
+import java.util.Map;
+import java.util.UUID;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import org.springframework.hateoas.RepresentationModel;
+import org.springframework.hateoas.server.core.Relation;
+
+@Relation(itemRelation = "analysisResult", collectionRelation = "analysisResults")
+@EqualsAndHashCode(callSuper = false)
 @Data
-public class AnalysisResultDto {
+public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
+
+    UUID id;
 
     QpuDto qpu;
 
     ImplementationDto implementation;
 
-    boolean estimate;
-
     int analysedDepth;
 
     int analysedWidth;
+
+    private Map<String, String> inputParameters;
+
+    private OffsetDateTime time;
 
     public static final class Converter {
 
         public static AnalysisResultDto convert(final AnalysisResult object) {
             AnalysisResultDto dto = new AnalysisResultDto();
+            dto.setId(object.getId());
             dto.setQpu(QpuDto.Converter.convert(object.getQpu()));
             dto.setImplementation(ImplementationDto.Converter.convert(object.getImplementation()));
             dto.setAnalysedDepth(object.getAnalysedDepth());
             dto.setAnalysedWidth(object.getAnalysedWidth());
+            dto.setInputParameters(object.getInputParameters());
+            dto.setTime(object.getTime());
             return dto;
         }
     }

@@ -41,4 +41,5 @@ public class Constants {
     public static final String RESULTS_LINK = "results";
     public static final String EXECUTED_ALGORITHM_LINK = "executed-algorithm";
     public static final String USED_QPU_LINK = "used-qpu";
+    public static final String USED_ANALYSIS_RESULT = "analysis-result";
 }

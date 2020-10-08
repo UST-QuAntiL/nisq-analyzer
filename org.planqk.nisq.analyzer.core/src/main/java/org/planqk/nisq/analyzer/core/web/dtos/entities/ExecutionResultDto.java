@@ -49,10 +49,6 @@ public class ExecutionResultDto extends RepresentationModel<ExecutionResultDto> 
     @Setter
     private String result;
 
-    @Getter
-    @Setter
-    private Map<String, String> inputParameters;
-
     public static final class Converter {
 
         public static ExecutionResultDto convert(final ExecutionResult object) {
@@ -61,7 +57,6 @@ public class ExecutionResultDto extends RepresentationModel<ExecutionResultDto> 
             dto.setStatus(object.getStatus());
             dto.setStatusCode(object.getStatusCode());
             dto.setResult(object.getResult());
-            dto.setInputParameters(object.getInputParameters());
             return dto;
         }
     }
