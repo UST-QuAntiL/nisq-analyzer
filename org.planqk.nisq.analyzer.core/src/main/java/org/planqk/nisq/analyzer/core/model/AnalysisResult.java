@@ -30,6 +30,7 @@ import javax.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
  * Object to represent the result of a analysis for a certain qpu and implementation
@@ -37,6 +38,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class AnalysisResult extends HasId {
     private UUID implementedAlgorithm;

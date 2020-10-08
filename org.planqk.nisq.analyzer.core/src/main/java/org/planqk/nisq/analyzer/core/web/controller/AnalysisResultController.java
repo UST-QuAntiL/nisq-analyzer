@@ -28,7 +28,6 @@ import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,10 +52,9 @@ public class AnalysisResultController {
     private final AnalysisResultRepository analysisResultRepository;
     private final ExecutionResultRepository executionResultRepository;
     private final NisqAnalyzerControlService controlService;
-    private PagedResourcesAssembler<AnalysisResultDto> analysisResultListAssembler;
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve all execution results for an Implementation")
+            description = "Retrieve all analysis results for an Algorithm")
     @Parameter(in = ParameterIn.QUERY
             , description = "Sorting criteria in the format: property(,asc|desc). "
             + "Default sort order is ascending. " + "Multiple sort criteria are supported."
@@ -74,7 +72,7 @@ public class AnalysisResultController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve all execution results for an Implementation")
+            description = "Retrieve a single analysis result")
     @GetMapping("/{resId}")
     public HttpEntity<AnalysisResultDto> getAnalysisResult(@PathVariable UUID resId) {
         LOG.debug("Get to retrieve analysis result with id: {}.", resId);
@@ -89,7 +87,7 @@ public class AnalysisResultController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
-            @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute an implementation")
+            @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute an analysis configuration")
     @PostMapping("/{resId}/" + Constants.EXECUTION)
     public HttpEntity<ExecutionResultDto> executeAnalysisResult(@PathVariable UUID resId) {
         LOG.debug("Post to execute analysis result with id: {}", resId);

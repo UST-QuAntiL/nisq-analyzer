@@ -88,7 +88,7 @@ public class NisqAnalyzerControlService {
      */
 
     public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result, Map<String, ParameterValue> inputParameters) throws RuntimeException {
-        Implementation implementation = result.getImplementation();
+        final Implementation implementation = result.getImplementation();
         LOG.debug("Executing quantum algorithm implementation with Id: {} and name: {}", implementation.getId(), implementation.getName());
 
         // get suited Sdk connector plugin
@@ -269,9 +269,6 @@ public class NisqAnalyzerControlService {
 
     /**
      * Converts the given parameters to typed literals using the provided data type definition in the implementation.
-     * @param parameters
-     * @param implementation
-     * @return
      */
     private Map<String, String> convertToTypedPrologLiterals(Map<String, String> parameters, Implementation implementation) {
 
@@ -280,7 +277,7 @@ public class NisqAnalyzerControlService {
             private Map.Entry<String, String> entry;
             private Optional<Parameter> parameter;
 
-            public EntryParameterPair(Map.Entry<String,String> entry, Optional<Parameter> parameter) {
+            public EntryParameterPair(Map.Entry<String, String> entry, Optional<Parameter> parameter) {
                 this.entry = entry;
                 this.parameter = parameter;
             }

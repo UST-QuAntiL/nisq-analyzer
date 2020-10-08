@@ -134,8 +134,7 @@ public class RootController {
         }
 
         AnalysisResultListDto analysisResultListDto = new AnalysisResultListDto();
-        analysisResultListDto.add(analysisResults.stream().map(analysisResult -> AnalysisResultDto.Converter.convert(analysisResult)).collect(Collectors.toList()));
-
+        analysisResultListDto.add(analysisResults.stream().map(AnalysisResultDto.Converter::convert).collect(Collectors.toList()));
         return new ResponseEntity<>(analysisResultListDto, HttpStatus.OK);
     }
 }

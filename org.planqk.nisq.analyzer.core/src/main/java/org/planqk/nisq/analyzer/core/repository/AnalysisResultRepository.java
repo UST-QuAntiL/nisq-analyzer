@@ -28,7 +28,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 /**
- * Repository to access {@link org.planqk.nisq.analyzer.core.model.ExecutionResult}s available in the data base with
+ * Repository to access {@link org.planqk.nisq.analyzer.core.model.AnalysisResult}s available in the data base with
  * different queries.
  */
 @RepositoryRestResource(exported = false)
