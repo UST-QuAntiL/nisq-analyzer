@@ -40,8 +40,6 @@ public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
 
     ImplementationDto implementation;
 
-    boolean estimate;
-
     int analysedDepth;
 
     int analysedWidth;
