@@ -24,7 +24,7 @@ docker-compose pull
 docker-compose up
 ```
 
-* Additionally, the [Qiskit Service](https://github.com/UST-QuAntiL/qiskit-service/tree/SummerSoC2020) can be started by adapting the command:
+* Additionally, the [Qiskit Service](https://github.com/UST-QuAntiL/qiskit-service/) can be started by adapting the command:
 ```
 docker-compose -f docker-compose.yml -f ../qiskit-service/docker-compose.yml pull
 docker-compose -f docker-compose.yml -f ../qiskit-service/docker-compose.yml up
@@ -45,7 +45,7 @@ Prerequisites:
 
 ## Sample Data
 
-Suitable sample data in JSON format can be found in [nisq-analyzer-content](https://github.com/UST-QuAntiL/nisq-analyzer-content/tree/SummerSoC2020/objects).  
+Suitable sample data in JSON format can be found in [nisq-analyzer-content](https://github.com/UST-QuAntiL/nisq-analyzer-content/tree/master/objects).  
 
 ## Usage via API
 
