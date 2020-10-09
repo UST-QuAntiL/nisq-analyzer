@@ -8,11 +8,11 @@
 1. Run `mvn package -DskipTests` inside the root folder.
 2. When completed, the built product can be found in `org.planqk.nisq.analyzer.core/target`.
 
-## Setup
+## Setup via Docker
 
 * For running the QuAntiL environment with all its components use the docker-compose of [quantil-docker](https://github.com/UST-QuAntiL/quantil-docker).  
 
-* Clone repository:
+* Otherwise, clone repository:
 ```
 git clone https://github.com/UST-QuAntiL/nisq-analyzer.git   
 git clone git@github.com:UST-QuAntiL/nisq-analyzer.git
@@ -30,7 +30,7 @@ docker-compose -f docker-compose.yml -f ../qiskit-service/docker-compose.yml pul
 docker-compose -f docker-compose.yml -f ../qiskit-service/docker-compose.yml up
 ```
 
-Now the NISQ Analyzer is available on http://localhost:8081/.
+Now the NISQ Analyzer is available on http://localhost:8081/.  
 If you also started the Qiskit Service, it is available on http://localhost:5000/.
 	
 ## Running on Tomcat
@@ -42,6 +42,41 @@ Make sure you have an accessibly Postgres database and configure the application
 Prerequisites:
 
 - [SWI Prolog](https://www.swi-prolog.org/) is installed on the machine where the Tomcat runs and the Path is configured correspondingly
+
+## Sample Data
+
+Suitable sample data in JSON format can be found in [nisq-analyzer-content](https://github.com/UST-QuAntiL/nisq-analyzer-content/tree/SummerSoC2020/objects).  
+
+## Usage via API
+
+Use the [HAL Browser](http://localhost:8081/nisq-analyzer/browser/index.html#http://localhost:8081/nisq-analyzer/) or [Swagger-UI](http://localhost:8081/nisq-analyzer/swagger-ui/index.html?configUrl=/nisq-analyzer/v3/api-docs/swagger-config#/).
+
+### Data Creation  
+1. create a SDK via `POST /nisq-analyzer/sdks/`
+2. create a QPU via `POST /nisq-analyzer/qpus/` (use the UUID of the created SDK)
+3. create an implementation via `POST /nisq-analyzer/implementations/` (via API, an arbitrary UUID for the implementedAlgorithm attribute can be used for implementations of one quantum algorithm)
+
+### Selection and Execution Mechanism of NISQ Analyzer + Qiskit Service
+Get the required selection parameters via `GET /nisq-analyzer/selection-params` with {algoId}.  
+
+For using the selection mechanism use  
+`POST /nisq-analyzer/selection`
+```
+{
+  "algorithmId": "UUID-OF-DESIRED-QUANTUM-ALGORITHM",
+  "parameters": {
+    "SELECTION-PARAM-1": "YOUR-VALUE-1",
+    ...
+    "SELECTION-PARAM-N": "YOUR-VALUE-N",
+    "token": "YOUR-IBMQ-TOKEN"
+  }
+}
+```
+
+Get analysis results via `GET /nisq-analyzer/results/algorithm/{algoId}`.  
+Start the execution of an implementation and its analysis result via `POST /nisq-analyzer/results/{resId}/execute`.  
+Get execution results of an implementation via `POST /nisq-analyzer/implementations/{implId}/results/`.  
+
 
 ## Haftungsausschluss
 
