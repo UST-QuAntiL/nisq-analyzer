@@ -8,19 +8,30 @@
 1. Run `mvn package -DskipTests` inside the root folder.
 2. When completed, the built product can be found in `org.planqk.nisq.analyzer.core/target`.
 
-## Running via Docker
+## Setup
 
-The easiest way to get started is using Docker-Compose: [planqk-docker](https://github.com/PlanQK/planqk-docker)
+* For running the QuAntiL environment with all its components use the docker-compose of [quantil-docker](https://github.com/UST-QuAntiL/quantil-docker).  
 
-Alternatively you can build and run the NISQ-Analyzer Docker image by your own:
+* Clone repository:
+```
+git clone https://github.com/UST-QuAntiL/nisq-analyzer.git   
+git clone git@github.com:UST-QuAntiL/nisq-analyzer.git
+```
 
-1. `docker build -t nisq-analyzer .`
-   In case, there are issues, you can also try `docker build --no-cache -t nisq-analyzer .`
-2. `docker run -p 8080:8080 nisq-analyzer` to run the NISQ-Analyzer on <http://localhost:8080>
+* Start NISQ Analyzer and PostgreSQL containers:
+```
+docker-compose pull
+docker-compose up
+```
 
-You can also use the pre-built image:
+* Additionally, the [Qiskit Service](https://github.com/UST-QuAntiL/qiskit-service/tree/SummerSoC2020) can be started by adapting the command:
+```
+docker-compose -f docker-compose.yml -f ../qiskit-service/docker-compose.yml pull
+docker-compose -f docker-compose.yml -f ../qiskit-service/docker-compose.yml up
+```
 
-    docker run -p 8080:8080 planqk/nisq-analyzer
+Now the NISQ Analyzer is available on http://localhost:8081/.
+If you also started the Qiskit Service, it is available on http://localhost:5000/.
 	
 ## Running on Tomcat
 
