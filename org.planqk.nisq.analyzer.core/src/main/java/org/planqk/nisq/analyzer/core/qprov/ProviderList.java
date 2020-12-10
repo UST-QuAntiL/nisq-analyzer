@@ -17,48 +17,37 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.web.dtos.entities;
+package org.planqk.nisq.analyzer.core.qprov;
 
-import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.assertj.core.util.Lists;
-import org.planqk.nisq.analyzer.core.model.Qpu;
-import org.springframework.hateoas.RepresentationModel;
 
-/**
- * Data transfer object for multiple {@link Qpu}s.
- */
 @NoArgsConstructor
-class RawQpuListDto extends RepresentationModel<RawQpuListDto> {
+@AllArgsConstructor
+class RawProviderList {
 
     @Getter
     @Setter
-    @JsonProperty("qpuDtoes")
-    private final List<QpuDto> qpuDtoList = Lists.newArrayList();
-
-    public void add(final QpuDto... qpu) {
-        this.qpuDtoList.addAll(Arrays.asList(qpu));
-    }
+    @JsonProperty("providerDtoes")
+    private List<Provider> providers;
 }
 
 @NoArgsConstructor
-public class QpuListDto extends RepresentationModel<RawQpuListDto> {
+@AllArgsConstructor
+public class ProviderList {
 
     @Getter
     @Setter
     @JsonProperty("_embedded")
-    private RawQpuListDto embedded;
+    private RawProviderList embedded;
 
-    public List<QpuDto> getQpuDtoList() {
-        return this.embedded.getQpuDtoList();
+    public List<Provider> getProviders() {
+        return this.embedded.getProviders();
     }
 
-    public void add(final QpuDto... qpu) {
-        this.embedded.add(qpu);
-    }
 }

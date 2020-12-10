@@ -22,6 +22,7 @@ package org.planqk.nisq.analyzer.core.web.dtos.entities;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -49,6 +50,7 @@ public class QpuDto extends RepresentationModel<QpuDto> {
 
     @Getter
     @Setter
+    @JsonProperty("avgT1Time")
     private float t1;
 
     @Getter
@@ -69,6 +71,7 @@ public class QpuDto extends RepresentationModel<QpuDto> {
 
         public static Qpu convert(final QpuDto object, final List<Sdk> supportedSdks) {
             Qpu qpu = new Qpu();
+            qpu.setId(object.getId());
             qpu.setName(object.getName());
             qpu.setQubitCount(object.getNumberOfQubits());
             qpu.setT1(object.getT1());
