@@ -21,6 +21,7 @@ package org.planqk.nisq.analyzer.core.qprov;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,6 +33,7 @@ import org.planqk.nisq.analyzer.core.repository.SdkRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuListDto;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -79,6 +81,15 @@ public class QProvService {
         List<Sdk> sdks = Stream.of(qiskit).collect(Collectors.toList());
 
         return qpuListDto.getQpuDtoList().stream().map(dto -> QpuDto.Converter.convert(dto, sdks)).collect(Collectors.toList());
+    }
+
+    public Optional<Qpu> getQpuByName(String name, String provider) {
+        Optional<Provider> prov = getProviders().stream().filter(p -> p.getName().equals(provider)).findFirst();
+        if (prov.isPresent()) {
+            return getQPUs(prov.get()).stream().filter(q -> q.getName().equals(name)).findFirst();
+        } else {
+            return Optional.of(null);
+        }
     }
 
 }

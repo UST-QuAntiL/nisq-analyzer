@@ -30,6 +30,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.swing.text.html.Option;
+
 import lombok.RequiredArgsConstructor;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
@@ -110,9 +112,14 @@ public class NisqAnalyzerControlService {
                         "Passing execution to executor plugin.", result,
                         null, implementation));
 
+        // Retrieve the QPU from QProv
+        Optional<Qpu> qpu = qProvService.getQpuByName(result.getQpu(), result.getProvider());
+        if (!qpu.isPresent()) {
+            LOG.error("Unable to find qpu with name {}.", result.getQpu());
+            throw new RuntimeException("Unable to find qpu with name " + result.getQpu());
+        }
         // execute implementation
-        // ToDo: fix the QPU
-        //new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), result.getQpu(), inputParameters, executionResult, executionResultRepository)).start();
+        new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), qpu.get(), inputParameters, executionResult, executionResultRepository)).start();
 
         return executionResult;
     }
@@ -212,7 +219,7 @@ public class NisqAnalyzerControlService {
 
                     if (prologQueryEngine.isQpuSuitable(executableImpl.getId(), qpu.getId(), circuitInformation.getCircuitWidth(), circuitInformation.getCircuitDepth())) {
                         // qpu is suited candidate to execute the implementation
-                        analysisResult.add(analysisResultRepository.save(new AnalysisResult(algorithm, qpu.getName(), executableImpl, inputParameters, OffsetDateTime.now(),
+                        analysisResult.add(analysisResultRepository.save(new AnalysisResult(algorithm, qpu.getName(), provider.getName(), executableImpl, inputParameters, OffsetDateTime.now(),
                                 circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth())));
                         LOG.debug("QPU {} suitable for implementation {}.", qpu.getName(), executableImpl.getName());
                     } else {

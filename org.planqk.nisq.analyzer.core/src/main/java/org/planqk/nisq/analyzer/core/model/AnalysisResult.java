@@ -45,6 +45,7 @@ public class AnalysisResult extends HasId {
 
     // Reference to the QPU instance which is stored in the QProv database
     private String qpu;
+    private String provider;
 
     @ManyToOne
     private Implementation implementation;

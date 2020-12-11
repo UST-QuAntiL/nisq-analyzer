@@ -38,6 +38,8 @@ public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
 
     String qpu;
 
+    String provider;
+
     ImplementationDto implementation;
 
     int analysedDepth;
@@ -54,6 +56,7 @@ public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
             AnalysisResultDto dto = new AnalysisResultDto();
             dto.setId(object.getId());
             dto.setQpu(object.getQpu());
+            dto.setProvider(object.getProvider());
             dto.setImplementation(ImplementationDto.Converter.convert(object.getImplementation()));
             dto.setAnalysedDepth(object.getAnalysedDepth());
             dto.setAnalysedWidth(object.getAnalysedWidth());
