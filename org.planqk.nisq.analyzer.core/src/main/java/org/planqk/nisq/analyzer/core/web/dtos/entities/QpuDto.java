@@ -57,6 +57,10 @@ public class QpuDto extends RepresentationModel<QpuDto> {
     @Setter
     private float maxGateTime;
 
+    @Getter
+    @Setter
+    private boolean simulator;
+
     public static final class Converter {
 
         public static QpuDto convert(final Qpu object) {
@@ -74,7 +78,11 @@ public class QpuDto extends RepresentationModel<QpuDto> {
             qpu.setId(object.getId());
             qpu.setName(object.getName());
             qpu.setQubitCount(object.getNumberOfQubits());
-            qpu.setT1(object.getT1());
+            qpu.setSimulator(object.isSimulator());
+
+            // Todo: currently the units do not match and are fixed with simple workaround
+            qpu.setT1(object.getT1() * 1000);
+
             qpu.setMaxGateTime(object.getMaxGateTime());
             qpu.setSupportedSdks(supportedSdks);
             return qpu;

@@ -43,8 +43,8 @@ import lombok.NoArgsConstructor;
 public class AnalysisResult extends HasId {
     private UUID implementedAlgorithm;
 
-    @ManyToOne
-    private Qpu qpu;
+    // Reference to the QPU instance which is stored in the QProv database
+    private String qpu;
 
     @ManyToOne
     private Implementation implementation;

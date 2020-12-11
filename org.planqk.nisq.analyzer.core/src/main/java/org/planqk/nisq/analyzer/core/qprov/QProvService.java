@@ -22,6 +22,7 @@ package org.planqk.nisq.analyzer.core.qprov;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 import org.assertj.core.util.Arrays;
@@ -40,11 +41,15 @@ public class QProvService {
     // API Endpoints
     private String baseAPIEndpoint;
 
+    private final SdkRepository sdkRepository;
+
     public QProvService(
             @Value("${org.planqk.nisq.analyzer.qprov.hostname}") String hostname,
-            @Value("${org.planqk.nisq.analyzer.qprov.port}") int port
+            @Value("${org.planqk.nisq.analyzer.qprov.port}") int port,
+            SdkRepository sdkRepository
     ) {
         this.baseAPIEndpoint = String.format("http://%s:%d/qprov/", hostname, port);
+        this.sdkRepository = sdkRepository;
     }
 
     public List<Provider> getProviders() {
@@ -69,10 +74,11 @@ public class QProvService {
         // ToDo: Implement proper QPU List class
         QpuListDto qpuListDto = restTemplate.getForObject(String.format(this.baseAPIEndpoint + "/providers/%s/qpus", provider.getId()), QpuListDto.class);
 
-
         // ToDo: create a list of supported SDKs (dummy)
+        Sdk qiskit = sdkRepository.findByName("Qiskit").get();
+        List<Sdk> sdks = Stream.of(qiskit).collect(Collectors.toList());
 
-        return qpuListDto.getQpuDtoList().stream().map(dto -> QpuDto.Converter.convert(dto, new ArrayList<>())).collect(Collectors.toList());
+        return qpuListDto.getQpuDtoList().stream().map(dto -> QpuDto.Converter.convert(dto, sdks)).collect(Collectors.toList());
     }
 
 }

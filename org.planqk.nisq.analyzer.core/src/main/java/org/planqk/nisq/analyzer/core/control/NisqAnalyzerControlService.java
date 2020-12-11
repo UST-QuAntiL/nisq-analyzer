@@ -111,7 +111,8 @@ public class NisqAnalyzerControlService {
                         null, implementation));
 
         // execute implementation
-        new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), result.getQpu(), inputParameters, executionResult, executionResultRepository)).start();
+        // ToDo: fix the QPU
+        //new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), result.getQpu(), inputParameters, executionResult, executionResultRepository)).start();
 
         return executionResult;
     }
@@ -135,6 +136,11 @@ public class NisqAnalyzerControlService {
         // check all implementation if they can handle the given set of input parameters
         List<Implementation> implementations = implementationRepository.findByImplementedAlgorithm(algorithm);
 
+        // Update the Prolog files for implementations
+        rebuildImplementationPrologFiles();
+        // Activate the Prolog files
+        implementationRepository.findAll().stream().map(HasId::getId).forEach(id -> prologKnowledgeBaseHandler.activatePrologFile(id.toString()));
+
         LOG.debug("Found {} implementations for the algorithm.", implementations.size());
         List<Implementation> executableImplementations = implementations.stream()
                 .filter(implementation -> parametersAvailable(getRequiredParameters(implementation), inputParameters))
@@ -149,7 +155,7 @@ public class NisqAnalyzerControlService {
             List<Qpu> qpus = qProvService.getQPUs(provider);
 
             // Rebuild the Prolog files for the QPU candidates
-            rebuildPrologFiles(qpus);
+            rebuildQPUPrologFiles(qpus);
 
             // Activate the Prolog files
             implementationRepository.findAll().stream().map(HasId::getId).forEach(id -> prologKnowledgeBaseHandler.activatePrologFile(id.toString()));
@@ -167,7 +173,7 @@ public class NisqAnalyzerControlService {
                 }
 
                 List<Qpu> qpuCandidates = suitableQpuIds.stream()
-                        .map(id -> (qpus.stream().filter(qpu -> qpu.getId() == id).findFirst()))
+                        .map(id -> (qpus.stream().filter(qpu -> qpu.getId().equals(id)).findFirst()))
                         .filter(Optional::isPresent)
                         .map(Optional::get).collect(Collectors.toList());
                 LOG.debug("After Prolog query {} QPU candidate(s) exist.", qpuCandidates.size());
@@ -206,7 +212,7 @@ public class NisqAnalyzerControlService {
 
                     if (prologQueryEngine.isQpuSuitable(executableImpl.getId(), qpu.getId(), circuitInformation.getCircuitWidth(), circuitInformation.getCircuitDepth())) {
                         // qpu is suited candidate to execute the implementation
-                        analysisResult.add(analysisResultRepository.save(new AnalysisResult(algorithm, qpu, executableImpl, inputParameters, OffsetDateTime.now(),
+                        analysisResult.add(analysisResultRepository.save(new AnalysisResult(algorithm, qpu.getName(), executableImpl, inputParameters, OffsetDateTime.now(),
                                 circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth())));
                         LOG.debug("QPU {} suitable for implementation {}.", qpu.getName(), executableImpl.getName());
                     } else {
@@ -233,11 +239,8 @@ public class NisqAnalyzerControlService {
         return requiredParameters;
     }
 
-    /**
-     * rebuild the prolog files for the implementations and qpus, if the app crashs or no prolog files are in temp
-     * folder.
-     */
-    private void rebuildPrologFiles(List<Qpu> qpus) {
+
+    private void rebuildImplementationPrologFiles() {
         PrologFactUpdater prologFactUpdater = new PrologFactUpdater(prologKnowledgeBaseHandler);
         if (implementationRepository.findAll().isEmpty()) {
             LOG.debug("No implementations found in database");
@@ -248,6 +251,14 @@ public class NisqAnalyzerControlService {
                 LOG.debug("Rebuild prolog file for implementation {}", impl.getName());
             }
         }
+    }
+
+    /**
+     * rebuild the prolog files for the implementations and qpus, if the app crashs or no prolog files are in temp
+     * folder.
+     */
+    private void rebuildQPUPrologFiles(List<Qpu> qpus) {
+        PrologFactUpdater prologFactUpdater = new PrologFactUpdater(prologKnowledgeBaseHandler);
 
         // Add Prolog files for the provided QPUs
         for (Qpu qpu : qpus) {

@@ -36,7 +36,7 @@ public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
 
     UUID id;
 
-    QpuDto qpu;
+    String qpu;
 
     ImplementationDto implementation;
 
@@ -53,7 +53,7 @@ public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
         public static AnalysisResultDto convert(final AnalysisResult object) {
             AnalysisResultDto dto = new AnalysisResultDto();
             dto.setId(object.getId());
-            dto.setQpu(QpuDto.Converter.convert(object.getQpu()));
+            dto.setQpu(object.getQpu());
             dto.setImplementation(ImplementationDto.Converter.convert(object.getImplementation()));
             dto.setAnalysedDepth(object.getAnalysedDepth());
             dto.setAnalysedWidth(object.getAnalysedWidth());

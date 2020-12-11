@@ -58,6 +58,10 @@ public class Qpu extends HasId {
     @Setter
     private float maxGateTime;
 
+    @Getter
+    @Setter
+    private boolean simulator = false;
+
     @Setter
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinTable(
