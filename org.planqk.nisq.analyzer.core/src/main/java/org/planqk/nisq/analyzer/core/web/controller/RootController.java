@@ -77,7 +77,6 @@ public class RootController {
         // add links to sub-controllers
         responseEntity.add(linkTo(methodOn(RootController.class).root()).withSelfRel());
         responseEntity.add(linkTo(methodOn(ImplementationController.class).getImplementations(null)).withRel(Constants.IMPLEMENTATIONS));
-        responseEntity.add(linkTo(methodOn(QpuController.class).getQpus()).withRel(Constants.QPUS));
         responseEntity.add(linkTo(methodOn(SdkController.class).getSdks()).withRel(Constants.SDKS));
         responseEntity.add(linkTo(methodOn(RootController.class).getSelectionParams(null)).withRel(Constants.SELECTION_PARAMS));
         responseEntity.add(linkTo(methodOn(RootController.class).selectImplementations(null)).withRel(Constants.SELECTION));

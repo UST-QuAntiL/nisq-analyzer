@@ -54,7 +54,6 @@ import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
-import org.planqk.nisq.analyzer.core.repository.QpuRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -75,8 +74,6 @@ public class NisqAnalyzerControlService {
     final private AnalysisResultRepository analysisResultRepository;
 
     final private ExecutionResultRepository executionResultRepository;
-
-    final private QpuRepository qpuRepository;
 
     final private PrologQueryEngine prologQueryEngine;
 

@@ -125,9 +125,6 @@ public class AnalysisResultController {
         dto.add(linkTo(methodOn(ImplementationController.class)
                 .getImplementation(result.getImplementation().getId()))
                 .withRel(Constants.EXECUTED_ALGORITHM_LINK));
-        dto.add(linkTo(methodOn(QpuController.class)
-                .getQpu(result.getId()))
-                .withRel(Constants.USED_QPU_LINK));
         for (ExecutionResult executionResult : executionResultRepository.findByAnalysisResult(result)) {
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(result.getImplementation().getId(),
                     executionResult.getId())).withRel(Constants.EXECUTION + "-" + executionResult.getId()));
