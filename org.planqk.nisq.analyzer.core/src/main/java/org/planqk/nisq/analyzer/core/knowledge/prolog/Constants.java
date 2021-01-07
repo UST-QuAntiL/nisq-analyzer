@@ -28,10 +28,10 @@ public class Constants {
 
     // basic rule to check the executability of an implementation on the available QPUs
     public static final String QPU_RULE_NAME = "executableOnQpuRule";
-    public static final String QPU_RULE_CONTENT = "executableOnQpu(RequiredQubits, CircuitDepth, Impl, Qpu) :- requiredSdk(Impl, ReqSdk), usedSdk(Qpu, ReqSdk), providesQubits(Qpu, ProvidedQubit), ProvidedQubit >= RequiredQubits, t1Time(Qpu,T1Time), maxGateTime(Qpu,GateTime), (isSimulator(Qpu) ; CircuitDepth =< T1Time/GateTime).";
+    public static final String QPU_RULE_CONTENT = "executableOnQpu(RequiredQubits, CircuitDepth, Impl, Qpu) :- requiredSdk(Impl, ReqSdk), hasProvider(Qpu, Prov), supportsSDK(Connector, ReqSdk), supportsProvider(Connector, Prov), providesQubits(Qpu, ProvidedQubit), ProvidedQubit >= RequiredQubits, t1Time(Qpu,T1Time), maxGateTime(Qpu,GateTime), (isSimulator(Qpu) ; CircuitDepth =< T1Time/GateTime).";
 
     public static final String QPU_TRANSP_RULE_NAME = "transpilableOnQpuRule";
-    public static final String QPU_TRANSP_RULE_CONTENT = "transpilableOnQpu(Impl, Qpu) :- requiredSdk(Impl, ReqSdk), usedSdk(Qpu, ReqSdk).";
+    public static final String QPU_TRANSP_RULE_CONTENT = "transpilableOnQpu(Impl, Qpu, Connector) :- requiredSdk(Impl, ReqSdk), supportsSDK(Connector, ReqSdk), supportsProvider(Connector, Provider), hasProvider(Qpu, Provider).";
 
     // path to store the files for the local knowledge base
     public static final String basePath = System.getProperty("java.io.tmpdir") + File.separator + "nisq-analyzer";

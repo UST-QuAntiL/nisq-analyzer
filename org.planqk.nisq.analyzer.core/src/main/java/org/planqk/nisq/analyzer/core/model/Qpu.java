@@ -33,6 +33,7 @@ import javax.persistence.ManyToMany;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.planqk.nisq.analyzer.core.qprov.Provider;
 import org.springframework.lang.NonNull;
 
 /**
@@ -61,6 +62,11 @@ public class Qpu extends HasId {
     @Getter
     @Setter
     private boolean simulator = false;
+
+    @Getter
+    @Setter
+    // ToDo: change to provider after removed serialization
+    private String provider;
 
     @Setter
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)

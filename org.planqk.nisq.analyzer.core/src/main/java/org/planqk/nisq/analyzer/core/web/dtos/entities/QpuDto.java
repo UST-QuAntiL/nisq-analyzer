@@ -87,5 +87,20 @@ public class QpuDto extends RepresentationModel<QpuDto> {
             qpu.setSupportedSdks(supportedSdks);
             return qpu;
         }
+
+        public static Qpu convert(final QpuDto object,final String provider) {
+            Qpu qpu = new Qpu();
+            qpu.setId(object.getId());
+            qpu.setName(object.getName());
+            qpu.setQubitCount(object.getNumberOfQubits());
+            qpu.setSimulator(object.isSimulator());
+
+            // Todo: currently the units do not match and are fixed with simple workaround
+            qpu.setT1(object.getT1() * 1000);
+
+            qpu.setMaxGateTime(object.getMaxGateTime());
+            qpu.setProvider(provider);
+            return qpu;
+        }
     }
 }

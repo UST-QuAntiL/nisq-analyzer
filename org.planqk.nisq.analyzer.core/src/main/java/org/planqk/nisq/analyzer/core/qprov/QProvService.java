@@ -76,11 +76,7 @@ public class QProvService {
         // ToDo: Implement proper QPU List class
         QpuListDto qpuListDto = restTemplate.getForObject(String.format(this.baseAPIEndpoint + "/providers/%s/qpus", provider.getId()), QpuListDto.class);
 
-        // ToDo: create a list of supported SDKs (dummy)
-        Sdk qiskit = sdkRepository.findByName("Qiskit").get();
-        List<Sdk> sdks = Stream.of(qiskit).collect(Collectors.toList());
-
-        return qpuListDto.getQpuDtoList().stream().map(dto -> QpuDto.Converter.convert(dto, sdks)).collect(Collectors.toList());
+        return qpuListDto.getQpuDtoList().stream().map(dto -> QpuDto.Converter.convert(dto, provider.getName())).collect(Collectors.toList());
     }
 
     public Optional<Qpu> getQpuByName(String name, String provider) {

@@ -23,6 +23,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -161,8 +162,13 @@ public class QiskitSdkConnector implements SdkConnector {
     }
 
     @Override
-    public String supportedSdk() {
-        return "Qiskit";
+    public List<String> supportedSdks() {
+        return Arrays.asList("Qiskit");
+    }
+
+    @Override
+    public List<String> supportedProviders() {
+        return Arrays.asList("IBMQ");
     }
 
     @Override
