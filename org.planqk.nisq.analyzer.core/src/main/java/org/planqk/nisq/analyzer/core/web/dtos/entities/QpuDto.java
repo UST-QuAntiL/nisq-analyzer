@@ -80,12 +80,16 @@ public class QpuDto extends RepresentationModel<QpuDto> {
             qpu.setQubitCount(object.getNumberOfQubits());
             qpu.setSimulator(object.isSimulator());
 
-            // Todo: currently the units do not match and are fixed with simple workaround
-            qpu.setT1(object.getT1() * 1000);
+            // time unit has to be converted
+            qpu.setT1(convert_micro_to_nano_seconds(object.getT1()));
 
             qpu.setMaxGateTime(object.getMaxGateTime());
             qpu.setSupportedSdks(supportedSdks);
             return qpu;
+        }
+
+        public static float convert_micro_to_nano_seconds(float time) {
+            return time * 1000;
         }
 
         public static Qpu convert(final QpuDto object,final String provider) {
@@ -95,8 +99,8 @@ public class QpuDto extends RepresentationModel<QpuDto> {
             qpu.setQubitCount(object.getNumberOfQubits());
             qpu.setSimulator(object.isSimulator());
 
-            // Todo: currently the units do not match and are fixed with simple workaround
-            qpu.setT1(object.getT1() * 1000);
+            // time unit has to be converted
+            qpu.setT1(convert_micro_to_nano_seconds(object.getT1()));
 
             qpu.setMaxGateTime(object.getMaxGateTime());
             qpu.setProvider(provider);
