@@ -42,9 +42,9 @@ public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
 
     ImplementationDto implementation;
 
-    int analysedDepth;
+    int analyzedDepth;
 
-    int analysedWidth;
+    int analyzedWidth;
 
     private Map<String, String> inputParameters;
 
@@ -58,8 +58,8 @@ public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
             dto.setQpu(object.getQpu());
             dto.setProvider(object.getProvider());
             dto.setImplementation(ImplementationDto.Converter.convert(object.getImplementation()));
-            dto.setAnalysedDepth(object.getAnalysedDepth());
-            dto.setAnalysedWidth(object.getAnalysedWidth());
+            dto.setAnalyzedDepth(object.getAnalyzedDepth());
+            dto.setAnalyzedWidth(object.getAnalyzedWidth());
             dto.setInputParameters(object.getInputParameters());
             dto.setTime(object.getTime());
             return dto;

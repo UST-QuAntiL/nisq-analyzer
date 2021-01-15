@@ -55,6 +55,6 @@ public class AnalysisResult extends HasId {
 
     private OffsetDateTime time;
 
-    private int analysedDepth;
-    private int analysedWidth;
+    private int analyzedDepth;
+    private int analyzedWidth;
 }
