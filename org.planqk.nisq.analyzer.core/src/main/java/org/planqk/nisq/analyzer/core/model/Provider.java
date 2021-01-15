@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,37 +17,23 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.qprov;
+package org.planqk.nisq.analyzer.core.model;
 
-import java.util.List;
+import java.net.URL;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.planqk.nisq.analyzer.core.model.HasId;
 
 @NoArgsConstructor
-@AllArgsConstructor
-class RawProviderList {
+public class Provider extends HasId {
 
     @Getter
     @Setter
-    @JsonProperty("providerDtoes")
-    private List<Provider> providers;
-}
-
-@NoArgsConstructor
-@AllArgsConstructor
-public class ProviderList {
+    private String name;
 
     @Getter
     @Setter
-    @JsonProperty("_embedded")
-    private RawProviderList embedded;
-
-    public List<Provider> getProviders() {
-        return this.embedded.getProviders();
-    }
-
+    private URL offeringURL;
 }

@@ -33,7 +33,6 @@ import javax.persistence.ManyToMany;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.planqk.nisq.analyzer.core.qprov.Provider;
 import org.springframework.lang.NonNull;
 
 /**

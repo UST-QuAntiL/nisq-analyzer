@@ -23,17 +23,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import lombok.RequiredArgsConstructor;
-import org.assertj.core.util.Arrays;
+import org.planqk.nisq.analyzer.core.model.Provider;
 import org.planqk.nisq.analyzer.core.model.Qpu;
-import org.planqk.nisq.analyzer.core.model.Sdk;
-import org.planqk.nisq.analyzer.core.repository.SdkRepository;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.ProviderListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuListDto;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -43,26 +39,21 @@ public class QProvService {
     // API Endpoints
     private String baseAPIEndpoint;
 
-    private final SdkRepository sdkRepository;
-
     public QProvService(
             @Value("${org.planqk.nisq.analyzer.qprov.hostname}") String hostname,
-            @Value("${org.planqk.nisq.analyzer.qprov.port}") int port,
-            SdkRepository sdkRepository
+            @Value("${org.planqk.nisq.analyzer.qprov.port}") int port
     ) {
         this.baseAPIEndpoint = String.format("http://%s:%d/qprov/", hostname, port);
-        this.sdkRepository = sdkRepository;
     }
 
     public List<Provider> getProviders() {
 
-        RestTemplate restTemplate = new RestTemplate();
-
         // Query the QProv API for providers
-        ProviderList result = restTemplate.getForObject(this.baseAPIEndpoint + "providers", ProviderList.class);
+        RestTemplate restTemplate = new RestTemplate();
+        ProviderListDto result = restTemplate.getForObject(this.baseAPIEndpoint + "providers", ProviderListDto.class);
 
         if (result != null) {
-            return result.getProviders();
+            return ProviderListDto.Converter.convert(result);
         } else {
             return new ArrayList<>();
         }

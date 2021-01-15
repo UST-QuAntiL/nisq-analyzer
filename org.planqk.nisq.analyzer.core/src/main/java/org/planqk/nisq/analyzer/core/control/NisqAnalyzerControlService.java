@@ -30,8 +30,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.swing.text.html.Option;
-
 import lombok.RequiredArgsConstructor;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
@@ -49,7 +47,7 @@ import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
-import org.planqk.nisq.analyzer.core.qprov.Provider;
+import org.planqk.nisq.analyzer.core.model.Provider;
 import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;

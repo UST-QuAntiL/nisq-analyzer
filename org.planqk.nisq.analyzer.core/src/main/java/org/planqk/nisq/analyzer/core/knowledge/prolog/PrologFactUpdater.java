@@ -22,13 +22,10 @@ package org.planqk.nisq.analyzer.core.knowledge.prolog;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Qpu;
-import org.planqk.nisq.analyzer.core.model.Sdk;
-import org.planqk.nisq.analyzer.core.qprov.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
