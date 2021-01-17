@@ -19,25 +19,19 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToMany;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.lang.NonNull;
 
 /**
  * Entity representing a Sdk to define quantum algorithm {@link Implementation}s.
  */
 @Entity
+@NoArgsConstructor
 @ToString
 public class Sdk extends HasId {
 
@@ -45,24 +39,4 @@ public class Sdk extends HasId {
     @Setter
     @Column(unique = true)
     private String name;
-
-    @Setter
-    @ManyToMany(mappedBy = "supportedSdks", cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
-    private List<Qpu> supportedQpus;
-
-    public Sdk() {
-    }
-
-    public void addSupportedQpu(Qpu qpu) {
-        supportedQpus.add(qpu);
-        qpu.getSupportedSdks().add(this);
-    }
-
-    @NonNull
-    public List<Qpu> getSupportedQpus() {
-        if (Objects.isNull(supportedQpus)) {
-            return new ArrayList<>();
-        }
-        return supportedQpus;
-    }
 }

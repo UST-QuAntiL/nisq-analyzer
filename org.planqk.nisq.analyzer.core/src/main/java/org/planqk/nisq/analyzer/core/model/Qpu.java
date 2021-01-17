@@ -19,26 +19,13 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.lang.NonNull;
 
 /**
  * Entity representing a quantum processing unit (Qpu).
  */
-@Entity
 @NoArgsConstructor
 public class Qpu extends HasId {
 
@@ -64,22 +51,5 @@ public class Qpu extends HasId {
 
     @Getter
     @Setter
-    // ToDo: change to provider after removed serialization
     private String provider;
-
-    @Setter
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
-    @JoinTable(
-            name = "qpu_sdk",
-            joinColumns = @JoinColumn(name = "qpu_id"),
-            inverseJoinColumns = @JoinColumn(name = "sdk_id"))
-    private List<Sdk> supportedSdks;
-
-    @NonNull
-    public List<Sdk> getSupportedSdks() {
-        if (Objects.isNull(supportedSdks)) {
-            return new ArrayList<>();
-        }
-        return supportedSdks;
-    }
 }
