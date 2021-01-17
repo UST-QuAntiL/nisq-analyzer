@@ -88,19 +88,24 @@ public class NisqAnalyzerControlService {
      * @return the ExecutionResult to track the current status and store the result
      * @throws RuntimeException is thrown in case the execution of the algorithm implementation fails
      */
-
     public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result, Map<String, ParameterValue> inputParameters) throws RuntimeException {
         final Implementation implementation = result.getImplementation();
         LOG.debug("Executing quantum algorithm implementation with Id: {} and name: {}", implementation.getId(), implementation.getName());
 
         // get suited Sdk connector plugin
-        // ToDo: rework this part
         SdkConnector selectedSdkConnector = connectorList.stream()
-                .filter(executor -> executor.supportedSdks().equals(implementation.getSdk().getName()))
+                .filter(executor -> executor.getName().equals(result.getSdkConnector()))
                 .findFirst().orElse(null);
         if (Objects.isNull(selectedSdkConnector)) {
-            LOG.error("Unable to find connector plugin for sdk name {}.", implementation.getSdk().getName());
-            throw new RuntimeException("Unable to find connector plugin for sdk name " + implementation.getSdk().getName());
+            LOG.error("Unable to find connector plugin with name {}.", result.getSdkConnector());
+            throw new RuntimeException("Unable to find connector plugin with name " + result.getSdkConnector());
+        }
+
+        // Retrieve the QPU from QProv
+        Optional<Qpu> qpu = qProvService.getQpuByName(result.getQpu(), result.getProvider());
+        if (!qpu.isPresent()) {
+            LOG.error("Unable to find qpu with name {}.", result.getQpu());
+            throw new RuntimeException("Unable to find qpu with name " + result.getQpu());
         }
 
         // create a object to store the execution results
@@ -109,12 +114,6 @@ public class NisqAnalyzerControlService {
                         "Passing execution to executor plugin.", result,
                         null, implementation));
 
-        // Retrieve the QPU from QProv
-        Optional<Qpu> qpu = qProvService.getQpuByName(result.getQpu(), result.getProvider());
-        if (!qpu.isPresent()) {
-            LOG.error("Unable to find qpu with name {}.", result.getQpu());
-            throw new RuntimeException("Unable to find qpu with name " + result.getQpu());
-        }
         // execute implementation
         new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), qpu.get(), inputParameters, executionResult, executionResultRepository)).start();
 
@@ -192,7 +191,7 @@ public class NisqAnalyzerControlService {
 
                     // get suited Sdk connector
                     SdkConnector selectedSdkConnector = connectorList.stream()
-                            .filter(executor -> executor.getClass().getSimpleName().toLowerCase().equals(candidate.getSdkConnector()))
+                            .filter(executor -> executor.getName().equals(candidate.getSdkConnector()))
                             .findFirst().orElse(null);
 
                     if (Objects.isNull(selectedSdkConnector)) {
@@ -219,9 +218,13 @@ public class NisqAnalyzerControlService {
                     }
 
                     if (prologQueryEngine.isQpuSuitable(executableImpl.getId(), qpu.getId(), circuitInformation.getCircuitWidth(), circuitInformation.getCircuitDepth())) {
+
                         // qpu is suited candidate to execute the implementation
-                        analysisResult.add(analysisResultRepository.save(new AnalysisResult(algorithm, qpu.getName(), provider.getName(), executableImpl, inputParameters, OffsetDateTime.now(),
+                        analysisResult.add(analysisResultRepository.save(new AnalysisResult(
+                                algorithm, qpu.getName(), provider.getName(),
+                                selectedSdkConnector.getName(), executableImpl, inputParameters, OffsetDateTime.now(),
                                 circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth())));
+
                         LOG.debug("QPU {} suitable for implementation {}.", qpu.getName(), executableImpl.getName());
                     } else {
                         LOG.debug("QPU {} not suitable for implementation {}.", qpu.getName(), executableImpl.getName());
@@ -246,7 +249,6 @@ public class NisqAnalyzerControlService {
 
         return requiredParameters;
     }
-
 
     private void rebuildImplementationPrologFiles() {
         PrologFactUpdater prologFactUpdater = new PrologFactUpdater(prologKnowledgeBaseHandler);

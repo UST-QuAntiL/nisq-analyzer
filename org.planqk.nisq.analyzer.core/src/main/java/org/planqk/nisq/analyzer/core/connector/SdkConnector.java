@@ -80,4 +80,10 @@ public interface SdkConnector {
      * @return a Set of required parameters
      */
     Set<Parameter> getSdkSpecificParameters();
+
+    /**
+     * Returns the unique name of the implemented SDK connector
+     * @return
+     */
+    String getName();
 }

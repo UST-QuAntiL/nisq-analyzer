@@ -189,4 +189,9 @@ public class QiskitSdkConnector implements SdkConnector {
         }
         return null;
     }
+
+    @Override
+    public String getName() {
+        return this.getClass().getSimpleName().toLowerCase();
+    }
 }
