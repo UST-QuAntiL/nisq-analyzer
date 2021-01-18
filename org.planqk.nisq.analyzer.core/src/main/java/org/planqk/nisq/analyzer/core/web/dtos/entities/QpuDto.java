@@ -19,14 +19,13 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.planqk.nisq.analyzer.core.model.Qpu;
-import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.springframework.hateoas.RepresentationModel;
 
 /**
@@ -49,11 +48,16 @@ public class QpuDto extends RepresentationModel<QpuDto> {
 
     @Getter
     @Setter
+    @JsonProperty("avgT1Time")
     private float t1;
 
     @Getter
     @Setter
     private float maxGateTime;
+
+    @Getter
+    @Setter
+    private boolean simulator;
 
     public static final class Converter {
 
@@ -67,13 +71,22 @@ public class QpuDto extends RepresentationModel<QpuDto> {
             return dto;
         }
 
-        public static Qpu convert(final QpuDto object, final List<Sdk> supportedSdks) {
+        public static float convert_micro_to_nano_seconds(float time) {
+            return time * 1000;
+        }
+
+        public static Qpu convert(final QpuDto object,final String provider) {
             Qpu qpu = new Qpu();
+            qpu.setId(object.getId());
             qpu.setName(object.getName());
             qpu.setQubitCount(object.getNumberOfQubits());
-            qpu.setT1(object.getT1());
+            qpu.setSimulator(object.isSimulator());
+
+            // time unit has to be converted
+            qpu.setT1(convert_micro_to_nano_seconds(object.getT1()));
+
             qpu.setMaxGateTime(object.getMaxGateTime());
-            qpu.setSupportedSdks(supportedSdks);
+            qpu.setProvider(provider);
             return qpu;
         }
     }

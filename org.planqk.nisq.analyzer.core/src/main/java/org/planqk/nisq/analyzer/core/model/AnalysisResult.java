@@ -43,8 +43,10 @@ import lombok.NoArgsConstructor;
 public class AnalysisResult extends HasId {
     private UUID implementedAlgorithm;
 
-    @ManyToOne
-    private Qpu qpu;
+    // Reference to the QPU instance which is stored in the QProv database
+    private String qpu;
+    private String provider;
+    private String sdkConnector;
 
     @ManyToOne
     private Implementation implementation;
@@ -54,6 +56,6 @@ public class AnalysisResult extends HasId {
 
     private OffsetDateTime time;
 
-    private int analysedDepth;
-    private int analysedWidth;
+    private int analyzedDepth;
+    private int analyzedWidth;
 }

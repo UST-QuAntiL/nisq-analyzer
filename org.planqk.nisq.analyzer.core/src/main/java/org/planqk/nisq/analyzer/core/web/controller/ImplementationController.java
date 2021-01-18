@@ -41,7 +41,6 @@ import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
-import org.planqk.nisq.analyzer.core.repository.QpuRepository;
 import org.planqk.nisq.analyzer.core.repository.SdkRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationDto;
@@ -80,17 +79,14 @@ public class ImplementationController {
     final private static Logger LOG = LoggerFactory.getLogger(ImplementationController.class);
     private final NisqAnalyzerControlService controlService;
     private final ImplementationRepository implementationRepository;
-    private final QpuRepository qpuRepository;
     private final SdkRepository sdkRepository;
     private final PrologFactUpdater prologFactUpdater;
 
     public ImplementationController(ImplementationRepository implementationRepository,
-                                    QpuRepository qpuRepository,
                                     SdkRepository sdkRepository,
                                     NisqAnalyzerControlService controlService,
                                     PrologFactUpdater prologFactUpdater) {
         this.implementationRepository = implementationRepository;
-        this.qpuRepository = qpuRepository;
         this.sdkRepository = sdkRepository;
         this.controlService = controlService;
         this.prologFactUpdater = prologFactUpdater;
@@ -298,7 +294,7 @@ public class ImplementationController {
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Remove input parameters from an implementation")
-    @DeleteMapping("/{implId}/" +Constants.INPUT_PARAMS)
+    @DeleteMapping("/{implId}/" + Constants.INPUT_PARAMS)
     public HttpEntity<Void> deleteInputParameters(@PathVariable UUID implId, @RequestBody List<String> names) {
         LOG.debug("Delete to remove input parameter from implementation with id: {}.", implId);
         Optional<Implementation> implementationOptional = implementationRepository.findById(implId);

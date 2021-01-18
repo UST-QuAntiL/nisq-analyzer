@@ -36,13 +36,17 @@ public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
 
     UUID id;
 
-    QpuDto qpu;
+    String qpu;
+
+    String provider;
+
+    String sdkConnector;
 
     ImplementationDto implementation;
 
-    int analysedDepth;
+    int analyzedDepth;
 
-    int analysedWidth;
+    int analyzedWidth;
 
     private Map<String, String> inputParameters;
 
@@ -53,10 +57,12 @@ public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
         public static AnalysisResultDto convert(final AnalysisResult object) {
             AnalysisResultDto dto = new AnalysisResultDto();
             dto.setId(object.getId());
-            dto.setQpu(QpuDto.Converter.convert(object.getQpu()));
+            dto.setQpu(object.getQpu());
+            dto.setProvider(object.getProvider());
+            dto.setSdkConnector(object.getSdkConnector());
             dto.setImplementation(ImplementationDto.Converter.convert(object.getImplementation()));
-            dto.setAnalysedDepth(object.getAnalysedDepth());
-            dto.setAnalysedWidth(object.getAnalysedWidth());
+            dto.setAnalyzedDepth(object.getAnalyzedDepth());
+            dto.setAnalyzedWidth(object.getAnalyzedWidth());
             dto.setInputParameters(object.getInputParameters());
             dto.setTime(object.getTime());
             return dto;

@@ -17,14 +17,22 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.repository;
+package org.planqk.nisq.analyzer.core.model;
 
 import java.util.UUID;
+import lombok.EqualsAndHashCode;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
-import org.planqk.nisq.analyzer.core.model.Qpu;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-@RepositoryRestResource(exported = false)
-public interface QpuRepository extends JpaRepository<Qpu, UUID> {
+@EqualsAndHashCode
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class AnalysisCandidate {
+
+    private UUID qpu;
+
+    private String sdkConnector;
 }

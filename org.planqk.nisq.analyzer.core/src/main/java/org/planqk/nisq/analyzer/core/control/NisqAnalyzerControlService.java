@@ -37,6 +37,7 @@ import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologKnowledgeBaseHandler;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologQueryEngine;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologUtility;
+import org.planqk.nisq.analyzer.core.model.AnalysisCandidate;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
@@ -46,10 +47,11 @@ import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
+import org.planqk.nisq.analyzer.core.model.Provider;
+import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
-import org.planqk.nisq.analyzer.core.repository.QpuRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -71,11 +73,11 @@ public class NisqAnalyzerControlService {
 
     final private ExecutionResultRepository executionResultRepository;
 
-    final private QpuRepository qpuRepository;
-
     final private PrologQueryEngine prologQueryEngine;
 
     final private PrologKnowledgeBaseHandler prologKnowledgeBaseHandler;
+
+    final private QProvService qProvService;
 
     /**
      * Execute the given quantum algorithm implementation with the given input parameters and return the corresponding
@@ -86,18 +88,24 @@ public class NisqAnalyzerControlService {
      * @return the ExecutionResult to track the current status and store the result
      * @throws RuntimeException is thrown in case the execution of the algorithm implementation fails
      */
-
     public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result, Map<String, ParameterValue> inputParameters) throws RuntimeException {
         final Implementation implementation = result.getImplementation();
         LOG.debug("Executing quantum algorithm implementation with Id: {} and name: {}", implementation.getId(), implementation.getName());
 
         // get suited Sdk connector plugin
         SdkConnector selectedSdkConnector = connectorList.stream()
-                .filter(executor -> executor.supportedSdk().equals(implementation.getSdk().getName()))
+                .filter(executor -> executor.getName().equals(result.getSdkConnector()))
                 .findFirst().orElse(null);
         if (Objects.isNull(selectedSdkConnector)) {
-            LOG.error("Unable to find connector plugin for sdk name {}.", implementation.getSdk().getName());
-            throw new RuntimeException("Unable to find connector plugin for sdk name " + implementation.getSdk().getName());
+            LOG.error("Unable to find connector plugin with name {}.", result.getSdkConnector());
+            throw new RuntimeException("Unable to find connector plugin with name " + result.getSdkConnector());
+        }
+
+        // Retrieve the QPU from QProv
+        Optional<Qpu> qpu = qProvService.getQpuByName(result.getQpu(), result.getProvider());
+        if (!qpu.isPresent()) {
+            LOG.error("Unable to find qpu with name {}.", result.getQpu());
+            throw new RuntimeException("Unable to find qpu with name " + result.getQpu());
         }
 
         // create a object to store the execution results
@@ -107,7 +115,7 @@ public class NisqAnalyzerControlService {
                         null, implementation));
 
         // execute implementation
-        new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), result.getQpu(), inputParameters, executionResult, executionResultRepository)).start();
+        new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), qpu.get(), inputParameters, executionResult, executionResultRepository)).start();
 
         return executionResult;
     }
@@ -127,14 +135,14 @@ public class NisqAnalyzerControlService {
     public List<AnalysisResult> performSelection(UUID algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
         LOG.debug("Performing implementation and QPU selection for algorithm with Id: {}", algorithm);
         List<AnalysisResult> analysisResult = new ArrayList<>();
-        rebuildPrologFiles();
-
-        // activate the current prolog files
-        implementationRepository.findAll().stream().map(HasId::getId).forEach(id -> prologKnowledgeBaseHandler.activatePrologFile(id.toString()));
-        qpuRepository.findAll().stream().map(HasId::getId).forEach(id -> prologKnowledgeBaseHandler.activatePrologFile(id.toString()));
 
         // check all implementation if they can handle the given set of input parameters
         List<Implementation> implementations = implementationRepository.findByImplementedAlgorithm(algorithm);
+
+        // Update the Prolog files for implementations
+        rebuildImplementationPrologFiles();
+        // Activate the Prolog files
+        implementationRepository.findAll().stream().map(HasId::getId).forEach(id -> prologKnowledgeBaseHandler.activatePrologFile(id.toString()));
 
         LOG.debug("Found {} implementations for the algorithm.", implementations.size());
         List<Implementation> executableImplementations = implementations.stream()
@@ -143,69 +151,88 @@ public class NisqAnalyzerControlService {
                 .collect(Collectors.toList());
         LOG.debug("{} implementations are executable for the given input parameters after applying the selection rules.", executableImplementations.size());
 
-        // determine all suitable QPUs for the executable implementations
-        for (Implementation execImplementation : executableImplementations) {
-            LOG.debug("Searching for suitable Qpu for implementation {} (Id: {}) which requires Sdk {}", execImplementation.getName(), execImplementation.getId(), execImplementation.getSdk().getName());
+        // Iterate over all providers listed in QProv
+        for (Provider provider : qProvService.getProviders()) {
 
+            // Get available QPUs
+            List<Qpu> qpus = qProvService.getQPUs(provider);
 
-            // get all suitable QPUs for the implementation based on the provided SDK
-            List<UUID> suitableQpuIds = prologQueryEngine.getSuitableQpus(execImplementation.getId());
-            if (suitableQpuIds.isEmpty()) {
-                LOG.debug("Prolog query returns no suited QPUs. Skipping implementation {} for the selection!", execImplementation.getName());
-                continue;
-            }
+            // Rebuild the Prolog files for the QPU candidates
+            rebuildQPUPrologFiles(qpus);
 
+            // Activate the Prolog files
+            implementationRepository.findAll().stream().map(HasId::getId).forEach(id -> prologKnowledgeBaseHandler.activatePrologFile(id.toString()));
+            qpus.stream().forEach(qpu -> prologKnowledgeBaseHandler.activatePrologFile(qpu.getId().toString()));
+            connectorList.stream().map(c -> c.getClass().getSimpleName()).forEach(name -> prologKnowledgeBaseHandler.activatePrologFile(name));
 
-            List<Qpu> qpuCandidates = suitableQpuIds.stream()
-                    .map(qpuRepository::findById)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get).collect(Collectors.toList());
-            LOG.debug("After Prolog query {} QPU candidate(s) exist.", qpuCandidates.size());
+            // determine all suitable QPUs for the executable implementations
+            for (Implementation executableImpl : executableImplementations) {
+                LOG.debug("Searching for suitable Qpu for implementation {} (Id: {}) which requires Sdk {}", executableImpl.getName(), executableImpl.getId(), executableImpl.getSdk().getName());
 
-            // get suited Sdk connector plugin for the Sdk of the implementation
-            SdkConnector selectedSdkConnector = connectorList.stream()
-                    .filter(executor -> executor.supportedSdk().equals(execImplementation.getSdk().getName()))
-                    .findFirst().orElse(null);
-
-            if (Objects.isNull(selectedSdkConnector)) {
-                LOG.warn("Unable to find Sdk connector for Sdk: {}.", execImplementation.getSdk());
-                continue;
-            }
-
-            // Try to infer the type of the parameters for the given implementation
-            Map<String, ParameterValue> execInputParameters = ParameterValue.inferTypedParameterValue(execImplementation.getInputParameters(), inputParameters);
-
-            for (Qpu qpu : qpuCandidates) {
-                LOG.debug("Checking if QPU {} is suitable for implementation {}.", qpu.getName(), execImplementation.getName());
-
-                // analyze the quantum circuit by utilizing the capabilities of the suited plugin and retrieve important circuit properties
-                CircuitInformation circuitInformation = selectedSdkConnector.getCircuitProperties(execImplementation.getFileLocation(), qpu, execInputParameters);
-
-                // if something unexpected happened
-                if (Objects.isNull(circuitInformation)) {
-                    LOG.error("Circuit analysis by compiler unexpectedly failed.");
+                // get all suitable QPUs for the implementation based on the provided SDK
+                List<AnalysisCandidate> suitableCandidates = prologQueryEngine.getSuitableCandidates(executableImpl.getId());
+                if (suitableCandidates.isEmpty()) {
+                    LOG.debug("Prolog query returns no suited QPUs. Skipping implementation {} for the selection!", executableImpl.getName());
                     continue;
                 }
+                LOG.debug("After Prolog query {} QPU candidate(s) exist.", suitableCandidates.size());
 
-                // skip qpu if some (expected) error occured during transpilation,
-                // e.g. too many qubits required or the input wasn't suitable for the implementation
-                if (!circuitInformation.wasTranspilationSuccessfull()) {
-                    LOG.debug("Transpilation of circuit impossible: {}. Skipping Qpu.", circuitInformation.getError());
-                    continue;
-                }
+                // Try to infer the type of the parameters for the given implementation
+                Map<String, ParameterValue> execInputParameters = ParameterValue.inferTypedParameterValue(executableImpl.getInputParameters(), inputParameters);
 
-                if (prologQueryEngine.isQpuSuitable(execImplementation.getId(), qpu.getId(), circuitInformation.getCircuitWidth(), circuitInformation.getCircuitDepth())) {
-                    // qpu is suited candidate to execute the implementation
-                    analysisResult.add(analysisResultRepository.save(new AnalysisResult(algorithm, qpu, execImplementation, inputParameters, OffsetDateTime.now(),
-                            circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth())));
-                    LOG.debug("QPU {} suitable for implementation {}.", qpu.getName(), execImplementation.getName());
-                } else {
-                    LOG.debug("QPU {} not suitable for implementation {}.", qpu.getName(), execImplementation.getName());
-                    continue;
+                for (AnalysisCandidate candidate : suitableCandidates) {
+
+                    Qpu qpu = qpus.stream().filter(q -> q.getId().equals(candidate.getQpu())).findFirst().orElse(null);
+
+                    if (Objects.isNull(qpu)) {
+                        LOG.warn("Unable to find Qpu with UUID: {}.", candidate.getQpu());
+                        continue;
+                    }
+
+                    // get suited Sdk connector
+                    SdkConnector selectedSdkConnector = connectorList.stream()
+                            .filter(executor -> executor.getName().equals(candidate.getSdkConnector()))
+                            .findFirst().orElse(null);
+
+                    if (Objects.isNull(selectedSdkConnector)) {
+                        LOG.warn("Unable to find Sdk connector: {}.", candidate.getSdkConnector());
+                        continue;
+                    }
+
+                    LOG.debug("Checking if QPU {} is suitable for implementation {}.", qpu.getName(), executableImpl.getName());
+
+                    // analyze the quantum circuit by utilizing the capabilities of the suited plugin and retrieve important circuit properties
+                    CircuitInformation circuitInformation = selectedSdkConnector.getCircuitProperties(executableImpl.getFileLocation(), qpu, execInputParameters);
+
+                    // if something unexpected happened
+                    if (Objects.isNull(circuitInformation)) {
+                        LOG.error("Circuit analysis by compiler unexpectedly failed.");
+                        continue;
+                    }
+
+                    // skip qpu if some (expected) error occured during transpilation,
+                    // e.g. too many qubits required or the input wasn't suitable for the implementation
+                    if (!circuitInformation.wasTranspilationSuccessfull()) {
+                        LOG.debug("Transpilation of circuit impossible: {}. Skipping Qpu.", circuitInformation.getError());
+                        continue;
+                    }
+
+                    if (prologQueryEngine.isQpuSuitable(executableImpl.getId(), qpu.getId(), circuitInformation.getCircuitWidth(), circuitInformation.getCircuitDepth())) {
+
+                        // qpu is suited candidate to execute the implementation
+                        analysisResult.add(analysisResultRepository.save(new AnalysisResult(
+                                algorithm, qpu.getName(), provider.getName(),
+                                selectedSdkConnector.getName(), executableImpl, inputParameters, OffsetDateTime.now(),
+                                circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth())));
+
+                        LOG.debug("QPU {} suitable for implementation {}.", qpu.getName(), executableImpl.getName());
+                    } else {
+                        LOG.debug("QPU {} not suitable for implementation {}.", qpu.getName(), executableImpl.getName());
+                        continue;
+                    }
                 }
             }
         }
-
         return analysisResult;
     }
 
@@ -223,11 +250,7 @@ public class NisqAnalyzerControlService {
         return requiredParameters;
     }
 
-    /**
-     * rebuild the prolog files for the implementations and qpus, if the app crashs or no prolog files are in temp
-     * folder.
-     */
-    private void rebuildPrologFiles() {
+    private void rebuildImplementationPrologFiles() {
         PrologFactUpdater prologFactUpdater = new PrologFactUpdater(prologKnowledgeBaseHandler);
         if (implementationRepository.findAll().isEmpty()) {
             LOG.debug("No implementations found in database");
@@ -238,10 +261,27 @@ public class NisqAnalyzerControlService {
                 LOG.debug("Rebuild prolog file for implementation {}", impl.getName());
             }
         }
-        if (qpuRepository.findAll().isEmpty()) {
-            LOG.debug("No qpus found in database");
+
+        for (SdkConnector connector : connectorList) {
+
+            String connectorName = connector.getClass().getSimpleName();
+
+            if (!prologKnowledgeBaseHandler.doesPrologFileExist(connectorName)) {
+                prologFactUpdater.handleSDKConnectorInsertion(connector);
+                LOG.debug("Rebuild prolog file for connector {}", connectorName);
+            }
         }
-        for (Qpu qpu : qpuRepository.findAll()) {
+    }
+
+    /**
+     * rebuild the prolog files for the implementations and qpus, if the app crashs or no prolog files are in temp
+     * folder.
+     */
+    private void rebuildQPUPrologFiles(List<Qpu> qpus) {
+        PrologFactUpdater prologFactUpdater = new PrologFactUpdater(prologKnowledgeBaseHandler);
+
+        // Add Prolog files for the provided QPUs
+        for (Qpu qpu : qpus) {
             if (!prologKnowledgeBaseHandler.doesPrologFileExist(qpu.getId().toString())) {
                 prologFactUpdater.handleQpuInsertion(qpu);
                 LOG.debug("Rebuild prolog file for qpu {}", qpu.getName());

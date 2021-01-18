@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.connector;
 
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,11 +60,18 @@ public interface SdkConnector {
     CircuitInformation getCircuitProperties(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters);
 
     /**
-     * Returns the name of the Sdk that is supported by the connector
+     * Returns the names of the Sdks that are supported by the connector
      *
-     * @return the name of the supported SDK
+     * @return the names of the supported SDKs
      */
-    String supportedSdk();
+    List<String> supportedSdks();
+
+    /**
+     * Returns the names of the providers that are supported by the connector
+     *
+     * @return the names of the supported providers
+     */
+    List<String> supportedProviders();
 
     /**
      * Get parameters which are required by the SDK to execute a quantum circuit and which are independent of
@@ -72,4 +80,10 @@ public interface SdkConnector {
      * @return a Set of required parameters
      */
     Set<Parameter> getSdkSpecificParameters();
+
+    /**
+     * Returns the unique name of the implemented SDK connector
+     * @return
+     */
+    String getName();
 }
