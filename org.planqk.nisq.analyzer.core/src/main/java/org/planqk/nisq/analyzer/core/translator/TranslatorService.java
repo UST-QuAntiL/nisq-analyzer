@@ -20,18 +20,36 @@
 package org.planqk.nisq.analyzer.core.translator;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 public class TranslatorService {
 
     final private static Logger LOG = LoggerFactory.getLogger(TranslatorService.class);
+
+    private URI translateAPIEndpoint;
+
+    public TranslatorService(
+            @Value("${org.planqk.nisq.analyzer.translator.hostname}") String hostname,
+            @Value("${org.planqk.nisq.analyzer.translator.port}") int port
+    ) {
+        translateAPIEndpoint = URI.create(String.format("http://%s:%d/convert", hostname, port));
+    }
 
     /**
      * Translate the given quantum circuit into an equivalent circuit in the target language
@@ -43,8 +61,31 @@ public class TranslatorService {
      */
     public File tranlateCircuit(File circuit, String sourceLanguage, String targetLanguage) {
         LOG.debug("Translating circuit from source language '{}' to target language '{}'!", sourceLanguage, targetLanguage);
-        // TODO
-        return circuit;
+
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            TranslationRequest request = new TranslationRequest(sourceLanguage, targetLanguage, FileUtils.readFileToString(circuit, StandardCharsets.UTF_8));
+
+            // translate the circuit into the target language
+            ResponseEntity<String> response = restTemplate.postForEntity(translateAPIEndpoint, request, String.class);
+
+            // Check if the Qiskit service was successful
+            if (response.getStatusCode().is2xxSuccessful()) {
+                LOG.debug("Circuit translated successfully: {}", response.getBody());
+
+                // TODO: write to new circuit file
+                return circuit;
+            } else {
+                LOG.error(String.format("Error while translating circuit: {}", response.getStatusCodeValue()));
+                return null;
+            }
+        } catch (RestClientException e) {
+            LOG.error("Connection to translator service failed.");
+            return null;
+        } catch (IOException e) {
+            LOG.error("Error while reading circuit file.");
+            return null;
+        }
     }
 
     /**
