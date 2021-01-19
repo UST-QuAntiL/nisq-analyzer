@@ -86,7 +86,7 @@ public class RootController {
         responseEntity.add(linkTo(methodOn(SdkController.class).getSdks()).withRel(Constants.SDKS));
         responseEntity.add(linkTo(methodOn(RootController.class).getSelectionParams(null)).withRel(Constants.SELECTION_PARAMS));
         responseEntity.add(linkTo(methodOn(RootController.class).selectImplementations(null)).withRel(Constants.SELECTION));
-        responseEntity.add(linkTo(methodOn(RootController.class).selectCompilerForFile(null, null, null)).withRel(Constants.SELECTION_PARAMS));
+        responseEntity.add(linkTo(methodOn(RootController.class).selectCompilerForFile(null, null, null, null)).withRel(Constants.SELECTION_PARAMS));
 
         return new ResponseEntity<>(responseEntity, HttpStatus.OK);
     }
@@ -150,6 +150,7 @@ public class RootController {
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable compiler for an implementation passed in as file")
     @PostMapping(value = "/" + Constants.COMPILER_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public HttpEntity<AnalysisResultListDto> selectCompilerForFile(@RequestParam String providerName, @RequestParam String qpuName,
+                                                                   @RequestParam String circuitLanguage,
                                                                    @RequestParam("circuit") MultipartFile circuitCode) {
 
         // get temp file for passed circuit code
@@ -162,7 +163,8 @@ public class RootController {
             return new ResponseEntity("Unable to parse file from given data", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        List<AnalysisResult> analysisResults = nisqAnalyzerService.performCompilerSelection(providerName, qpuName, circuitFile, null);
+        List<AnalysisResult> analysisResults =
+                nisqAnalyzerService.performCompilerSelection(providerName, qpuName, circuitLanguage, circuitFile, null);
 
         // send back compiler analysis results
         AnalysisResultListDto analysisResultListDto = new AnalysisResultListDto();
@@ -175,6 +177,11 @@ public class RootController {
     @PostMapping(value = "/" + Constants.COMPILER_SELECTION, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public HttpEntity<AnalysisResultListDto> selectCompilerForUrl(@RequestBody CompilerSelectionDto compilerSelectionDto) {
 
+        if (Objects.isNull(compilerSelectionDto.getProviderName()) || Objects.isNull(compilerSelectionDto.getQpuName()) ||
+                Objects.isNull(compilerSelectionDto.getCircuitLanguage())) {
+            return new ResponseEntity("Provider name, QPU name, and circuit language have to be passed!", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         // get file from passed URL
         File circuitFile;
         try {
@@ -186,7 +193,8 @@ public class RootController {
         }
 
         List<AnalysisResult> analysisResults = nisqAnalyzerService
-                .performCompilerSelection(compilerSelectionDto.getProviderName(), compilerSelectionDto.getQpuName(), circuitFile, null);
+                .performCompilerSelection(compilerSelectionDto.getProviderName(), compilerSelectionDto.getQpuName(),
+                        compilerSelectionDto.getCircuitLanguage(), circuitFile, null);
 
         // send back compiler analysis results
         AnalysisResultListDto analysisResultListDto = new AnalysisResultListDto();

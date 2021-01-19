@@ -28,11 +28,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
-import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Parameter;
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.slf4j.Logger;
@@ -58,6 +59,7 @@ public class QiskitSdkConnector implements SdkConnector {
 
     // API Endpoints
     private URI transpileAPIEndpoint;
+
     private URI executeAPIEndpoint;
 
     public QiskitSdkConnector(
@@ -71,7 +73,8 @@ public class QiskitSdkConnector implements SdkConnector {
     }
 
     @Override
-    public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters, ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
+    public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters,
+                                                      ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
 
         String token = getTokenFromInputParameters(ParameterValue.convertToUntyped(parameters));
@@ -163,7 +166,16 @@ public class QiskitSdkConnector implements SdkConnector {
 
     @Override
     public List<String> supportedSdks() {
-        return Arrays.asList("Qiskit");
+        return Arrays.asList(Constants.QISKIT);
+    }
+
+    @Override
+    public List<String> getLanguagesForSdk(String sdkName) {
+        if (sdkName.equals(Constants.QISKIT)) {
+            return Arrays.asList(Constants.QISKIT, Constants.OPENQASM);
+        }
+
+        return null;
     }
 
     @Override

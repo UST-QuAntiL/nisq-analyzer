@@ -30,5 +30,7 @@ public class CompilerSelectionDto {
 
     String qpuName;
 
+    String circuitLanguage;
+
     URL circuitUrl;
 }

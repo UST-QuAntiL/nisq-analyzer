@@ -25,8 +25,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
-import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Parameter;
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 
@@ -38,21 +38,19 @@ public interface SdkConnector {
     /**
      * Execute the given quantum algorithm implementation with the given input parameters.
      *
-     * @param algorithmImplementationURL the URL to the file containing the quantum algorithm implementation that should
-     *                                   be executed
+     * @param algorithmImplementationURL the URL to the file containing the quantum algorithm implementation that should be executed
      * @param qpu                        the QPU to execute the implementation on
      * @param parameters                 the input parameters for the quantum algorithm execution
-     * @param resultRepository           the object to update the current state of the long running task and to add the
-     *                                   results after completion
+     * @param resultService              the object to update the current state of the long running task and to add the results after completion
      */
-    void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters, ExecutionResult executionResult, ExecutionResultRepository resultService);
+    void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters,
+                                               ExecutionResult executionResult, ExecutionResultRepository resultService);
 
     /**
-     * Analyse the quantum algorithm implementation located at the given URL after transpiling it for the given QPU and
-     * with the given input parameters.
+     * Analyse the quantum algorithm implementation located at the given URL after transpiling it for the given QPU and with the given input
+     * parameters.
      *
-     * @param algorithmImplementationURL the URL to the file containing the quantum algorithm implementation that should
-     *                                   be analyzed
+     * @param algorithmImplementationURL the URL to the file containing the quantum algorithm implementation that should be analyzed
      * @param qpu                        the QPU to analyze the implementation for
      * @param parameters                 he input parameters for the quantum algorithm implementation
      * @return the object containing all analysed properties of the quantum circuit
@@ -67,6 +65,14 @@ public interface SdkConnector {
     List<String> supportedSdks();
 
     /**
+     * Returns the list of supported languages for the given SDK
+     *
+     * @param sdkName the name of the SDK
+     * @return the list of languages that can be understood by the SDK
+     */
+    List<String> getLanguagesForSdk(String sdkName);
+
+    /**
      * Returns the names of the providers that are supported by the connector
      *
      * @return the names of the supported providers
@@ -74,8 +80,7 @@ public interface SdkConnector {
     List<String> supportedProviders();
 
     /**
-     * Get parameters which are required by the SDK to execute a quantum circuit and which are independent of
-     * problem-specific input data
+     * Get parameters which are required by the SDK to execute a quantum circuit and which are independent of problem-specific input data
      *
      * @return a Set of required parameters
      */
@@ -83,6 +88,7 @@ public interface SdkConnector {
 
     /**
      * Returns the unique name of the implemented SDK connector
+     *
      * @return
      */
     String getName();

@@ -52,6 +52,7 @@ import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
+import org.planqk.nisq.analyzer.core.translator.TranslatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -80,6 +81,8 @@ public class NisqAnalyzerControlService {
     final private PrologKnowledgeBaseHandler prologKnowledgeBaseHandler;
 
     final private QProvService qProvService;
+
+    final private TranslatorService translatorService;
 
     /**
      * Execute the given quantum algorithm implementation with the given input parameters and return the corresponding output of the execution.
@@ -261,13 +264,15 @@ public class NisqAnalyzerControlService {
      * Compile the given circuit for the given QPU with all supported or a subset of the supported compilers and return the resulting compiled
      * circuits as well as some analysis details
      *
-     * @param providerName  the name of the provider of the QPU
-     * @param qpuName       the name of the QPU for which the circuit should be compiled
-     * @param circuitCode   the file containing the circuit to compile
-     * @param compilerNames an optional list of compiler names to restrict the compilers to use. If not set, all supported compilers are used
+     * @param providerName    the name of the provider of the QPU
+     * @param qpuName         the name of the QPU for which the circuit should be compiled
+     * @param circuitLanguage the language of the quantum circuit
+     * @param circuitCode     the file containing the circuit to compile
+     * @param compilerNames   an optional list of compiler names to restrict the compilers to use. If not set, all supported compilers are used
      * @return the resulting depth, width, and the compiled circuits from the different compilers
      */
-    public List<AnalysisResult> performCompilerSelection(String providerName, String qpuName, File circuitCode, List<String> compilerNames) {
+    public List<AnalysisResult> performCompilerSelection(String providerName, String qpuName, String circuitLanguage, File circuitCode,
+                                                         List<String> compilerNames) {
         List<AnalysisResult> compilerAnalysisResults = new ArrayList<AnalysisResult>();
         LOG.debug("Performing compiler selection for QPU with name '{}' from provider with name '{}'!", qpuName, providerName);
 
@@ -283,6 +288,42 @@ public class NisqAnalyzerControlService {
 
         for (String compilerName : compilersToUse) {
             LOG.debug("Evaluating compiler with name: {}", compilerName);
+
+            // retrieve corresponding connector for the compiler
+            Optional<SdkConnector> connectorOptional =
+                    connectorList.stream().filter(connector -> connector.supportedSdks().contains(compilerName)).findFirst();
+            if (!connectorOptional.isPresent()) {
+                LOG.warn("Unable to find suitable connector for compiler with name: {}", compilerName);
+                continue;
+            }
+            SdkConnector connector = connectorOptional.get();
+            LOG.debug("Using connector '{}' to communicate with compiler '{}'", connector.getName(), compilerName);
+
+            // translate circuit for the compiler if needed
+            File circuitToCompile = circuitCode;
+            String circuitToCompileLanguage = circuitLanguage;
+            if (!connector.getLanguagesForSdk(compilerName).contains(circuitLanguage)) {
+                LOG.debug("Circuit language '{}' not supported by the compiler. Translating circuit...", circuitLanguage);
+
+                // check if source language is supported by translator
+                if (!translatorService.getSupportedLanguages().contains(circuitLanguage)) {
+                    LOG.warn("Unable to transform circuit with unsupported language '{}'!", circuitLanguage);
+                    continue;
+                }
+
+                // get target language that is supported by the translator and the compiler
+                String targetLanguage = connector.getLanguagesForSdk(compilerName).stream()
+                        .filter(language -> translatorService.getSupportedLanguages().contains(language)).findFirst().orElse(null);
+                if (Objects.isNull(targetLanguage)) {
+                    LOG.warn("Unable to find target language that is supported by translator and compiler '{}'!", compilerName);
+                    continue;
+                }
+
+                circuitToCompile = translatorService.tranlateCircuit(circuitCode, circuitLanguage, targetLanguage);
+                circuitToCompileLanguage = targetLanguage;
+            }
+
+            LOG.debug("Invoking compilation with circuit language: {}", circuitToCompileLanguage);
 
             // TODO: evaluate compiler and add to results
         }
