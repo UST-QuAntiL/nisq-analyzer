@@ -30,10 +30,12 @@ import java.util.Set;
 
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
+import org.planqk.nisq.analyzer.core.connector.qiskit.QiskitExecutionResult;
 import org.planqk.nisq.analyzer.core.connector.qiskit.QiskitRequest;
 import org.planqk.nisq.analyzer.core.connector.qiskit.QiskitSdkConnector;
 import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
+import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
@@ -72,7 +74,55 @@ public class PyTketSdkConnector implements SdkConnector {
     }
 
     @Override
-    public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters, ExecutionResult executionResult, ExecutionResultRepository resultService) {
+    public void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters, ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
+
+        LOG.debug("Executing quantum algorithm implementation with PyTKet Sdk connector plugin!");
+
+        // Prepare the request
+        RestTemplate restTemplate = new RestTemplate();
+        PyTketRequest request = new PyTketRequest(implementation.getFileLocation(), qpu.getName(), qpu.getProvider(), implementation.getSdk().getName(), parameters);
+
+        try {
+            // make the execution request
+            URI resultLocation = restTemplate.postForLocation(executeAPIEndpoint, request);
+
+            // change the result status
+            executionResult.setStatus(ExecutionResultStatus.RUNNING);
+            executionResult.setStatusCode("Pending for execution on PyTKet Service ...");
+            resultRepository.save(executionResult);
+
+            // poll the PyTKet service frequently
+            while (executionResult.getStatus() != ExecutionResultStatus.FINISHED && executionResult.getStatus() != ExecutionResultStatus.FAILED) {
+                try {
+                    QiskitExecutionResult result = restTemplate.getForObject(resultLocation, QiskitExecutionResult.class);
+
+                    // Check if execution is completed
+                    if (result.isComplete()) {
+                        executionResult.setStatus(ExecutionResultStatus.FINISHED);
+                        executionResult.setStatusCode("Execution successfully completed.");
+                        executionResult.setResult(result.getResult().toString());
+                        resultRepository.save(executionResult);
+                    }
+
+                    // Wait for next poll
+                    try {
+                        Thread.sleep(pollInterval);
+                    } catch (InterruptedException e) {
+                        // pass
+                    }
+                } catch (RestClientException e) {
+                    LOG.error("Polling result from PyTKet Service failed.");
+                    executionResult.setStatus(ExecutionResultStatus.FAILED);
+                    executionResult.setStatusCode("Polling result from PyTKet Service failed.");
+                    resultRepository.save(executionResult);
+                }
+            }
+        } catch (RestClientException e) {
+            LOG.error("Connection to PyTKet Service failed.");
+            executionResult.setStatus(ExecutionResultStatus.FAILED);
+            executionResult.setStatusCode("Connection to PyTKet Service failed.");
+            resultRepository.save(executionResult);
+        }
 
     }
 

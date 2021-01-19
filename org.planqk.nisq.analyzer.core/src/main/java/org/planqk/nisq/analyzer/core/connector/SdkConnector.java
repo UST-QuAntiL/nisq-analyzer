@@ -46,7 +46,7 @@ public interface SdkConnector {
      * @param resultRepository           the object to update the current state of the long running task and to add the
      *                                   results after completion
      */
-    void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters, ExecutionResult executionResult, ExecutionResultRepository resultService);
+    void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters, ExecutionResult executionResult, ExecutionResultRepository resultService);
 
     /**
      * Analyse the quantum algorithm implementation located at the given URL after transpiling it for the given QPU and

@@ -74,7 +74,7 @@ public class QiskitSdkConnector implements SdkConnector {
     }
 
     @Override
-    public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters, ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
+    public void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters, ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
 
         String token = getTokenFromInputParameters(ParameterValue.convertToUntyped(parameters));
@@ -85,7 +85,7 @@ public class QiskitSdkConnector implements SdkConnector {
 
         // Prepare the request
         RestTemplate restTemplate = new RestTemplate();
-        QiskitRequest request = new QiskitRequest(algorithmImplementationURL, qpu.getName(), parameters);
+        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), qpu.getName(), parameters);
 
         try {
             // make the execution request
