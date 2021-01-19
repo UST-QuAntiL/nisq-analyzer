@@ -30,6 +30,7 @@ public class Constants {
     public static final String SDKS = "sdks";
     public static final String EXECUTION = "execute";
     public static final String SELECTION = "selection";
+    public static final String COMPILER_SELECTION = "compiler-selection";
     public static final String SELECTION_PARAMS = "selection-params";
     public static final String RESULTS = "results";
 

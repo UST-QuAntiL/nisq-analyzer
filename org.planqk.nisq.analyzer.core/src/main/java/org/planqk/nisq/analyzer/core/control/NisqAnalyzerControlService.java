@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.control;
 
+import java.io.File;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,7 +31,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import lombok.RequiredArgsConstructor;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
@@ -46,8 +46,8 @@ import org.planqk.nisq.analyzer.core.model.HasId;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
-import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.Provider;
+import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
@@ -55,6 +55,8 @@ import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Control service that handles all internal control flow and invokes the required functionality on behalf of the API.
@@ -80,15 +82,15 @@ public class NisqAnalyzerControlService {
     final private QProvService qProvService;
 
     /**
-     * Execute the given quantum algorithm implementation with the given input parameters and return the corresponding
-     * output of the execution.
+     * Execute the given quantum algorithm implementation with the given input parameters and return the corresponding output of the execution.
      *
      * @param result          the analysis result that shall be executed
      * @param inputParameters the input parameters for the execution as key/value pairs
      * @return the ExecutionResult to track the current status and store the result
      * @throws RuntimeException is thrown in case the execution of the algorithm implementation fails
      */
-    public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result, Map<String, ParameterValue> inputParameters) throws RuntimeException {
+    public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result, Map<String, ParameterValue> inputParameters)
+            throws RuntimeException {
         final Implementation implementation = result.getImplementation();
         LOG.debug("Executing quantum algorithm implementation with Id: {} and name: {}", implementation.getId(), implementation.getName());
 
@@ -115,20 +117,19 @@ public class NisqAnalyzerControlService {
                         null, implementation));
 
         // execute implementation
-        new Thread(() -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation.getFileLocation(), qpu.get(), inputParameters, executionResult, executionResultRepository)).start();
+        new Thread(() -> selectedSdkConnector
+                .executeQuantumAlgorithmImplementation(implementation.getFileLocation(), qpu.get(), inputParameters, executionResult,
+                        executionResultRepository)).start();
 
         return executionResult;
     }
 
     /**
-     * Perform the selection of suitable implementations and corresponding QPUs for the given algorithm and the provided
-     * set of input parameters
+     * Perform the selection of suitable implementations and corresponding QPUs for the given algorithm and the provided set of input parameters
      *
-     * @param algorithm       the id of the algorithm for which an implementation and corresponding QPU should be
-     *                        selected
+     * @param algorithm       the id of the algorithm for which an implementation and corresponding QPU should be selected
      * @param inputParameters the set of input parameters required for the selection
-     * @return a map with all possible implementations and the corresponding list of QPUs that are suitable to execute
-     * them
+     * @return a map with all possible implementations and the corresponding list of QPUs that are suitable to execute them
      * @throws UnsatisfiedLinkError Is thrown if the jpl driver is not on the java class path
      */
 
@@ -147,9 +148,11 @@ public class NisqAnalyzerControlService {
         LOG.debug("Found {} implementations for the algorithm.", implementations.size());
         List<Implementation> executableImplementations = implementations.stream()
                 .filter(implementation -> parametersAvailable(getRequiredParameters(implementation), inputParameters))
-                .filter(implementation -> prologQueryEngine.checkExecutability(implementation.getSelectionRule(), convertToTypedPrologLiterals(inputParameters, implementation)))
+                .filter(implementation -> prologQueryEngine
+                        .checkExecutability(implementation.getSelectionRule(), convertToTypedPrologLiterals(inputParameters, implementation)))
                 .collect(Collectors.toList());
-        LOG.debug("{} implementations are executable for the given input parameters after applying the selection rules.", executableImplementations.size());
+        LOG.debug("{} implementations are executable for the given input parameters after applying the selection rules.",
+                executableImplementations.size());
 
         // Iterate over all providers listed in QProv
         for (Provider provider : qProvService.getProviders()) {
@@ -167,7 +170,8 @@ public class NisqAnalyzerControlService {
 
             // determine all suitable QPUs for the executable implementations
             for (Implementation executableImpl : executableImplementations) {
-                LOG.debug("Searching for suitable Qpu for implementation {} (Id: {}) which requires Sdk {}", executableImpl.getName(), executableImpl.getId(), executableImpl.getSdk().getName());
+                LOG.debug("Searching for suitable Qpu for implementation {} (Id: {}) which requires Sdk {}", executableImpl.getName(),
+                        executableImpl.getId(), executableImpl.getSdk().getName());
 
                 // get all suitable QPUs for the implementation based on the provided SDK
                 List<AnalysisCandidate> suitableCandidates = prologQueryEngine.getSuitableCandidates(executableImpl.getId());
@@ -178,7 +182,8 @@ public class NisqAnalyzerControlService {
                 LOG.debug("After Prolog query {} QPU candidate(s) exist.", suitableCandidates.size());
 
                 // Try to infer the type of the parameters for the given implementation
-                Map<String, ParameterValue> execInputParameters = ParameterValue.inferTypedParameterValue(executableImpl.getInputParameters(), inputParameters);
+                Map<String, ParameterValue> execInputParameters =
+                        ParameterValue.inferTypedParameterValue(executableImpl.getInputParameters(), inputParameters);
 
                 for (AnalysisCandidate candidate : suitableCandidates) {
 
@@ -202,7 +207,8 @@ public class NisqAnalyzerControlService {
                     LOG.debug("Checking if QPU {} is suitable for implementation {}.", qpu.getName(), executableImpl.getName());
 
                     // analyze the quantum circuit by utilizing the capabilities of the suited plugin and retrieve important circuit properties
-                    CircuitInformation circuitInformation = selectedSdkConnector.getCircuitProperties(executableImpl.getFileLocation(), qpu, execInputParameters);
+                    CircuitInformation circuitInformation =
+                            selectedSdkConnector.getCircuitProperties(executableImpl.getFileLocation(), qpu, execInputParameters);
 
                     // if something unexpected happened
                     if (Objects.isNull(circuitInformation)) {
@@ -217,7 +223,8 @@ public class NisqAnalyzerControlService {
                         continue;
                     }
 
-                    if (prologQueryEngine.isQpuSuitable(executableImpl.getId(), qpu.getId(), circuitInformation.getCircuitWidth(), circuitInformation.getCircuitDepth())) {
+                    if (prologQueryEngine.isQpuSuitable(executableImpl.getId(), qpu.getId(), circuitInformation.getCircuitWidth(),
+                            circuitInformation.getCircuitDepth())) {
 
                         // qpu is suited candidate to execute the implementation
                         analysisResult.add(analysisResultRepository.save(new AnalysisResult(
@@ -250,6 +257,39 @@ public class NisqAnalyzerControlService {
         return requiredParameters;
     }
 
+    /**
+     * Compile the given circuit for the given QPU with all supported or a subset of the supported compilers and return the resulting compiled
+     * circuits as well as some analysis details
+     *
+     * @param providerName  the name of the provider of the QPU
+     * @param qpuName       the name of the QPU for which the circuit should be compiled
+     * @param circuitCode   the file containing the circuit to compile
+     * @param compilerNames an optional list of compiler names to restrict the compilers to use. If not set, all supported compilers are used
+     * @return the resulting depth, width, and the compiled circuits from the different compilers
+     */
+    public List<AnalysisResult> performCompilerSelection(String providerName, String qpuName, File circuitCode, List<String> compilerNames) {
+        List<AnalysisResult> compilerAnalysisResults = new ArrayList<AnalysisResult>();
+        LOG.debug("Performing compiler selection for QPU with name '{}' from provider with name '{}'!", qpuName, providerName);
+
+        // retrieve list of compilers that should be used for the comparison
+        List<String> compilersToUse;
+        if (Objects.nonNull(compilerNames)) {
+            LOG.debug("User restricted compiler usage to {} compilers: {}", compilerNames.size(), compilerNames.toString());
+            compilersToUse = compilerNames;
+        } else {
+            compilersToUse = connectorList.stream().flatMap(connector -> connector.supportedSdks().stream()).distinct().collect(Collectors.toList());
+            LOG.debug("No restriction for compilers defined. Using all ({}) supported compilers!", compilersToUse.size());
+        }
+
+        for (String compilerName : compilersToUse) {
+            LOG.debug("Evaluating compiler with name: {}", compilerName);
+
+            // TODO: evaluate compiler and add to results
+        }
+
+        return compilerAnalysisResults;
+    }
+
     private void rebuildImplementationPrologFiles() {
         PrologFactUpdater prologFactUpdater = new PrologFactUpdater(prologKnowledgeBaseHandler);
         if (implementationRepository.findAll().isEmpty()) {
@@ -274,8 +314,7 @@ public class NisqAnalyzerControlService {
     }
 
     /**
-     * rebuild the prolog files for the implementations and qpus, if the app crashs or no prolog files are in temp
-     * folder.
+     * rebuild the prolog files for the implementations and qpus, if the app crashs or no prolog files are in temp folder.
      */
     private void rebuildQPUPrologFiles(List<Qpu> qpus) {
         PrologFactUpdater prologFactUpdater = new PrologFactUpdater(prologKnowledgeBaseHandler);
@@ -315,6 +354,7 @@ public class NisqAnalyzerControlService {
         class EntryParameterPair {
 
             private Map.Entry<String, String> entry;
+
             private Optional<Parameter> parameter;
 
             public EntryParameterPair(Map.Entry<String, String> entry, Optional<Parameter> parameter) {
@@ -368,7 +408,8 @@ public class NisqAnalyzerControlService {
      * otherwise
      */
     private boolean parametersAvailable(Set<Parameter> requiredParameters, Set<String> providedParameterNames) {
-        LOG.debug("Checking if {} required parameters are available in the input map with {} provided parameters!", requiredParameters.size(), providedParameterNames.size());
+        LOG.debug("Checking if {} required parameters are available in the input map with {} provided parameters!", requiredParameters.size(),
+                providedParameterNames.size());
         return requiredParameters.stream().allMatch(param -> providedParameterNames.contains(param.getName()));
     }
 }

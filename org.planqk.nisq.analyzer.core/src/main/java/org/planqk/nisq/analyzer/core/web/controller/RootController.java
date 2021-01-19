@@ -19,28 +19,32 @@
 
 package org.planqk.nisq.analyzer.core.web.controller;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.planqk.nisq.analyzer.core.Constants;
-import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
+import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import org.planqk.nisq.analyzer.core.web.Utils;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.requests.CompilerSelectionDto;
 import org.planqk.nisq.analyzer.core.web.dtos.requests.SelectionRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,13 +52,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
- * Root controller to access all entities within Quality, trigger the hardware selection, and execution of quantum
- * algorithms.
+ * Root controller to access all entities within Quality, trigger the hardware selection, and execution of quantum algorithms.
  */
 @Tag(name = "root")
 @RestController
@@ -80,6 +86,7 @@ public class RootController {
         responseEntity.add(linkTo(methodOn(SdkController.class).getSdks()).withRel(Constants.SDKS));
         responseEntity.add(linkTo(methodOn(RootController.class).getSelectionParams(null)).withRel(Constants.SELECTION_PARAMS));
         responseEntity.add(linkTo(methodOn(RootController.class).selectImplementations(null)).withRel(Constants.SELECTION));
+        responseEntity.add(linkTo(methodOn(RootController.class).selectCompilerForFile(null, null, null)).withRel(Constants.SELECTION_PARAMS));
 
         return new ResponseEntity<>(responseEntity, HttpStatus.OK);
     }
@@ -128,10 +135,60 @@ public class RootController {
         try {
             analysisResults = nisqAnalyzerService.performSelection(params.getAlgorithmId(), params.getParameters());
         } catch (UnsatisfiedLinkError e) {
-            LOG.error("UnsatisfiedLinkError while activating prolog rule. Please make sure prolog is installed and configured correctly to use the NISQ analyzer functionality!", e);
+            LOG.error(
+                    "UnsatisfiedLinkError while activating prolog rule. Please make sure prolog is installed and configured correctly to use the NISQ analyzer functionality!",
+                    e);
             return new ResponseEntity("No prolog engine accessible from the server. Selection not possible!", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+        AnalysisResultListDto analysisResultListDto = new AnalysisResultListDto();
+        analysisResultListDto.add(analysisResults.stream().map(AnalysisResultDto.Converter::convert).collect(Collectors.toList()));
+        return new ResponseEntity<>(analysisResultListDto, HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
+            @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable compiler for an implementation passed in as file")
+    @PostMapping(value = "/" + Constants.COMPILER_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public HttpEntity<AnalysisResultListDto> selectCompilerForFile(@RequestParam String providerName, @RequestParam String qpuName,
+                                                                   @RequestParam("circuit") MultipartFile circuitCode) {
+
+        // get temp file for passed circuit code
+        File circuitFile;
+        try {
+            String[] fileNameParts = circuitCode.getOriginalFilename().split("\\.");
+            String fileEnding = fileNameParts[fileNameParts.length - 1];
+            circuitFile = Utils.inputStreamToFile(circuitCode.getInputStream(), fileEnding);
+        } catch (IOException e) {
+            return new ResponseEntity("Unable to parse file from given data", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        List<AnalysisResult> analysisResults = nisqAnalyzerService.performCompilerSelection(providerName, qpuName, circuitFile, null);
+
+        // send back compiler analysis results
+        AnalysisResultListDto analysisResultListDto = new AnalysisResultListDto();
+        analysisResultListDto.add(analysisResults.stream().map(AnalysisResultDto.Converter::convert).collect(Collectors.toList()));
+        return new ResponseEntity<>(analysisResultListDto, HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
+            @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable compiler for an implementation loaded from the given URL")
+    @PostMapping(value = "/" + Constants.COMPILER_SELECTION, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public HttpEntity<AnalysisResultListDto> selectCompilerForUrl(@RequestBody CompilerSelectionDto compilerSelectionDto) {
+
+        // get file from passed URL
+        File circuitFile;
+        try {
+            String[] fileNameParts = compilerSelectionDto.getCircuitUrl().toString().split("\\.");
+            String fileEnding = fileNameParts[fileNameParts.length - 1];
+            circuitFile = Utils.inputStreamToFile(compilerSelectionDto.getCircuitUrl().openStream(), fileEnding);
+        } catch (IOException e) {
+            return new ResponseEntity("Unable to load file from given URL", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        List<AnalysisResult> analysisResults = nisqAnalyzerService
+                .performCompilerSelection(compilerSelectionDto.getProviderName(), compilerSelectionDto.getQpuName(), circuitFile, null);
+
+        // send back compiler analysis results
         AnalysisResultListDto analysisResultListDto = new AnalysisResultListDto();
         analysisResultListDto.add(analysisResults.stream().map(AnalysisResultDto.Converter::convert).collect(Collectors.toList()));
         return new ResponseEntity<>(analysisResultListDto, HttpStatus.OK);
