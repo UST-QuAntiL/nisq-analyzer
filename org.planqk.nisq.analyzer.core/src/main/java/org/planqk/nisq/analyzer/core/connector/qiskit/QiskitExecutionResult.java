@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,42 +17,29 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.connector;
+package org.planqk.nisq.analyzer.core.connector.qiskit;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.net.URL;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.planqk.nisq.analyzer.core.model.ParameterValue;
 
-public class QiskitRequest {
+@NoArgsConstructor
+@AllArgsConstructor
+public class QiskitExecutionResult {
+
+    @Setter
+    @Getter
+    private String id;
 
     @Getter
     @Setter
-    @JsonProperty("impl-url")
-    private URL impl_url;
+    private boolean complete;
 
     @Getter
     @Setter
-    @JsonProperty("qpu-name")
-    private String qpu_name;
-
-    @Getter
-    @Setter
-    @JsonProperty("input-params")
-    private Map<String, ParameterValue> input_params;
-
-    @Getter
-    @Setter
-    private String token;
-
-    public QiskitRequest(URL impl_url, String qpu_name, Map<String,ParameterValue> input_params, String token)
-    {
-        this.impl_url = impl_url;
-        this.qpu_name = qpu_name;
-        this.input_params = input_params;
-        this.token = token;
-    }
+    private Map<String, Object> result = new HashMap<>();
 }

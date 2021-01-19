@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,29 +17,41 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.connector;
+package org.planqk.nisq.analyzer.core.connector.pytket;
 
-import java.util.HashMap;
+import java.net.URL;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
 
-@NoArgsConstructor
 @AllArgsConstructor
-public class QiskitExecutionResult {
-
-    @Setter
-    @Getter
-    private String id;
+public class PyTketRequest {
 
     @Getter
     @Setter
-    private boolean complete;
+    @JsonProperty("impl-url")
+    private URL impl_url;
 
     @Getter
     @Setter
-    private Map<String, Object> result = new HashMap<>();
+    @JsonProperty("qpu-name")
+    private String qpu_name;
+
+    @Getter
+    @Setter
+    private String provider;
+
+    @Getter
+    @Setter
+    private String sdk;
+
+    @Getter
+    @Setter
+    @JsonProperty("input-params")
+    private Map<String, ParameterValue> input_params;
+
 }

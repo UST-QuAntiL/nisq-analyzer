@@ -202,7 +202,7 @@ public class NisqAnalyzerControlService {
                     LOG.debug("Checking if QPU {} is suitable for implementation {}.", qpu.getName(), executableImpl.getName());
 
                     // analyze the quantum circuit by utilizing the capabilities of the suited plugin and retrieve important circuit properties
-                    CircuitInformation circuitInformation = selectedSdkConnector.getCircuitProperties(executableImpl.getFileLocation(), qpu, execInputParameters);
+                    CircuitInformation circuitInformation = selectedSdkConnector.getCircuitProperties(executableImpl, qpu, execInputParameters);
 
                     // if something unexpected happened
                     if (Objects.isNull(circuitInformation)) {
