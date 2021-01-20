@@ -90,7 +90,8 @@ public class RootController {
         responseEntity.add(linkTo(methodOn(RootController.class).getSelectionParams(null)).withRel(Constants.SELECTION_PARAMS));
         responseEntity.add(linkTo(methodOn(RootController.class).selectImplementations(null)).withRel(Constants.SELECTION));
         responseEntity
-                .add(linkTo(methodOn(RootController.class).selectCompilerForFile(null, null, null, null, null)).withRel(Constants.SELECTION_PARAMS));
+                .add(linkTo(methodOn(RootController.class).selectCompilerForFile(null, null, null, null, null, null))
+                        .withRel(Constants.SELECTION_PARAMS));
 
         return new ResponseEntity<>(responseEntity, HttpStatus.OK);
     }
@@ -154,7 +155,8 @@ public class RootController {
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable compiler for an implementation passed in as file")
     @PostMapping(value = "/" + Constants.COMPILER_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public HttpEntity<CompilerAnalysisResultListDto> selectCompilerForFile(@RequestParam String providerName, @RequestParam String qpuName,
-                                                                           @RequestParam String circuitLanguage, @RequestParam String token,
+                                                                           @RequestParam String circuitLanguage, @RequestParam String circuitName,
+                                                                           @RequestParam String token,
                                                                            @RequestParam("circuit") MultipartFile circuitCode) {
 
         // get temp file for passed circuit code
@@ -168,7 +170,7 @@ public class RootController {
         }
 
         List<CompilationResult> compilationResults =
-                nisqAnalyzerService.performCompilerSelection(providerName, qpuName, circuitLanguage, circuitFile, null, token);
+                nisqAnalyzerService.performCompilerSelection(providerName, qpuName, circuitLanguage, circuitFile, circuitName, null, token);
 
         // send back compiler analysis results
         CompilerAnalysisResultListDto compilerAnalysisResultListDto = new CompilerAnalysisResultListDto();
@@ -199,7 +201,8 @@ public class RootController {
 
         List<CompilationResult> compilationResults = nisqAnalyzerService
                 .performCompilerSelection(compilerSelectionDto.getProviderName(), compilerSelectionDto.getQpuName(),
-                        compilerSelectionDto.getCircuitLanguage(), circuitFile, null, compilerSelectionDto.getToken());
+                        compilerSelectionDto.getCircuitLanguage(), circuitFile, compilerSelectionDto.getCircuitName(), null,
+                        compilerSelectionDto.getToken());
 
         // send back compiler analysis results
         CompilerAnalysisResultListDto compilerAnalysisResultListDto = new CompilerAnalysisResultListDto();

@@ -277,13 +277,14 @@ public class NisqAnalyzerControlService {
      * @param qpuName         the name of the QPU for which the circuit should be compiled
      * @param circuitLanguage the language of the quantum circuit
      * @param circuitCode     the file containing the circuit to compile
+     * @param circuitName     user defined name to (partly) distinguish circuits
      * @param compilerNames   an optional list of compiler names to restrict the compilers to use. If not set, all supported compilers are used
      * @param token           the token to access the specified QPU
      * @return the resulting depth, width, and the compiled circuits from the different compilers
      */
     public List<CompilationResult> performCompilerSelection(String providerName, String qpuName, String circuitLanguage, File circuitCode,
-                                                            List<String> compilerNames, String token) {
-        List<CompilationResult> compilerAnalysisResults = new ArrayList<CompilationResult>();
+                                                            String circuitName, List<String> compilerNames, String token) {
+        List<CompilationResult> compilerAnalysisResults = new ArrayList<>();
         LOG.debug("Performing compiler selection for QPU with name '{}' from provider with name '{}'!", qpuName, providerName);
 
         String initialCircuitAsString = "";
@@ -362,7 +363,7 @@ public class NisqAnalyzerControlService {
             // add resulting compiled circuit to data base and result list
             compilerAnalysisResults.add(compilerAnalysisResultRepository
                     .save(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
-                            circuitInformation.getCircuitWidth(), initialCircuitAsString, circuitInformation.getTranspiledCircuit())));
+                            circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit())));
         }
 
         return compilerAnalysisResults;

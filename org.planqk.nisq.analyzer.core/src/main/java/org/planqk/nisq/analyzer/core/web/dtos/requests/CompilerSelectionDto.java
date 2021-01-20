@@ -32,6 +32,8 @@ public class CompilerSelectionDto {
 
     String circuitLanguage;
 
+    String circuitName;
+
     URL circuitUrl;
 
     String token;

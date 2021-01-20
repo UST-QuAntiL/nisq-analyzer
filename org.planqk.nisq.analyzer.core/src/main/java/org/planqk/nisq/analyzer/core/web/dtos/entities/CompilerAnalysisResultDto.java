@@ -45,6 +45,8 @@ public class CompilerAnalysisResultDto extends RepresentationModel<CompilerAnaly
 
     int analyzedWidth;
 
+    String circuitName;
+
     String initialCircuit;
 
     String transpiledCircuit;
@@ -59,6 +61,7 @@ public class CompilerAnalysisResultDto extends RepresentationModel<CompilerAnaly
             dto.setCompiler(object.getCompiler());
             dto.setAnalyzedDepth(object.getAnalyzedDepth());
             dto.setAnalyzedWidth(object.getAnalyzedWidth());
+            dto.setCircuitName(object.getCircuitName());
             dto.setInitialCircuit(object.getInitialCircuit());
             dto.setTranspiledCircuit(object.getTranspiledCircuit());
             return dto;

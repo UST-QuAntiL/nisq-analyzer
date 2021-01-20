@@ -46,6 +46,8 @@ public class CompilationResult extends HasId {
 
     private int analyzedWidth;
 
+    private String circuitName;
+
     private String initialCircuit;
 
     private String transpiledCircuit;
