@@ -48,5 +48,5 @@ public class Constants {
     public static final String QISKIT = "Qiskit";
     public static final String OPENQASM = "OpenQASM";
     public static final String QUIL = "Quil";
-    public static final String PYQUIL = "PyQuil";
+    public static final String PYQUIL = "pyQuil";
 }

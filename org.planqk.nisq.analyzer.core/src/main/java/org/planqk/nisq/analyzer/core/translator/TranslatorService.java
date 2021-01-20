@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 
@@ -71,10 +70,11 @@ public class TranslatorService {
 
             // Check if the Qiskit service was successful
             if (response.getStatusCode().is2xxSuccessful()) {
-                LOG.debug("Circuit translated successfully: {}", response.getBody());
+                LOG.debug("Circuit translated successfully!");
 
-                // TODO: write to new circuit file
-                return circuit;
+                final File translatedCircuit = File.createTempFile("temp", null);
+                FileUtils.writeStringToFile(translatedCircuit, response.getBody());
+                return translatedCircuit;
             } else {
                 LOG.error(String.format("Error while translating circuit: {}", response.getStatusCodeValue()));
                 return null;

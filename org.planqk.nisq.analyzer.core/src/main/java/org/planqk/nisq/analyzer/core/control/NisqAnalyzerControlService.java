@@ -20,6 +20,8 @@
 package org.planqk.nisq.analyzer.core.control;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,6 +33,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
@@ -321,10 +324,21 @@ public class NisqAnalyzerControlService {
 
                 circuitToCompile = translatorService.tranlateCircuit(circuitCode, circuitLanguage, targetLanguage);
                 circuitToCompileLanguage = targetLanguage;
+
+                // skip the compiler if translation into required language failed
+                if (Objects.isNull(circuitToCompile)) {
+                    LOG.warn("Unable to translate quantum circuit into required language for compiler '{}'. Skipping...", compilerName);
+                    continue;
+                }
             }
 
             LOG.debug("Invoking compilation with circuit language: {}", circuitToCompileLanguage);
 
+            try {
+                LOG.debug(FileUtils.readFileToString(circuitToCompile, StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             // TODO: evaluate compiler and add to results
         }
 
