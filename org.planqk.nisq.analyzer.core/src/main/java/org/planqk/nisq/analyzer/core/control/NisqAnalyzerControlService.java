@@ -272,10 +272,11 @@ public class NisqAnalyzerControlService {
      * @param circuitLanguage the language of the quantum circuit
      * @param circuitCode     the file containing the circuit to compile
      * @param compilerNames   an optional list of compiler names to restrict the compilers to use. If not set, all supported compilers are used
+     * @param token           the token to access the specified QPU
      * @return the resulting depth, width, and the compiled circuits from the different compilers
      */
     public List<AnalysisResult> performCompilerSelection(String providerName, String qpuName, String circuitLanguage, File circuitCode,
-                                                         List<String> compilerNames) {
+                                                         List<String> compilerNames, String token) {
         List<AnalysisResult> compilerAnalysisResults = new ArrayList<AnalysisResult>();
         LOG.debug("Performing compiler selection for QPU with name '{}' from provider with name '{}'!", qpuName, providerName);
 

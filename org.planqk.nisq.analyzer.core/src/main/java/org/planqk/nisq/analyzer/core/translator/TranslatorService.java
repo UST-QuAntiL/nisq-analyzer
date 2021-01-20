@@ -76,7 +76,7 @@ public class TranslatorService {
                 FileUtils.writeStringToFile(translatedCircuit, response.getBody());
                 return translatedCircuit;
             } else {
-                LOG.error(String.format("Error while translating circuit: {}", response.getStatusCodeValue()));
+                LOG.error("Error while translating circuit: {}", response.getStatusCodeValue());
                 return null;
             }
         } catch (RestClientException e) {
