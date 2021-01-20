@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Getter;
@@ -34,16 +35,18 @@ public class QiskitRequest {
     @Getter
     @Setter
     @JsonProperty("impl-url")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private URL impl_url;
 
     @Getter
     @Setter
-    @JsonProperty("impl-language")
+    @JsonProperty(value = "impl-language")
     private String impl_language;
 
     @Getter
     @Setter
-    @JsonProperty("impl-data")
+    @JsonProperty(value = "impl-data")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String impl_data;
 
     @Getter
