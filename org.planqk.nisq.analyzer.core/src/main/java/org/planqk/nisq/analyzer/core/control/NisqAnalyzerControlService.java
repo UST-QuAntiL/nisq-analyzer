@@ -20,6 +20,8 @@
 package org.planqk.nisq.analyzer.core.control;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +34,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
@@ -41,6 +44,7 @@ import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologQueryEngine;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologUtility;
 import org.planqk.nisq.analyzer.core.model.AnalysisCandidate;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import org.planqk.nisq.analyzer.core.model.CompilationResult;
 import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
@@ -52,6 +56,7 @@ import org.planqk.nisq.analyzer.core.model.Provider;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
+import org.planqk.nisq.analyzer.core.repository.CompilerAnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
 import org.planqk.nisq.analyzer.core.translator.TranslatorService;
@@ -75,6 +80,8 @@ public class NisqAnalyzerControlService {
     final private ImplementationRepository implementationRepository;
 
     final private AnalysisResultRepository analysisResultRepository;
+
+    final private CompilerAnalysisResultRepository compilerAnalysisResultRepository;
 
     final private ExecutionResultRepository executionResultRepository;
 
@@ -274,10 +281,17 @@ public class NisqAnalyzerControlService {
      * @param token           the token to access the specified QPU
      * @return the resulting depth, width, and the compiled circuits from the different compilers
      */
-    public List<AnalysisResult> performCompilerSelection(String providerName, String qpuName, String circuitLanguage, File circuitCode,
-                                                         List<String> compilerNames, String token) {
-        List<AnalysisResult> compilerAnalysisResults = new ArrayList<AnalysisResult>();
+    public List<CompilationResult> performCompilerSelection(String providerName, String qpuName, String circuitLanguage, File circuitCode,
+                                                            List<String> compilerNames, String token) {
+        List<CompilationResult> compilerAnalysisResults = new ArrayList<CompilationResult>();
         LOG.debug("Performing compiler selection for QPU with name '{}' from provider with name '{}'!", qpuName, providerName);
+
+        String initialCircuitAsString = "";
+        try {
+            initialCircuitAsString = FileUtils.readFileToString(circuitCode, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            LOG.warn("Unable to read initial circuit as string to store it for later analysis!");
+        }
 
         // retrieve list of compilers that should be used for the comparison
         List<String> compilersToUse;
@@ -345,7 +359,10 @@ public class NisqAnalyzerControlService {
             }
             LOG.debug("Compilation result: {}", circuitInformation.toString());
 
-            // TODO: evaluate compiler and add to results
+            // add resulting compiled circuit to data base and result list
+            compilerAnalysisResults.add(compilerAnalysisResultRepository
+                    .save(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
+                            circuitInformation.getCircuitWidth(), initialCircuitAsString, circuitInformation.getTranspiledCircuit())));
         }
 
         return compilerAnalysisResults;

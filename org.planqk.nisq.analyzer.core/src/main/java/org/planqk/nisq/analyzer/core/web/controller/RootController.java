@@ -32,9 +32,12 @@ import java.util.stream.Collectors;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import org.planqk.nisq.analyzer.core.model.CompilationResult;
 import org.planqk.nisq.analyzer.core.web.Utils;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilerAnalysisResultDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilerAnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.requests.CompilerSelectionDto;
@@ -150,9 +153,9 @@ public class RootController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable compiler for an implementation passed in as file")
     @PostMapping(value = "/" + Constants.COMPILER_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public HttpEntity<AnalysisResultListDto> selectCompilerForFile(@RequestParam String providerName, @RequestParam String qpuName,
-                                                                   @RequestParam String circuitLanguage, @RequestParam String token,
-                                                                   @RequestParam("circuit") MultipartFile circuitCode) {
+    public HttpEntity<CompilerAnalysisResultListDto> selectCompilerForFile(@RequestParam String providerName, @RequestParam String qpuName,
+                                                                           @RequestParam String circuitLanguage, @RequestParam String token,
+                                                                           @RequestParam("circuit") MultipartFile circuitCode) {
 
         // get temp file for passed circuit code
         File circuitFile;
@@ -164,19 +167,19 @@ public class RootController {
             return new ResponseEntity("Unable to parse file from given data", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        List<AnalysisResult> analysisResults =
+        List<CompilationResult> compilationResults =
                 nisqAnalyzerService.performCompilerSelection(providerName, qpuName, circuitLanguage, circuitFile, null, token);
 
         // send back compiler analysis results
-        AnalysisResultListDto analysisResultListDto = new AnalysisResultListDto();
-        analysisResultListDto.add(analysisResults.stream().map(AnalysisResultDto.Converter::convert).collect(Collectors.toList()));
-        return new ResponseEntity<>(analysisResultListDto, HttpStatus.OK);
+        CompilerAnalysisResultListDto compilerAnalysisResultListDto = new CompilerAnalysisResultListDto();
+        compilerAnalysisResultListDto.add(compilationResults.stream().map(CompilerAnalysisResultDto.Converter::convert).collect(Collectors.toList()));
+        return new ResponseEntity<>(compilerAnalysisResultListDto, HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable compiler for an implementation loaded from the given URL")
     @PostMapping(value = "/" + Constants.COMPILER_SELECTION, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public HttpEntity<AnalysisResultListDto> selectCompilerForUrl(@RequestBody CompilerSelectionDto compilerSelectionDto) {
+    public HttpEntity<CompilerAnalysisResultListDto> selectCompilerForUrl(@RequestBody CompilerSelectionDto compilerSelectionDto) {
 
         if (Objects.isNull(compilerSelectionDto.getProviderName()) || Objects.isNull(compilerSelectionDto.getQpuName()) ||
                 Objects.isNull(compilerSelectionDto.getCircuitLanguage()) || Objects.isNull(compilerSelectionDto.getToken())) {
@@ -194,13 +197,13 @@ public class RootController {
             return new ResponseEntity("Unable to load file from given URL", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        List<AnalysisResult> analysisResults = nisqAnalyzerService
+        List<CompilationResult> compilationResults = nisqAnalyzerService
                 .performCompilerSelection(compilerSelectionDto.getProviderName(), compilerSelectionDto.getQpuName(),
                         compilerSelectionDto.getCircuitLanguage(), circuitFile, null, compilerSelectionDto.getToken());
 
         // send back compiler analysis results
-        AnalysisResultListDto analysisResultListDto = new AnalysisResultListDto();
-        analysisResultListDto.add(analysisResults.stream().map(AnalysisResultDto.Converter::convert).collect(Collectors.toList()));
-        return new ResponseEntity<>(analysisResultListDto, HttpStatus.OK);
+        CompilerAnalysisResultListDto compilerAnalysisResultListDto = new CompilerAnalysisResultListDto();
+        compilerAnalysisResultListDto.add(compilationResults.stream().map(CompilerAnalysisResultDto.Converter::convert).collect(Collectors.toList()));
+        return new ResponseEntity<>(compilerAnalysisResultListDto, HttpStatus.OK);
     }
 }

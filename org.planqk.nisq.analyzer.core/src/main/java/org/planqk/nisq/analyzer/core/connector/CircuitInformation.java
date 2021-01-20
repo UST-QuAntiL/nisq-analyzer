@@ -24,12 +24,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Object to encapsulate all information that is retrieved during the analysis of a quantum circuit.
  */
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class CircuitInformation {
 
     @Getter
@@ -41,6 +43,11 @@ public class CircuitInformation {
     @Setter
     @JsonProperty("width")
     private int circuitWidth = 0;
+
+    @Getter
+    @Setter
+    @JsonProperty("transpiled-qasm")
+    private String transpiledCircuit;
 
     @Getter
     @Setter
