@@ -1,5 +1,5 @@
-/********************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+/*******************************************************************************
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,10 +17,9 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.connector;
+package org.planqk.nisq.analyzer.core.connector.qiskit;
 
 import java.net.URI;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -29,9 +28,12 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.planqk.nisq.analyzer.core.Constants;
+import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
+import org.planqk.nisq.analyzer.core.connector.SdkConnector;
 import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
+import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
@@ -63,9 +65,9 @@ public class QiskitSdkConnector implements SdkConnector {
     private URI executeAPIEndpoint;
 
     public QiskitSdkConnector(
-            @Value("${NISQ_HOSTNAME}") String hostname,
-            @Value("${NISQ_PORT}") int port,
-            @Value("${NISQ_VERSION}") String version
+            @Value("${org.planqk.nisq.analyzer.connector.qiskit.hostname}") String hostname,
+            @Value("${org.planqk.nisq.analyzer.connector.qiskit.port}") int port,
+            @Value("${org.planqk.nisq.analyzer.connector.qiskit.version}") String version
     ) {
         // compile the API endpoints
         transpileAPIEndpoint = URI.create(String.format("http://%s:%d/qiskit-service/api/%s/transpile", hostname, port, version));
@@ -73,7 +75,7 @@ public class QiskitSdkConnector implements SdkConnector {
     }
 
     @Override
-    public void executeQuantumAlgorithmImplementation(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters,
+    public void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters,
                                                       ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
 
@@ -85,7 +87,7 @@ public class QiskitSdkConnector implements SdkConnector {
 
         // Prepare the request
         RestTemplate restTemplate = new RestTemplate();
-        QiskitRequest request = new QiskitRequest(algorithmImplementationURL, qpu.getName(), parameters, token);
+        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), qpu.getName(), parameters);
 
         try {
             // make the execution request
@@ -131,7 +133,7 @@ public class QiskitSdkConnector implements SdkConnector {
     }
 
     @Override
-    public CircuitInformation getCircuitProperties(URL algorithmImplementationURL, Qpu qpu, Map<String, ParameterValue> parameters) {
+    public CircuitInformation getCircuitProperties(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters) {
         LOG.debug("Analysing quantum algorithm implementation with Qiskit Sdk connector plugin!");
 
         String token = getTokenFromInputParameters(ParameterValue.convertToUntyped(parameters));
@@ -142,7 +144,7 @@ public class QiskitSdkConnector implements SdkConnector {
 
         // Build the payload for the request
         RestTemplate restTemplate = new RestTemplate();
-        QiskitRequest request = new QiskitRequest(algorithmImplementationURL, qpu.getName(), parameters, token);
+        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), qpu.getName(), parameters);
 
         try {
             // Transpile the given algorithm implementation using Qiskit service
@@ -180,7 +182,7 @@ public class QiskitSdkConnector implements SdkConnector {
 
     @Override
     public List<String> supportedProviders() {
-        return Arrays.asList("IBMQ");
+        return Arrays.asList(Constants.IBMQ);
     }
 
     @Override
