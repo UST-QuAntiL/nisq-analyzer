@@ -20,10 +20,9 @@
 package org.planqk.nisq.analyzer.core.control;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +32,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.FileUtils;
+import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
@@ -214,7 +213,7 @@ public class NisqAnalyzerControlService {
 
                     // analyze the quantum circuit by utilizing the capabilities of the suited plugin and retrieve important circuit properties
                     CircuitInformation circuitInformation =
-                            selectedSdkConnector.getCircuitProperties(executableImpl, qpu, execInputParameters);
+                            selectedSdkConnector.getCircuitProperties(executableImpl, qpu.getProvider(), qpu.getName(), execInputParameters);
 
                     // if something unexpected happened
                     if (Objects.isNull(circuitInformation)) {
@@ -333,13 +332,19 @@ public class NisqAnalyzerControlService {
                 }
             }
 
+            // compile circuit for the QPU
             LOG.debug("Invoking compilation with circuit language: {}", circuitToCompileLanguage);
+            Map<String, ParameterValue> params = new HashMap<>();
+            params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
+            CircuitInformation circuitInformation =
+                    connector.getCircuitProperties(circuitToCompile, circuitToCompileLanguage, providerName, qpuName, params);
 
-            try {
-                LOG.debug(FileUtils.readFileToString(circuitToCompile, StandardCharsets.UTF_8));
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (Objects.isNull(circuitInformation)) {
+                LOG.error("Compilation with compiler '{}' failed!", compilerName);
+                continue;
             }
+            LOG.debug("Compilation result: {}", circuitInformation.toString());
+
             // TODO: evaluate compiler and add to results
         }
 

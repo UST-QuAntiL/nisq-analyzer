@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.connector.pytket;
 
+import java.io.File;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -127,13 +128,14 @@ public class PyTketSdkConnector implements SdkConnector {
     }
 
     @Override
-    public CircuitInformation getCircuitProperties(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters) {
+    public CircuitInformation getCircuitProperties(Implementation implementation, String providerName, String qpuName,
+                                                   Map<String, ParameterValue> parameters) {
         LOG.debug("Analysing quantum algorithm implementation with PyTket Sdk connector plugin!");
 
         // Build the payload for the request
         RestTemplate restTemplate = new RestTemplate();
         PyTketRequest request =
-                new PyTketRequest(implementation.getFileLocation(), qpu.getName(), qpu.getProvider(), implementation.getSdk().getName(), parameters);
+                new PyTketRequest(implementation.getFileLocation(), qpuName, providerName, implementation.getSdk().getName(), parameters);
 
         try {
             // Transpile the given algorithm implementation using PyTket service
@@ -152,6 +154,13 @@ public class PyTketSdkConnector implements SdkConnector {
             LOG.error("Connection to PyTket Service failed.");
         }
 
+        return null;
+    }
+
+    @Override
+    public CircuitInformation getCircuitProperties(File circuit, String language, String providerName, String qpuName,
+                                                   Map<String, ParameterValue> parameters) {
+        // TODO
         return null;
     }
 

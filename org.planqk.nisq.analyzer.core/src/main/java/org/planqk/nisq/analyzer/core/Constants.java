@@ -55,4 +55,7 @@ public class Constants {
     // sdks
     public static final String QISKIT = "Qiskit";
     public static final String PYTKET = "pytket";
+
+    // parameter
+    public static final String TOKEN_PARAMETER = "token";
 }

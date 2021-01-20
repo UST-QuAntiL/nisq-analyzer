@@ -19,14 +19,19 @@
 
 package org.planqk.nisq.analyzer.core.connector.qiskit;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
@@ -53,8 +58,6 @@ import org.springframework.web.client.RestTemplate;
 public class QiskitSdkConnector implements SdkConnector {
 
     final private static Logger LOG = LoggerFactory.getLogger(QiskitSdkConnector.class);
-
-    final private static String TOKEN_PARAMETER = "token";
 
     @Value("${org.planqk.nisq.analyzer.connector.qiskit.pollInterval:10000}")
     private int pollInterval;
@@ -87,7 +90,7 @@ public class QiskitSdkConnector implements SdkConnector {
 
         // Prepare the request
         RestTemplate restTemplate = new RestTemplate();
-        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), qpu.getName(), parameters);
+        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters);
 
         try {
             // make the execution request
@@ -133,19 +136,31 @@ public class QiskitSdkConnector implements SdkConnector {
     }
 
     @Override
-    public CircuitInformation getCircuitProperties(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters) {
+    public CircuitInformation getCircuitProperties(Implementation implementation, String providerName, String qpuName,
+                                                   Map<String, ParameterValue> parameters) {
         LOG.debug("Analysing quantum algorithm implementation with Qiskit Sdk connector plugin!");
 
-        String token = getTokenFromInputParameters(ParameterValue.convertToUntyped(parameters));
-        if (Objects.isNull(token)) {
-            LOG.error("Required token parameter not provided!");
-            return null;
+        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, parameters);
+        return executeCircuitPropertiesRequest(request);
+    }
+
+    @Override
+    public CircuitInformation getCircuitProperties(File circuit, String language, String providerName, String qpuName,
+                                                   Map<String, ParameterValue> parameters) {
+        try {
+            // retrieve content form file and encode base64
+            String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
+            String encodedCircuit = Base64.getEncoder().encodeToString(fileContent.getBytes());
+            QiskitRequest request = new QiskitRequest(language, encodedCircuit, qpuName, parameters);
+            return executeCircuitPropertiesRequest(request);
+        } catch (IOException e) {
+            LOG.error("Unable to read file content from circuit file!");
         }
+        return null;
+    }
 
-        // Build the payload for the request
+    private CircuitInformation executeCircuitPropertiesRequest(QiskitRequest request) {
         RestTemplate restTemplate = new RestTemplate();
-        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), qpu.getName(), parameters);
-
         try {
             // Transpile the given algorithm implementation using Qiskit service
             ResponseEntity<CircuitInformation> response = restTemplate.postForEntity(transpileAPIEndpoint, request, CircuitInformation.class);
@@ -188,7 +203,7 @@ public class QiskitSdkConnector implements SdkConnector {
     @Override
     public Set<Parameter> getSdkSpecificParameters() {
         // only the token is required
-        return new HashSet<>(Arrays.asList(new Parameter(TOKEN_PARAMETER, DataType.String, null, "Parameter for Qiskit SDK Plugin")));
+        return new HashSet<>(Arrays.asList(new Parameter(Constants.TOKEN_PARAMETER, DataType.String, null, "Parameter for Qiskit SDK Plugin")));
     }
 
     /**
@@ -198,8 +213,8 @@ public class QiskitSdkConnector implements SdkConnector {
      * @return the value of the token parameter
      */
     private String getTokenFromInputParameters(Map<String, String> parameters) {
-        if (parameters.containsKey(TOKEN_PARAMETER)) {
-            return parameters.get(TOKEN_PARAMETER);
+        if (parameters.containsKey(Constants.TOKEN_PARAMETER)) {
+            return parameters.get(Constants.TOKEN_PARAMETER);
         }
         return null;
     }

@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.connector;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,11 +52,26 @@ public interface SdkConnector {
      * parameters.
      *
      * @param implementation the implementation to get the circuit properties for
-     * @param qpu            the QPU to analyze the implementation for
+     * @param providerName   the name of the provider of the QPU
+     * @param qpuName        the name of the QPU to analyze the implementation for
      * @param parameters     he input parameters for the quantum algorithm implementation
      * @return the object containing all analysed properties of the quantum circuit
      */
-    CircuitInformation getCircuitProperties(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters);
+    CircuitInformation getCircuitProperties(Implementation implementation, String providerName, String qpuName,
+                                            Map<String, ParameterValue> parameters);
+
+    /**
+     * Analyse the given circuit after transpiling it for the given QPU and with the given input parameters.
+     *
+     * @param circuit      the file containing the circuit
+     * @param language     the language of the circuit
+     * @param providerName the name of the provider of the QPU
+     * @param qpuName      the name of the QPU to analyze the implementation for
+     * @param parameters   he input parameters for the quantum algorithm implementation
+     * @return the object containing all analysed properties of the quantum circuit
+     */
+    CircuitInformation getCircuitProperties(File circuit, String language, String providerName, String qpuName,
+                                            Map<String, ParameterValue> parameters);
 
     /**
      * Returns the names of the Sdks that are supported by the connector

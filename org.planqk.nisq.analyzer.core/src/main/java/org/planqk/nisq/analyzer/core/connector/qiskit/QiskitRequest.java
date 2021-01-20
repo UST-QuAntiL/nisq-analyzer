@@ -19,13 +19,15 @@
 
 package org.planqk.nisq.analyzer.core.connector.qiskit;
 
-import java.util.Map;
 import java.net.URL;
+import java.util.Map;
+
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Getter;
 import lombok.Setter;
-import org.planqk.nisq.analyzer.core.model.ParameterValue;
 
 public class QiskitRequest {
 
@@ -33,6 +35,16 @@ public class QiskitRequest {
     @Setter
     @JsonProperty("impl-url")
     private URL impl_url;
+
+    @Getter
+    @Setter
+    @JsonProperty("impl-language")
+    private String impl_language;
+
+    @Getter
+    @Setter
+    @JsonProperty("impl-data")
+    private String impl_data;
 
     @Getter
     @Setter
@@ -44,9 +56,16 @@ public class QiskitRequest {
     @JsonProperty("input-params")
     private Map<String, ParameterValue> input_params;
 
-    public QiskitRequest(URL impl_url, String qpu_name, Map<String,ParameterValue> input_params)
-    {
+    public QiskitRequest(URL impl_url, String impl_language, String qpu_name, Map<String, ParameterValue> input_params) {
         this.impl_url = impl_url;
+        this.impl_language = impl_language;
+        this.qpu_name = qpu_name;
+        this.input_params = input_params;
+    }
+
+    public QiskitRequest(String impl_language, String impl_data, String qpu_name, Map<String, ParameterValue> input_params) {
+        this.impl_language = impl_language;
+        this.impl_data = impl_data;
         this.qpu_name = qpu_name;
         this.input_params = input_params;
     }
