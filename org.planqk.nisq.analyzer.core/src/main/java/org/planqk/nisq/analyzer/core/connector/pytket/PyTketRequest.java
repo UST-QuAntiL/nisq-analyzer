@@ -22,11 +22,14 @@ package org.planqk.nisq.analyzer.core.connector.pytket;
 import java.net.URL;
 import java.util.Map;
 
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.planqk.nisq.analyzer.core.model.ParameterValue;
 
 @AllArgsConstructor
 public class PyTketRequest {
@@ -34,7 +37,19 @@ public class PyTketRequest {
     @Getter
     @Setter
     @JsonProperty("impl-url")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private URL impl_url;
+
+    @Getter
+    @Setter
+    @JsonProperty(value = "impl-language")
+    private String impl_language;
+
+    @Getter
+    @Setter
+    @JsonProperty(value = "impl-data")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String impl_data;
 
     @Getter
     @Setter
@@ -54,4 +69,22 @@ public class PyTketRequest {
     @JsonProperty("input-params")
     private Map<String, ParameterValue> input_params;
 
+    public PyTketRequest(URL impl_url, String impl_language, String qpu_name, String provider, String sdk, Map<String, ParameterValue> input_params) {
+        this.impl_url = impl_url;
+        this.impl_language = impl_language;
+        this.qpu_name = qpu_name;
+        this.provider = provider;
+        this.sdk = sdk;
+        this.input_params = input_params;
+    }
+
+    public PyTketRequest(String impl_data, String impl_language, String qpu_name, String provider, String sdk,
+                         Map<String, ParameterValue> input_params) {
+        this.impl_data = impl_data;
+        this.impl_language = impl_language;
+        this.qpu_name = qpu_name;
+        this.provider = provider;
+        this.sdk = sdk;
+        this.input_params = input_params;
+    }
 }

@@ -20,13 +20,17 @@
 package org.planqk.nisq.analyzer.core.connector.pytket;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
@@ -44,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -51,7 +56,7 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class PyTketSdkConnector implements SdkConnector {
 
-    final private static Logger LOG = LoggerFactory.getLogger(QiskitSdkConnector.class);
+    final private static Logger LOG = LoggerFactory.getLogger(PyTketSdkConnector.class);
 
     final private static String TOKEN_PARAMETER = "token";
 
@@ -82,7 +87,8 @@ public class PyTketSdkConnector implements SdkConnector {
         // Prepare the request
         RestTemplate restTemplate = new RestTemplate();
         PyTketRequest request =
-                new PyTketRequest(implementation.getFileLocation(), qpu.getName(), qpu.getProvider(), implementation.getSdk().getName(), parameters);
+                new PyTketRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), qpu.getProvider(),
+                        implementation.getSdk().getName(), parameters);
 
         try {
             // make the execution request
@@ -138,11 +144,32 @@ public class PyTketSdkConnector implements SdkConnector {
     public CircuitInformation getCircuitProperties(Implementation implementation, String providerName, String qpuName,
                                                    Map<String, ParameterValue> parameters) {
         LOG.debug("Analysing quantum algorithm implementation with PyTket Sdk connector plugin!");
-
-        // Build the payload for the request
-        RestTemplate restTemplate = new RestTemplate();
         PyTketRequest request =
-                new PyTketRequest(implementation.getFileLocation(), qpuName, providerName, implementation.getSdk().getName(), parameters);
+                new PyTketRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, providerName,
+                        implementation.getSdk().getName(), parameters);
+        return executeCircuitPropertiesRequest(request);
+    }
+
+    @Override
+    public CircuitInformation getCircuitProperties(File circuit, String language, String providerName, String qpuName, String sdkName,
+                                                   Map<String, ParameterValue> parameters) {
+        LOG.debug("Retrieving circuit properties for circuit passed as file with provider '{}', qpu '{}', and language '{}'.", providerName, qpuName,
+                language);
+        try {
+            // retrieve content form file and encode base64
+            String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
+            String encodedCircuit = Base64.getEncoder().encodeToString(fileContent.getBytes());
+            PyTketRequest request = new PyTketRequest(encodedCircuit, language, qpuName, providerName, sdkName, parameters);
+            return executeCircuitPropertiesRequest(request);
+        } catch (IOException e) {
+            LOG.error("Unable to read file content from circuit file!");
+        }
+        return null;
+    }
+
+    private CircuitInformation executeCircuitPropertiesRequest(PyTketRequest request) {
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
 
         try {
             // Transpile the given algorithm implementation using PyTket service
@@ -161,13 +188,6 @@ public class PyTketSdkConnector implements SdkConnector {
             LOG.error("Connection to PyTket Service failed.");
         }
 
-        return null;
-    }
-
-    @Override
-    public CircuitInformation getCircuitProperties(File circuit, String language, String providerName, String qpuName,
-                                                   Map<String, ParameterValue> parameters) {
-        // TODO
         return null;
     }
 

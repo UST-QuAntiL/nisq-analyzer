@@ -62,7 +62,7 @@ public interface SdkConnector {
                                          ExecutionResultRepository resultRepository);
 
     /**
-     * Analyse the quantum algorithm implementation located at the given URL after transpiling it for the given QPU and with the given input
+     * Analyse the quantum algorithm implementation located at the given URL after compiling it for the given QPU and with the given input
      * parameters.
      *
      * @param implementation the implementation to get the circuit properties for
@@ -75,16 +75,17 @@ public interface SdkConnector {
                                             Map<String, ParameterValue> parameters);
 
     /**
-     * Analyse the given circuit after transpiling it for the given QPU and with the given input parameters.
+     * Analyse the given circuit after compiling it for the given QPU and with the given input parameters.
      *
      * @param circuit      the file containing the circuit
      * @param language     the language of the circuit
      * @param providerName the name of the provider of the QPU
      * @param qpuName      the name of the QPU to analyze the implementation for
+     * @param sdkName        the name of the SDK to use for the compilation
      * @param parameters   he input parameters for the quantum algorithm implementation
      * @return the object containing all analysed properties of the quantum circuit
      */
-    CircuitInformation getCircuitProperties(File circuit, String language, String providerName, String qpuName,
+    CircuitInformation getCircuitProperties(File circuit, String language, String providerName, String qpuName, String sdkName,
                                             Map<String, ParameterValue> parameters);
 
     /**

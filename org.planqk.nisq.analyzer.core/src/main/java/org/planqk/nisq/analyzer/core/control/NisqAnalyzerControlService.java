@@ -383,10 +383,14 @@ public class NisqAnalyzerControlService {
             Map<String, ParameterValue> params = new HashMap<>();
             params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
             CircuitInformation circuitInformation =
-                    connector.getCircuitProperties(circuitToCompile, circuitToCompileLanguage, providerName, qpuName, params);
+                    connector.getCircuitProperties(circuitToCompile, circuitToCompileLanguage, providerName, qpuName, compilerName, params);
 
-            if (Objects.isNull(circuitInformation)) {
-                LOG.error("Compilation with compiler '{}' failed!", compilerName);
+            if (Objects.isNull(circuitInformation) || Objects.nonNull(circuitInformation.getError())) {
+                if (Objects.nonNull(circuitInformation.getError())) {
+                    LOG.error("Compilation failed with error: {}", circuitInformation.getError());
+                } else {
+                    LOG.error("Compilation with compiler '{}' failed!", compilerName);
+                }
                 continue;
             }
             LOG.debug("Compilation result: {}", circuitInformation.toString());
@@ -394,7 +398,8 @@ public class NisqAnalyzerControlService {
             // add resulting compiled circuit to data base and result list
             compilerAnalysisResults.add(compilerAnalysisResultRepository
                     .save(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
-                            circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(), token)));
+                            circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
+                            token)));
         }
 
         return compilerAnalysisResults;
