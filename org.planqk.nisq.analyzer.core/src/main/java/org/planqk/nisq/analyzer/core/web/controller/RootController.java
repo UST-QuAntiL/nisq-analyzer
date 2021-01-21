@@ -91,7 +91,8 @@ public class RootController {
         responseEntity.add(linkTo(methodOn(RootController.class).selectImplementations(null)).withRel(Constants.SELECTION));
         responseEntity
                 .add(linkTo(methodOn(RootController.class).selectCompilerForFile(null, null, null, null, null, null))
-                        .withRel(Constants.SELECTION_PARAMS));
+                        .withRel(Constants.COMPILER_SELECTION));
+        responseEntity.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisResults()).withRel(Constants.COMPILER_RESULTS));
 
         return new ResponseEntity<>(responseEntity, HttpStatus.OK);
     }

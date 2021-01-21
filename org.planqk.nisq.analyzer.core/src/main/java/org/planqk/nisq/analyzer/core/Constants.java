@@ -33,6 +33,7 @@ public class Constants {
     public static final String COMPILER_SELECTION = "compiler-selection";
     public static final String SELECTION_PARAMS = "selection-params";
     public static final String RESULTS = "results";
+    public static final String COMPILER_RESULTS = "compiler-results";
 
     // link names
     public static final String USED_SDK = "used-sdk";
