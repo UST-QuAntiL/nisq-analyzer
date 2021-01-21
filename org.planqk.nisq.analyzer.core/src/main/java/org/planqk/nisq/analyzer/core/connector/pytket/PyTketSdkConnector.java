@@ -82,15 +82,24 @@ public class PyTketSdkConnector implements SdkConnector {
                                                       ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
 
         LOG.debug("Executing quantum algorithm implementation with PyTKet Sdk connector plugin!");
-
-        // Prepare the request
-        RestTemplate restTemplate = new RestTemplate();
         PyTketRequest request =
-                new PyTketRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), qpu.getProvider(),
-                        implementation.getSdk().getName(), parameters);
+                new PyTketRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), qpu.getProvider(), parameters);
+        executeQuantumCircuit(request, executionResult, resultRepository);
+    }
 
+    @Override
+    public void executeTranspiledQuantumCircuit(String transpiledCircuit, String providerName, String qpuName,
+                                                Map<String, ParameterValue> parameters, ExecutionResult executionResult,
+                                                ExecutionResultRepository resultRepository) {
+        LOG.debug("Executing circuit passed as file with provider '{}' and qpu '{}'.", providerName, qpuName);
+        PyTketRequest request = new PyTketRequest(qpuName, parameters, transpiledCircuit, providerName);
+        executeQuantumCircuit(request, executionResult, resultRepository);
+    }
+
+    private void executeQuantumCircuit(PyTketRequest request, ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
         try {
             // make the execution request
+            RestTemplate restTemplate = new RestTemplate();
             URI resultLocation = restTemplate.postForLocation(executeAPIEndpoint, request);
 
             // change the result status
@@ -133,19 +142,11 @@ public class PyTketSdkConnector implements SdkConnector {
     }
 
     @Override
-    public void executeTranspiledQuantumCircuit(String transpiledCircuit, String providerName, String qpuName,
-                                                Map<String, ParameterValue> parameters, ExecutionResult executionResult,
-                                                ExecutionResultRepository resultRepository) {
-        // TODO
-    }
-
-    @Override
     public CircuitInformation getCircuitProperties(Implementation implementation, String providerName, String qpuName,
                                                    Map<String, ParameterValue> parameters) {
         LOG.debug("Analysing quantum algorithm implementation with PyTket Sdk connector plugin!");
         PyTketRequest request =
-                new PyTketRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, providerName,
-                        implementation.getSdk().getName(), parameters);
+                new PyTketRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, providerName, parameters);
         return executeCircuitPropertiesRequest(request);
     }
 
@@ -158,7 +159,7 @@ public class PyTketSdkConnector implements SdkConnector {
             // retrieve content form file and encode base64
             String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
             String encodedCircuit = Base64.getEncoder().encodeToString(fileContent.getBytes());
-            PyTketRequest request = new PyTketRequest(encodedCircuit, language, qpuName, providerName, parameters);
+            PyTketRequest request = new PyTketRequest(encodedCircuit, parameters, language, qpuName, providerName);
             return executeCircuitPropertiesRequest(request);
         } catch (IOException e) {
             LOG.error("Unable to read file content from circuit file!");

@@ -62,6 +62,12 @@ public class PyTketRequest {
 
     @Getter
     @Setter
+    @JsonProperty(value = "transpiled-qasm")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String transpiled_qasm;
+
+    @Getter
+    @Setter
     @JsonProperty("input-params")
     private Map<String, ParameterValue> input_params;
 
@@ -73,10 +79,17 @@ public class PyTketRequest {
         this.input_params = input_params;
     }
 
-    public PyTketRequest(String impl_data, String impl_language, String qpu_name, String provider, Map<String, ParameterValue> input_params) {
+    public PyTketRequest(String impl_data, Map<String, ParameterValue> input_params, String impl_language, String qpu_name, String provider) {
         this.impl_data = impl_data;
         this.impl_language = impl_language;
         this.qpu_name = qpu_name;
+        this.provider = provider;
+        this.input_params = input_params;
+    }
+
+    public PyTketRequest(String qpu_name, Map<String, ParameterValue> input_params, String transpiled_qasm, String provider) {
+        this.qpu_name = qpu_name;
+        this.transpiled_qasm = transpiled_qasm;
         this.provider = provider;
         this.input_params = input_params;
     }
