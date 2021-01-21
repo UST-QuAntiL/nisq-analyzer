@@ -317,6 +317,7 @@ public class NisqAnalyzerControlService {
                                                             String circuitName, List<String> compilerNames, String token) {
         List<CompilationResult> compilerAnalysisResults = new ArrayList<>();
         LOG.debug("Performing compiler selection for QPU with name '{}' from provider with name '{}'!", qpuName, providerName);
+        Qpu qpu = qProvService.getQpuByName(qpuName, providerName).orElse(null);
 
         String initialCircuitAsString = "";
         try {
@@ -395,11 +396,26 @@ public class NisqAnalyzerControlService {
             }
             LOG.debug("Compilation result: {}", circuitInformation.toString());
 
-            // add resulting compiled circuit to data base and result list
-            compilerAnalysisResults.add(compilerAnalysisResultRepository
-                    .save(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
-                            circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
-                            token)));
+            if (Objects.isNull(qpu)) {
+                LOG.warn("Unable to retrieve QPU with name '{}' from QProv. Adding all compilation results without executability filtering!",
+                        qpuName);
+
+                // add resulting compiled circuit to data base and result list
+                compilerAnalysisResults.add(compilerAnalysisResultRepository
+                        .save(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
+                                circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
+                                token)));
+                continue;
+            }
+
+            if (qpu.getT1() / qpu.getMaxGateTime() < circuitInformation.getCircuitDepth()) {
+                compilerAnalysisResults.add(compilerAnalysisResultRepository
+                        .save(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
+                                circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
+                                token)));
+            } else {
+                LOG.debug("Skipping compilation result as depth ({}) is higher than estimated maximum depth!", circuitInformation.getCircuitDepth());
+            }
         }
 
         return compilerAnalysisResults;
