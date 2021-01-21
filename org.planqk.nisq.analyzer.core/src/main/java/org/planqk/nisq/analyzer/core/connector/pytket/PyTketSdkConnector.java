@@ -198,7 +198,7 @@ public class PyTketSdkConnector implements SdkConnector {
     @Override
     public List<String> getLanguagesForSdk(String sdkName) {
         if (sdkName.equals(Constants.PYTKET)) {
-            return Arrays.asList(Constants.QISKIT, Constants.OPENQASM, Constants.PYQUIL, Constants.QUIL);
+            return Arrays.asList(Constants.QISKIT, Constants.OPENQASM, Constants.PYQUIL);
         }
 
         return null;
