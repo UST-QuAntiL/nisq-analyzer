@@ -383,10 +383,10 @@ public class NisqAnalyzerControlService {
             Map<String, ParameterValue> params = new HashMap<>();
             params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
             CircuitInformation circuitInformation =
-                    connector.getCircuitProperties(circuitToCompile, circuitToCompileLanguage, providerName, qpuName, compilerName, params);
+                    connector.getCircuitProperties(circuitToCompile, circuitToCompileLanguage, providerName, qpuName, params);
 
             if (Objects.isNull(circuitInformation) || Objects.nonNull(circuitInformation.getError())) {
-                if (Objects.nonNull(circuitInformation.getError())) {
+                if (Objects.nonNull(circuitInformation)) {
                     LOG.error("Compilation failed with error: {}", circuitInformation.getError());
                 } else {
                     LOG.error("Compilation with compiler '{}' failed!", compilerName);

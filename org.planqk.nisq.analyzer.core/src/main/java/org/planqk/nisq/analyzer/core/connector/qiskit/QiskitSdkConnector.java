@@ -147,7 +147,7 @@ public class QiskitSdkConnector implements SdkConnector {
     }
 
     @Override
-    public CircuitInformation getCircuitProperties(File circuit, String language, String providerName, String qpuName, String sdkName,
+    public CircuitInformation getCircuitProperties(File circuit, String language, String providerName, String qpuName,
                                                    Map<String, ParameterValue> parameters) {
         LOG.debug("Retrieving circuit properties for circuit passed as file with provider '{}', qpu '{}', and language '{}'.", providerName, qpuName,
                 language);

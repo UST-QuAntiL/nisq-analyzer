@@ -35,7 +35,6 @@ import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
 import org.planqk.nisq.analyzer.core.connector.qiskit.QiskitExecutionResult;
-import org.planqk.nisq.analyzer.core.connector.qiskit.QiskitSdkConnector;
 import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
@@ -151,7 +150,7 @@ public class PyTketSdkConnector implements SdkConnector {
     }
 
     @Override
-    public CircuitInformation getCircuitProperties(File circuit, String language, String providerName, String qpuName, String sdkName,
+    public CircuitInformation getCircuitProperties(File circuit, String language, String providerName, String qpuName,
                                                    Map<String, ParameterValue> parameters) {
         LOG.debug("Retrieving circuit properties for circuit passed as file with provider '{}', qpu '{}', and language '{}'.", providerName, qpuName,
                 language);
@@ -159,7 +158,7 @@ public class PyTketSdkConnector implements SdkConnector {
             // retrieve content form file and encode base64
             String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
             String encodedCircuit = Base64.getEncoder().encodeToString(fileContent.getBytes());
-            PyTketRequest request = new PyTketRequest(encodedCircuit, language, qpuName, providerName, sdkName, parameters);
+            PyTketRequest request = new PyTketRequest(encodedCircuit, language, qpuName, providerName, parameters);
             return executeCircuitPropertiesRequest(request);
         } catch (IOException e) {
             LOG.error("Unable to read file content from circuit file!");

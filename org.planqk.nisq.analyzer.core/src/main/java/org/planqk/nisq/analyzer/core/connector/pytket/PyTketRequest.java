@@ -62,29 +62,22 @@ public class PyTketRequest {
 
     @Getter
     @Setter
-    private String sdk;
-
-    @Getter
-    @Setter
     @JsonProperty("input-params")
     private Map<String, ParameterValue> input_params;
 
-    public PyTketRequest(URL impl_url, String impl_language, String qpu_name, String provider, String sdk, Map<String, ParameterValue> input_params) {
+    public PyTketRequest(URL impl_url, String impl_language, String qpu_name, String provider, Map<String, ParameterValue> input_params) {
         this.impl_url = impl_url;
         this.impl_language = impl_language;
         this.qpu_name = qpu_name;
         this.provider = provider;
-        this.sdk = sdk;
         this.input_params = input_params;
     }
 
-    public PyTketRequest(String impl_data, String impl_language, String qpu_name, String provider, String sdk,
-                         Map<String, ParameterValue> input_params) {
+    public PyTketRequest(String impl_data, String impl_language, String qpu_name, String provider, Map<String, ParameterValue> input_params) {
         this.impl_data = impl_data;
         this.impl_language = impl_language;
         this.qpu_name = qpu_name;
         this.provider = provider;
-        this.sdk = sdk;
         this.input_params = input_params;
     }
 }

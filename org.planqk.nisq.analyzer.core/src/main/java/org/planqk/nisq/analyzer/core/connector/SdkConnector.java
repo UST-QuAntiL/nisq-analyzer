@@ -81,11 +81,10 @@ public interface SdkConnector {
      * @param language     the language of the circuit
      * @param providerName the name of the provider of the QPU
      * @param qpuName      the name of the QPU to analyze the implementation for
-     * @param sdkName        the name of the SDK to use for the compilation
      * @param parameters   he input parameters for the quantum algorithm implementation
      * @return the object containing all analysed properties of the quantum circuit
      */
-    CircuitInformation getCircuitProperties(File circuit, String language, String providerName, String qpuName, String sdkName,
+    CircuitInformation getCircuitProperties(File circuit, String language, String providerName, String qpuName,
                                             Map<String, ParameterValue> parameters);
 
     /**
