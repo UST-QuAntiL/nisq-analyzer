@@ -51,4 +51,6 @@ public class CompilationResult extends HasId {
     private String initialCircuit;
 
     private String transpiledCircuit;
+
+    private String token;
 }

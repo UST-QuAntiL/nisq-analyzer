@@ -125,13 +125,44 @@ public class NisqAnalyzerControlService {
         // create a object to store the execution results
         ExecutionResult executionResult =
                 executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
-                        "Passing execution to executor plugin.", result,
-                        null, implementation));
+                        "Passing execution to executor plugin.", result, null, null, implementation));
 
         // execute implementation
         new Thread(() -> selectedSdkConnector
                 .executeQuantumAlgorithmImplementation(implementation, qpu.get(), inputParameters, executionResult,
                         executionResultRepository)).start();
+
+        return executionResult;
+    }
+
+    /**
+     * Execute the compiled circuit from the given compilation result
+     *
+     * @param result          the compilation result to execute the circuit for
+     * @param inputParameters the input parameters for the execution
+     * @return the ExecutionResult to track the current status and store the result
+     */
+    public ExecutionResult executeCompiledQuantumCircuit(CompilationResult result, Map<String, ParameterValue> inputParameters) {
+
+        // get suited Sdk connector plugin
+        SdkConnector selectedSdkConnector = connectorList.stream()
+                .filter(executor -> executor.supportedSdks().contains(result.getCompiler()))
+                .findFirst().orElse(null);
+        if (Objects.isNull(selectedSdkConnector)) {
+            LOG.error("Unable to find connector plugin with name {}.", result.getCompiler());
+            throw new RuntimeException("Unable to find connector plugin with name " + result.getCompiler());
+        }
+
+        // create a object to store the execution results
+        ExecutionResult executionResult =
+                executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
+                        "Passing execution to executor plugin.", null, result,
+                        null, null));
+
+        // execute implementation
+        new Thread(() -> selectedSdkConnector
+                .executeTranspiledQuantumCircuit(result.getTranspiledCircuit(), result.getProvider(), result.getQpu(), inputParameters,
+                        executionResult, executionResultRepository)).start();
 
         return executionResult;
     }
@@ -363,7 +394,7 @@ public class NisqAnalyzerControlService {
             // add resulting compiled circuit to data base and result list
             compilerAnalysisResults.add(compilerAnalysisResultRepository
                     .save(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
-                            circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit())));
+                            circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(), token)));
         }
 
         return compilerAnalysisResults;

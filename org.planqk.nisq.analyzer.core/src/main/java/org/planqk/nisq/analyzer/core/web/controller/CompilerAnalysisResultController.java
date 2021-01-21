@@ -22,13 +22,18 @@ package org.planqk.nisq.analyzer.core.web.controller;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.Constants;
-import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.model.CompilationResult;
+import org.planqk.nisq.analyzer.core.model.DataType;
+import org.planqk.nisq.analyzer.core.model.ExecutionResult;
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.repository.CompilerAnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilerAnalysisResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilerAnalysisResultListDto;
@@ -61,6 +66,8 @@ public class CompilerAnalysisResultController {
     private final static Logger LOG = LoggerFactory.getLogger(AnalysisResultController.class);
 
     private final CompilerAnalysisResultRepository compilerAnalysisResultRepository;
+
+    private final NisqAnalyzerControlService controlService;
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve all compiler analysis results")
@@ -99,9 +106,15 @@ public class CompilerAnalysisResultController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        final CompilationResult compilationResult = result.get();
-        // TODO: execute result
-        return null;
+        // get stored token for the execution
+        CompilationResult compilationResult = result.get();
+        Map<String, ParameterValue> params = new HashMap<>();
+        params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, compilationResult.getToken()));
+
+        ExecutionResult executionResult = controlService.executeCompiledQuantumCircuit(compilationResult, params);
+        ExecutionResultDto dto = ExecutionResultDto.Converter.convert(executionResult);
+        dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(executionResult.getId())).withSelfRel());
+        return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
     }
 
     private CompilerAnalysisResultDto createDto(CompilationResult result) {

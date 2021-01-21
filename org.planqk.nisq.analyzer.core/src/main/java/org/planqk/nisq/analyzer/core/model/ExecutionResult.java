@@ -51,6 +51,11 @@ public class ExecutionResult extends HasId {
 
     @Getter
     @Setter
+    @ManyToOne
+    private CompilationResult compilationResult;
+
+    @Getter
+    @Setter
     @Column(columnDefinition="text")
     private String result;
 

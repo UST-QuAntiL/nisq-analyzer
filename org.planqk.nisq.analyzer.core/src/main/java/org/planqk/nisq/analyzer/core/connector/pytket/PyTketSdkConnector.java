@@ -128,6 +128,13 @@ public class PyTketSdkConnector implements SdkConnector {
     }
 
     @Override
+    public void executeTranspiledQuantumCircuit(String transpiledCircuit, String providerName, String qpuName,
+                                                Map<String, ParameterValue> parameters, ExecutionResult executionResult,
+                                                ExecutionResultRepository resultRepository) {
+        // TODO
+    }
+
+    @Override
     public CircuitInformation getCircuitProperties(Implementation implementation, String providerName, String qpuName,
                                                    Map<String, ParameterValue> parameters) {
         LOG.debug("Analysing quantum algorithm implementation with PyTket Sdk connector plugin!");

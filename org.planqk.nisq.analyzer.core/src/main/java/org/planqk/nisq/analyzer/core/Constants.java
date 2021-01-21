@@ -31,8 +31,9 @@ public class Constants {
     public static final String SELECTION = "selection";
     public static final String COMPILER_SELECTION = "compiler-selection";
     public static final String SELECTION_PARAMS = "selection-params";
-    public static final String RESULTS = "results";
+    public static final String ANALYSIS_RESULTS = "analysis-results";
     public static final String COMPILER_RESULTS = "compiler-results";
+    public static final String EXECUTION_RESULTS = "execution-results";
 
     // link names
     public static final String USED_SDK = "used-sdk";
@@ -41,6 +42,7 @@ public class Constants {
     public static final String RESULTS_LINK = "results";
     public static final String EXECUTED_ALGORITHM_LINK = "executed-algorithm";
     public static final String USED_ANALYSIS_RESULT = "analysis-result";
+    public static final String USED_COMPILATION_RESULT = "compilation-result";
 
     // circuit languages
     public static final String OPENQASM = "OpenQASM";

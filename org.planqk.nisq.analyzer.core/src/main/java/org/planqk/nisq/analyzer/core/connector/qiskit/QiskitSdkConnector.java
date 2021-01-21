@@ -28,7 +28,6 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -81,17 +80,21 @@ public class QiskitSdkConnector implements SdkConnector {
     public void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters,
                                                       ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
-
-        String token = getTokenFromInputParameters(ParameterValue.convertToUntyped(parameters));
-        if (Objects.isNull(token)) {
-            LOG.error("Required token parameter not provided!");
-            return;
-        }
-
-        // Prepare the request
-        RestTemplate restTemplate = new RestTemplate();
         QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters);
+        executeQuantumCircuit(request, executionResult, resultRepository);
+    }
 
+    @Override
+    public void executeTranspiledQuantumCircuit(String transpiledCircuit, String providerName, String qpuName,
+                                                Map<String, ParameterValue> parameters, ExecutionResult executionResult,
+                                                ExecutionResultRepository resultRepository) {
+        LOG.debug("Executing circuit passed as file with provider '{}' and qpu '{}'.", providerName, qpuName);
+        QiskitRequest request = new QiskitRequest(transpiledCircuit, qpuName, parameters);
+        executeQuantumCircuit(request, executionResult, resultRepository);
+    }
+
+    private void executeQuantumCircuit(QiskitRequest request, ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
+        RestTemplate restTemplate = new RestTemplate();
         try {
             // make the execution request
             URI resultLocation = restTemplate.postForLocation(executeAPIEndpoint, request);
@@ -139,7 +142,6 @@ public class QiskitSdkConnector implements SdkConnector {
     public CircuitInformation getCircuitProperties(Implementation implementation, String providerName, String qpuName,
                                                    Map<String, ParameterValue> parameters) {
         LOG.debug("Analysing quantum algorithm implementation with Qiskit Sdk connector plugin!");
-
         QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, parameters);
         return executeCircuitPropertiesRequest(request);
     }
