@@ -408,7 +408,7 @@ public class NisqAnalyzerControlService {
                 continue;
             }
 
-            if (qpu.getT1() / qpu.getMaxGateTime() < circuitInformation.getCircuitDepth()) {
+            if (qpu.getT1() / qpu.getMaxGateTime() > circuitInformation.getCircuitDepth()) {
                 compilerAnalysisResults.add(compilerAnalysisResultRepository
                         .save(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
                                 circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
