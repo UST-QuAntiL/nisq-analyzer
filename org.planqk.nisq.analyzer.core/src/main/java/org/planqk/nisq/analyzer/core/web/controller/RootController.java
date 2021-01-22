@@ -172,7 +172,9 @@ public class RootController {
         }
 
         List<CompilationResult> compilationResults =
-                nisqAnalyzerService.performCompilerSelection(providerName, qpuName, circuitLanguage, circuitFile, circuitName, null, token);
+                nisqAnalyzerService
+                        .performCompilerSelection(providerName.toLowerCase(), qpuName.toLowerCase(), circuitLanguage.toLowerCase(), circuitFile,
+                                circuitName, null, token);
 
         // send back compiler analysis results
         CompilerAnalysisResultListDto compilerAnalysisResultListDto = new CompilerAnalysisResultListDto();
@@ -202,8 +204,8 @@ public class RootController {
         }
 
         List<CompilationResult> compilationResults = nisqAnalyzerService
-                .performCompilerSelection(compilerSelectionDto.getProviderName(), compilerSelectionDto.getQpuName(),
-                        compilerSelectionDto.getCircuitLanguage(), circuitFile, compilerSelectionDto.getCircuitName(), null,
+                .performCompilerSelection(compilerSelectionDto.getProviderName().toLowerCase(), compilerSelectionDto.getQpuName().toLowerCase(),
+                        compilerSelectionDto.getCircuitLanguage().toLowerCase(), circuitFile, compilerSelectionDto.getCircuitName(), null,
                         compilerSelectionDto.getToken());
 
         // send back compiler analysis results

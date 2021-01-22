@@ -341,7 +341,7 @@ public class NisqAnalyzerControlService {
 
             // retrieve corresponding connector for the compiler
             Optional<SdkConnector> connectorOptional =
-                    connectorList.stream().filter(connector -> connector.supportedSdks().contains(compilerName)).findFirst();
+                    connectorList.stream().filter(connector -> connector.supportedSdks().contains(compilerName.toLowerCase())).findFirst();
             if (!connectorOptional.isPresent()) {
                 LOG.warn("Unable to find suitable connector for compiler with name: {}", compilerName);
                 continue;
@@ -352,17 +352,17 @@ public class NisqAnalyzerControlService {
             // translate circuit for the compiler if needed
             File circuitToCompile = circuitCode;
             String circuitToCompileLanguage = circuitLanguage;
-            if (!connector.getLanguagesForSdk(compilerName).contains(circuitLanguage)) {
+            if (!connector.getLanguagesForSdk(compilerName).contains(circuitLanguage.toLowerCase())) {
                 LOG.debug("Circuit language '{}' not supported by the compiler. Translating circuit...", circuitLanguage);
 
                 // check if source language is supported by translator
-                if (!translatorService.getSupportedLanguages().contains(circuitLanguage)) {
+                if (!translatorService.getSupportedLanguages().contains(circuitLanguage.toLowerCase())) {
                     LOG.warn("Unable to transform circuit with unsupported language '{}'!", circuitLanguage);
                     continue;
                 }
 
                 // get target language that is supported by the translator and the compiler
-                String targetLanguage = connector.getLanguagesForSdk(compilerName).stream()
+                String targetLanguage = connector.getLanguagesForSdk(compilerName.toLowerCase()).stream()
                         .filter(language -> translatorService.getSupportedLanguages().contains(language)).findFirst().orElse(null);
                 if (Objects.isNull(targetLanguage)) {
                     LOG.warn("Unable to find target language that is supported by translator and compiler '{}'!", compilerName);

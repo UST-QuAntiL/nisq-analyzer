@@ -45,15 +45,15 @@ public class Constants {
     public static final String USED_COMPILATION_RESULT = "compilation-result";
 
     // circuit languages
-    public static final String OPENQASM = "OpenQASM";
-    public static final String QUIL = "Quil";
-    public static final String PYQUIL = "pyQuil";
+    public static final String OPENQASM = "openqasm";
+    public static final String QUIL = "quil";
+    public static final String PYQUIL = "pyquil";
 
     // provider
     public static final String IBMQ = "ibmq";
 
     // sdks
-    public static final String QISKIT = "Qiskit";
+    public static final String QISKIT = "qiskit";
     public static final String PYTKET = "pytket";
 
     // parameter
