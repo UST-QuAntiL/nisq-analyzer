@@ -31,6 +31,7 @@ import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuListDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -50,14 +51,17 @@ public class QProvService {
 
         // Query the QProv API for providers
         RestTemplate restTemplate = new RestTemplate();
-        ProviderListDto result = restTemplate.getForObject(this.baseAPIEndpoint + "providers", ProviderListDto.class);
+        try {
+            ProviderListDto result = restTemplate.getForObject(this.baseAPIEndpoint + "providers", ProviderListDto.class);
 
-        if (result != null) {
-            return ProviderListDto.Converter.convert(result);
-        } else {
+            if (result != null) {
+                return ProviderListDto.Converter.convert(result);
+            } else {
+                return new ArrayList<>();
+            }
+        } catch (RestClientException e) {
             return new ArrayList<>();
         }
-
     }
 
     public List<Qpu> getQPUs(Provider provider) {
@@ -65,7 +69,8 @@ public class QProvService {
         RestTemplate restTemplate = new RestTemplate();
 
         // ToDo: Implement proper QPU List class
-        QpuListDto qpuListDto = restTemplate.getForObject(String.format(this.baseAPIEndpoint + "/providers/%s/qpus", provider.getId()), QpuListDto.class);
+        QpuListDto qpuListDto =
+                restTemplate.getForObject(String.format(this.baseAPIEndpoint + "/providers/%s/qpus", provider.getId()), QpuListDto.class);
 
         return qpuListDto.getQpuDtoList().stream().map(dto -> QpuDto.Converter.convert(dto, provider.getName())).collect(Collectors.toList());
     }
@@ -75,8 +80,7 @@ public class QProvService {
         if (prov.isPresent()) {
             return getQPUs(prov.get()).stream().filter(q -> q.getName().equals(name)).findFirst();
         } else {
-            return Optional.of(null);
+            return Optional.empty();
         }
     }
-
 }
