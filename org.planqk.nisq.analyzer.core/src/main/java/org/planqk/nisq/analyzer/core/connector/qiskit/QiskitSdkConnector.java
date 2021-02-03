@@ -211,19 +211,6 @@ public class QiskitSdkConnector implements SdkConnector {
         return new HashSet<>(Arrays.asList(new Parameter(Constants.TOKEN_PARAMETER, DataType.String, null, "Parameter for Qiskit SDK Plugin")));
     }
 
-    /**
-     * Retrieve token parameter from input parameters
-     *
-     * @param parameters the set of input parameters
-     * @return the value of the token parameter
-     */
-    private String getTokenFromInputParameters(Map<String, String> parameters) {
-        if (parameters.containsKey(Constants.TOKEN_PARAMETER)) {
-            return parameters.get(Constants.TOKEN_PARAMETER);
-        }
-        return null;
-    }
-
     @Override
     public String getName() {
         return this.getClass().getSimpleName().toLowerCase();
