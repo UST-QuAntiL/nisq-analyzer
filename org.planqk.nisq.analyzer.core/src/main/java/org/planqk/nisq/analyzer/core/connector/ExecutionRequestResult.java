@@ -17,7 +17,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.connector.qiskit;
+package org.planqk.nisq.analyzer.core.connector;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +29,7 @@ import lombok.Setter;
 
 @NoArgsConstructor
 @AllArgsConstructor
-public class QiskitExecutionResult {
+public class ExecutionRequestResult {
 
     @Setter
     @Getter

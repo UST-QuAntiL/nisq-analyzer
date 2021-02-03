@@ -33,8 +33,8 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
+import org.planqk.nisq.analyzer.core.connector.ExecutionRequestResult;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
-import org.planqk.nisq.analyzer.core.connector.qiskit.QiskitExecutionResult;
 import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
@@ -110,7 +110,7 @@ public class PyTketSdkConnector implements SdkConnector {
             // poll the PyTKet service frequently
             while (executionResult.getStatus() != ExecutionResultStatus.FINISHED && executionResult.getStatus() != ExecutionResultStatus.FAILED) {
                 try {
-                    QiskitExecutionResult result = restTemplate.getForObject(resultLocation, QiskitExecutionResult.class);
+                    ExecutionRequestResult result = restTemplate.getForObject(resultLocation, ExecutionRequestResult.class);
 
                     // Check if execution is completed
                     if (result.isComplete()) {
