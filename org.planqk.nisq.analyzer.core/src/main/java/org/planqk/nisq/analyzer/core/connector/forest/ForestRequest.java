@@ -56,9 +56,9 @@ public class ForestRequest {
 
     @Getter
     @Setter
-    @JsonProperty(value = "transpiled-qasm")
+    @JsonProperty(value = "transpiled-quil")
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String transpiled_qasm;
+    private String transpiled_quil;
 
     @Getter
     @Setter
@@ -79,8 +79,8 @@ public class ForestRequest {
         this.input_params = input_params;
     }
 
-    public ForestRequest(String transpiled_qasm, String qpu_name, Map<String, ParameterValue> input_params) {
-        this.transpiled_qasm = transpiled_qasm;
+    public ForestRequest(String transpiled_quil, String qpu_name, Map<String, ParameterValue> input_params) {
+        this.transpiled_quil = transpiled_quil;
         this.qpu_name = qpu_name;
         this.input_params = input_params;
     }
