@@ -51,10 +51,12 @@ public class Constants {
 
     // provider
     public static final String IBMQ = "ibmq";
+    public static final String RIGETTI = "rigetti";
 
     // sdks
     public static final String QISKIT = "qiskit";
     public static final String PYTKET = "pytket";
+    public static final String FOREST = "forest";
 
     // parameter
     public static final String TOKEN_PARAMETER = "token";
