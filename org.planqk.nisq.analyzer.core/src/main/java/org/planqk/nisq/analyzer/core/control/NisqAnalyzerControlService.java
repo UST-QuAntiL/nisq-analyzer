@@ -349,6 +349,12 @@ public class NisqAnalyzerControlService {
             SdkConnector connector = connectorOptional.get();
             LOG.debug("Using connector '{}' to communicate with compiler '{}'", connector.getName(), compilerName);
 
+            // filter compilers that do not support the specified provider
+            if (!connector.supportedProviders().contains(providerName.toLowerCase())) {
+                LOG.debug("Compiler does not support specified provider. Skipping compilation!");
+                continue;
+            }
+
             // translate circuit for the compiler if needed
             File circuitToCompile = circuitCode;
             String circuitToCompileLanguage = circuitLanguage;
