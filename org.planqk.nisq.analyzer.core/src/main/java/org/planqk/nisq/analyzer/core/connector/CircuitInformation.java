@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.connector;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -46,7 +47,7 @@ public class CircuitInformation {
 
     @Getter
     @Setter
-    @JsonProperty("transpiled-qasm")
+    @JsonAlias({"transpiled-qasm", "transpiled-quil"})
     private String transpiledCircuit;
 
     @Getter
