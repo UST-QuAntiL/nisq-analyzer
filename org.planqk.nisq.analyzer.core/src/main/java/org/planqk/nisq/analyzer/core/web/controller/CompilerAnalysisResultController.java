@@ -28,13 +28,19 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.transaction.Transactional;
+
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
+import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.model.CompilationResult;
 import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
+import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilerAnalysisResultRepository;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilerAnalysisResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilerAnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
@@ -67,6 +73,8 @@ public class CompilerAnalysisResultController {
 
     private final CompilerAnalysisResultRepository compilerAnalysisResultRepository;
 
+    private final CompilationJobRepository compilationJobRepository;
+
     private final NisqAnalyzerControlService controlService;
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
@@ -76,6 +84,18 @@ public class CompilerAnalysisResultController {
         CompilerAnalysisResultListDto model = new CompilerAnalysisResultListDto();
         model.add(compilerAnalysisResultRepository.findAll().stream().map(this::createDto).collect(Collectors.toList()));
         model.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisResults()).withSelfRel());
+        model.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJobs()).withRel(Constants.COMPILER_JOBS));
+        return new ResponseEntity<>(model, HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve all compiler analysis jobs")
+    @GetMapping("/" + Constants.COMPILER_JOBS)
+    @Transactional
+    public HttpEntity<CompilationJobListDto> getCompilerAnalysisJobs() {
+        CompilationJobListDto model = new CompilationJobListDto();
+        model.add(compilationJobRepository.findAll().stream().map(this::createJobDto).collect(Collectors.toList()));
+        model.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJobs()).withSelfRel());
         return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
@@ -92,6 +112,22 @@ public class CompilerAnalysisResultController {
         }
 
         return new ResponseEntity<>(createDto(result.get()), HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve a single compilation result")
+    @GetMapping("/" + Constants.COMPILER_JOBS + "/{resId}")
+    @Transactional
+    public HttpEntity<CompilationJobDto> getCompilerAnalysisJob(@PathVariable UUID resId) {
+        LOG.debug("Get to retrieve compilation job with id: {}.", resId);
+
+        Optional<CompilationJob> result = compilationJobRepository.findById(resId);
+        if (!result.isPresent()) {
+            LOG.error("Unable to retrieve compilation result with id {} from the repository.", resId);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(createJobDto(result.get()), HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
@@ -121,6 +157,12 @@ public class CompilerAnalysisResultController {
         CompilerAnalysisResultDto dto = CompilerAnalysisResultDto.Converter.convert(result);
         dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisResult(result.getId())).withSelfRel());
         dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).executeCompilationResult(result.getId())).withRel(Constants.EXECUTION));
+        return dto;
+    }
+
+    private CompilationJobDto createJobDto(CompilationJob job) {
+        CompilationJobDto dto = CompilationJobDto.Converter.convert(job);
+        dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJob(job.getId())).withSelfRel());
         return dto;
     }
 }

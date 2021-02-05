@@ -32,11 +32,12 @@ import java.util.stream.Collectors;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
-import org.planqk.nisq.analyzer.core.model.CompilationResult;
+import org.planqk.nisq.analyzer.core.model.CompilationJob;
+import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.web.Utils;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilerAnalysisResultDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilerAnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterListDto;
@@ -74,8 +75,12 @@ public class RootController {
 
     private final NisqAnalyzerControlService nisqAnalyzerService;
 
-    public RootController(NisqAnalyzerControlService nisqAnalyzerService) {
+    private final CompilationJobRepository compilationJobRepository;
+
+    public RootController(NisqAnalyzerControlService nisqAnalyzerService,
+                          CompilationJobRepository compilationJobRepository) {
         this.nisqAnalyzerService = nisqAnalyzerService;
+        this.compilationJobRepository = compilationJobRepository;
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200")}, description = "Root operation, returns further links")
@@ -171,21 +176,24 @@ public class RootController {
             return new ResponseEntity("Unable to parse file from given data", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        List<CompilationResult> compilationResults =
-                nisqAnalyzerService
-                        .performCompilerSelection(providerName.toLowerCase(), qpuName.toLowerCase(), circuitLanguage.toLowerCase(), circuitFile,
-                                circuitName, null, token);
+        // create object for the compilation job and call asynchronously to update the job
+        CompilationJob job = compilationJobRepository.save(new CompilationJob());
+        new Thread(() -> {
+            nisqAnalyzerService
+                    .performCompilerSelection(job, providerName.toLowerCase(), qpuName.toLowerCase(), circuitLanguage.toLowerCase(), circuitFile,
+                            circuitName, null, token);
+        }).start();
 
-        // send back compiler analysis results
-        CompilerAnalysisResultListDto compilerAnalysisResultListDto = new CompilerAnalysisResultListDto();
-        compilerAnalysisResultListDto.add(compilationResults.stream().map(CompilerAnalysisResultDto.Converter::convert).collect(Collectors.toList()));
-        return new ResponseEntity<>(compilerAnalysisResultListDto, HttpStatus.OK);
+        // send back compilation job
+        CompilationJobDto dto = CompilationJobDto.Converter.convert(job);
+        dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJob(job.getId())).withSelfRel());
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable compiler for an implementation loaded from the given URL")
     @PostMapping(value = "/" + Constants.COMPILER_SELECTION, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public HttpEntity<CompilerAnalysisResultListDto> selectCompilerForUrl(@RequestBody CompilerSelectionDto compilerSelectionDto) {
+    public HttpEntity<CompilationJobDto> selectCompilerForUrl(@RequestBody CompilerSelectionDto compilerSelectionDto) {
 
         if (Objects.isNull(compilerSelectionDto.getProviderName()) || Objects.isNull(compilerSelectionDto.getQpuName()) ||
                 Objects.isNull(compilerSelectionDto.getCircuitLanguage()) || Objects.isNull(compilerSelectionDto.getToken())) {
@@ -203,14 +211,19 @@ public class RootController {
             return new ResponseEntity("Unable to load file from given URL", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        List<CompilationResult> compilationResults = nisqAnalyzerService
-                .performCompilerSelection(compilerSelectionDto.getProviderName().toLowerCase(), compilerSelectionDto.getQpuName().toLowerCase(),
-                        compilerSelectionDto.getCircuitLanguage().toLowerCase(), circuitFile, compilerSelectionDto.getCircuitName(), null,
-                        compilerSelectionDto.getToken());
+        // create object for the compilation job and call asynchronously to update the job
+        CompilationJob job = compilationJobRepository.save(new CompilationJob());
+        new Thread(() -> {
+            nisqAnalyzerService
+                    .performCompilerSelection(job, compilerSelectionDto.getProviderName().toLowerCase(),
+                            compilerSelectionDto.getQpuName().toLowerCase(),
+                            compilerSelectionDto.getCircuitLanguage().toLowerCase(), circuitFile, compilerSelectionDto.getCircuitName(), null,
+                            compilerSelectionDto.getToken());
+        }).start();
 
-        // send back compiler analysis results
-        CompilerAnalysisResultListDto compilerAnalysisResultListDto = new CompilerAnalysisResultListDto();
-        compilerAnalysisResultListDto.add(compilationResults.stream().map(CompilerAnalysisResultDto.Converter::convert).collect(Collectors.toList()));
-        return new ResponseEntity<>(compilerAnalysisResultListDto, HttpStatus.OK);
+        // send back compilation job
+        CompilationJobDto dto = CompilationJobDto.Converter.convert(job);
+        dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJob(job.getId())).withSelfRel());
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 }

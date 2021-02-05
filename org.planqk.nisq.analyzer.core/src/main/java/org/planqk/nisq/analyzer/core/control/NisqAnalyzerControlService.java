@@ -44,6 +44,7 @@ import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologQueryEngine;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologUtility;
 import org.planqk.nisq.analyzer.core.model.AnalysisCandidate;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.model.CompilationResult;
 import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
@@ -56,6 +57,7 @@ import org.planqk.nisq.analyzer.core.model.Provider;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
+import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilerAnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
@@ -92,6 +94,8 @@ public class NisqAnalyzerControlService {
     final private QProvService qProvService;
 
     final private TranslatorService translatorService;
+
+    final private CompilationJobRepository compilationJobRepository;
 
     /**
      * Execute the given quantum algorithm implementation with the given input parameters and return the corresponding output of the execution.
@@ -304,6 +308,7 @@ public class NisqAnalyzerControlService {
      * Compile the given circuit for the given QPU with all supported or a subset of the supported compilers and return the resulting compiled
      * circuits as well as some analysis details
      *
+     * @param job             the compilation job object for the long-running task
      * @param providerName    the name of the provider of the QPU
      * @param qpuName         the name of the QPU for which the circuit should be compiled
      * @param circuitLanguage the language of the quantum circuit
@@ -311,10 +316,9 @@ public class NisqAnalyzerControlService {
      * @param circuitName     user defined name to (partly) distinguish circuits
      * @param compilerNames   an optional list of compiler names to restrict the compilers to use. If not set, all supported compilers are used
      * @param token           the token to access the specified QPU
-     * @return the resulting depth, width, and the compiled circuits from the different compilers
      */
-    public List<CompilationResult> performCompilerSelection(String providerName, String qpuName, String circuitLanguage, File circuitCode,
-                                                            String circuitName, List<String> compilerNames, String token) {
+    public void performCompilerSelection(CompilationJob job, String providerName, String qpuName, String circuitLanguage,
+                                         File circuitCode, String circuitName, List<String> compilerNames, String token) {
         List<CompilationResult> compilerAnalysisResults = new ArrayList<>();
         LOG.debug("Performing compiler selection for QPU with name '{}' from provider with name '{}'!", qpuName, providerName);
         Qpu qpu = qProvService.getQpuByName(qpuName, providerName).orElse(null);
@@ -407,25 +411,32 @@ public class NisqAnalyzerControlService {
                         qpuName);
 
                 // add resulting compiled circuit to data base and result list
-                compilerAnalysisResults.add(compilerAnalysisResultRepository
+                CompilationResult compilationResult = compilerAnalysisResultRepository
                         .save(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
                                 circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
-                                token)));
+                                token));
+                job.getJobResults().add(compilationResult);
+                compilerAnalysisResults.add(compilationResult);
                 continue;
             }
 
             // check if QPU is simulator or can handle the depth in the current decoherence time
             if (qpu.isSimulator() || qpu.getT1() / qpu.getMaxGateTime() >= circuitInformation.getCircuitDepth()) {
-                compilerAnalysisResults.add(compilerAnalysisResultRepository
+                CompilationResult compilationResult = compilerAnalysisResultRepository
                         .save(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
                                 circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
-                                token)));
+                                token));
+                job.getJobResults().add(compilationResult);
+                compilerAnalysisResults.add(compilationResult);
             } else {
                 LOG.debug("Skipping compilation result as depth ({}) is higher than estimated maximum depth!", circuitInformation.getCircuitDepth());
             }
         }
 
-        return compilerAnalysisResults;
+        // store updated result object
+        LOG.debug("Results: " + job.getJobResults().size());
+        job.setReady(true);
+        compilationJobRepository.save(job);
     }
 
     private void rebuildImplementationPrologFiles() {
