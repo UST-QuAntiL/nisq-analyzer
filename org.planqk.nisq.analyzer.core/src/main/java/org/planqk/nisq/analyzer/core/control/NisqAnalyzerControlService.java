@@ -414,7 +414,7 @@ public class NisqAnalyzerControlService {
                 CompilationResult compilationResult = compilerAnalysisResultRepository
                         .save(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
                                 circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
-                                circuitInformation.getTranspiledLanguage(), token));
+                                circuitInformation.getTranspiledLanguage(), token, OffsetDateTime.now()));
                 job.getJobResults().add(compilationResult);
                 compilerAnalysisResults.add(compilationResult);
                 continue;
@@ -425,7 +425,7 @@ public class NisqAnalyzerControlService {
                 CompilationResult compilationResult = compilerAnalysisResultRepository
                         .save(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
                                 circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
-                                circuitInformation.getTranspiledLanguage(), token));
+                                circuitInformation.getTranspiledLanguage(), token, OffsetDateTime.now()));
                 job.getJobResults().add(compilationResult);
                 compilerAnalysisResults.add(compilationResult);
             } else {

@@ -19,6 +19,8 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
+import java.time.OffsetDateTime;
+
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 
@@ -58,4 +60,6 @@ public class CompilationResult extends HasId {
     private String transpiledLanguage;
 
     private String token;
+
+    private OffsetDateTime time;
 }

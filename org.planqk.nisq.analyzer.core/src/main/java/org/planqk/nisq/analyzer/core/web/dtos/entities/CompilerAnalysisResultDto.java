@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.model.CompilationResult;
@@ -51,6 +52,8 @@ public class CompilerAnalysisResultDto extends RepresentationModel<CompilerAnaly
 
     String transpiledCircuit;
 
+    OffsetDateTime time;
+
     public static final class Converter {
 
         public static CompilerAnalysisResultDto convert(final CompilationResult object) {
@@ -64,6 +67,7 @@ public class CompilerAnalysisResultDto extends RepresentationModel<CompilerAnaly
             dto.setCircuitName(object.getCircuitName());
             dto.setInitialCircuit(object.getInitialCircuit());
             dto.setTranspiledCircuit(object.getTranspiledCircuit());
+            dto.setTime(object.getTime());
             return dto;
         }
     }
