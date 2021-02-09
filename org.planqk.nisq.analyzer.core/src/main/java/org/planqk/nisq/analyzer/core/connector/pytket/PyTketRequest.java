@@ -68,6 +68,12 @@ public class PyTketRequest {
 
     @Getter
     @Setter
+    @JsonProperty(value = "transpiled-quil")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String transpiled_quil;
+
+    @Getter
+    @Setter
     @JsonProperty("input-params")
     private Map<String, ParameterValue> input_params;
 
@@ -87,10 +93,26 @@ public class PyTketRequest {
         this.input_params = input_params;
     }
 
-    public PyTketRequest(String qpu_name, Map<String, ParameterValue> input_params, String transpiled_qasm, String provider) {
+    public PyTketRequest(String qpu_name, Map<String, ParameterValue> input_params, String transpiled, String provider, TranspiledLanguage language) {
         this.qpu_name = qpu_name;
-        this.transpiled_qasm = transpiled_qasm;
         this.provider = provider;
         this.input_params = input_params;
+
+        switch (language) {
+            case Quil:
+                this.transpiled_quil = transpiled;
+                break;
+            case OpenQASM:
+                this.transpiled_qasm = transpiled;
+                break;
+            default:
+                this.transpiled_qasm = null;
+                this.transpiled_quil = null;
+        }
+    }
+
+    public enum TranspiledLanguage {
+        OpenQASM,
+        Quil
     }
 }

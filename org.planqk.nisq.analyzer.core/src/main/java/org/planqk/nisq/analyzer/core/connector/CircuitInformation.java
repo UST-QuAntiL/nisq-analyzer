@@ -52,6 +52,11 @@ public class CircuitInformation {
 
     @Getter
     @Setter
+    @JsonProperty("language")
+    private String transpiledLanguage;
+
+    @Getter
+    @Setter
     private String error;
 
     /**

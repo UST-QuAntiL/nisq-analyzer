@@ -165,7 +165,7 @@ public class NisqAnalyzerControlService {
 
         // execute implementation
         new Thread(() -> selectedSdkConnector
-                .executeTranspiledQuantumCircuit(result.getTranspiledCircuit(), result.getProvider(), result.getQpu(), inputParameters,
+                .executeTranspiledQuantumCircuit(result.getTranspiledCircuit(), result.getTranspiledLanguage(), result.getProvider(), result.getQpu(), inputParameters,
                         executionResult, executionResultRepository)).start();
 
         return executionResult;
@@ -414,7 +414,7 @@ public class NisqAnalyzerControlService {
                 CompilationResult compilationResult = compilerAnalysisResultRepository
                         .save(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
                                 circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
-                                token));
+                                circuitInformation.getTranspiledLanguage(), token));
                 job.getJobResults().add(compilationResult);
                 compilerAnalysisResults.add(compilationResult);
                 continue;
@@ -425,7 +425,7 @@ public class NisqAnalyzerControlService {
                 CompilationResult compilationResult = compilerAnalysisResultRepository
                         .save(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
                                 circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
-                                token));
+                                circuitInformation.getTranspiledLanguage(), token));
                 job.getJobResults().add(compilationResult);
                 compilerAnalysisResults.add(compilationResult);
             } else {

@@ -85,7 +85,7 @@ public class ForestSdkConnector implements SdkConnector {
     }
 
     @Override
-    public void executeTranspiledQuantumCircuit(String transpiledCircuit, String providerName, String qpuName,
+    public void executeTranspiledQuantumCircuit(String transpiledCircuit, String transpiledLanguage, String providerName, String qpuName,
                                                 Map<String, ParameterValue> parameters, ExecutionResult executionResult,
                                                 ExecutionResultRepository resultRepository) {
         LOG.debug("Executing circuit passed as file with provider '{}' and qpu '{}'.", providerName, qpuName);

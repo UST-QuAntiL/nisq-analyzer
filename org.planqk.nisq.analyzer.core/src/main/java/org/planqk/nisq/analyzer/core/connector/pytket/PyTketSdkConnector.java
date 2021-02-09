@@ -88,12 +88,29 @@ public class PyTketSdkConnector implements SdkConnector {
     }
 
     @Override
-    public void executeTranspiledQuantumCircuit(String transpiledCircuit, String providerName, String qpuName,
+    public void executeTranspiledQuantumCircuit(String transpiledCircuit, String transpiledLanguage, String providerName, String qpuName,
                                                 Map<String, ParameterValue> parameters, ExecutionResult executionResult,
                                                 ExecutionResultRepository resultRepository) {
         LOG.debug("Executing circuit passed as file with provider '{}' and qpu '{}'.", providerName, qpuName);
-        PyTketRequest request = new PyTketRequest(qpuName, parameters, transpiledCircuit, providerName);
-        executeQuantumCircuit(request, executionResult, resultRepository);
+
+        PyTketRequest request = null;
+
+        switch (transpiledLanguage.toLowerCase()) {
+            case "openqasm":
+                request = new PyTketRequest(qpuName, parameters, transpiledCircuit, providerName, PyTketRequest.TranspiledLanguage.OpenQASM);
+            case "quil":
+                request = new PyTketRequest(qpuName, parameters, transpiledCircuit, providerName, PyTketRequest.TranspiledLanguage.Quil);
+        }
+
+        if (request != null) {
+            executeQuantumCircuit(request, executionResult, resultRepository);
+        } else {
+            // change the result status
+            executionResult.setStatus(ExecutionResultStatus.FAILED);
+            executionResult.setStatusCode("Failed to create execution request for provided transpiled language: " + transpiledLanguage);
+            resultRepository.save(executionResult);
+        }
+
     }
 
     private void executeQuantumCircuit(PyTketRequest request, ExecutionResult executionResult, ExecutionResultRepository resultRepository) {

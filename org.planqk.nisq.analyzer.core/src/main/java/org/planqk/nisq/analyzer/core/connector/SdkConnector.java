@@ -51,13 +51,14 @@ public interface SdkConnector {
      * Execute the given transpiled quantum circuit.
      *
      * @param transpiledCircuit the transpiled circuit that should be executed
+     * @param transpiledLanguage the language the circuit is transpiled in
      * @param providerName      the provider name for the QPU to execute the circuit
      * @param qpuName           the name of the QPU to execute the circuit
      * @param parameters        the set of parameters for the execution, inlcuding the access token if required
      * @param executionResult   the object to store the result
      * @param resultRepository  the object to update the current state of the long running task and to add the results after completion
      */
-    void executeTranspiledQuantumCircuit(String transpiledCircuit, String providerName, String qpuName,
+    void executeTranspiledQuantumCircuit(String transpiledCircuit, String transpiledLanguage, String providerName, String qpuName,
                                          Map<String, ParameterValue> parameters, ExecutionResult executionResult,
                                          ExecutionResultRepository resultRepository);
 

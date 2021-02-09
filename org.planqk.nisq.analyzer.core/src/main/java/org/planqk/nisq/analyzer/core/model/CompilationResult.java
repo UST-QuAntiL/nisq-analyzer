@@ -55,5 +55,7 @@ public class CompilationResult extends HasId {
     @Lob
     private String transpiledCircuit;
 
+    private String transpiledLanguage;
+
     private String token;
 }
