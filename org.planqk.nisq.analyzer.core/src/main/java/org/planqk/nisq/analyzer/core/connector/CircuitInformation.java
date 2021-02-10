@@ -19,17 +19,20 @@
 
 package org.planqk.nisq.analyzer.core.connector;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Object to encapsulate all information that is retrieved during the analysis of a quantum circuit.
  */
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class CircuitInformation {
 
     @Getter
@@ -41,6 +44,16 @@ public class CircuitInformation {
     @Setter
     @JsonProperty("width")
     private int circuitWidth = 0;
+
+    @Getter
+    @Setter
+    @JsonAlias({"transpiled-qasm", "transpiled-quil"})
+    private String transpiledCircuit;
+
+    @Getter
+    @Setter
+    @JsonProperty("language")
+    private String transpiledLanguage;
 
     @Getter
     @Setter

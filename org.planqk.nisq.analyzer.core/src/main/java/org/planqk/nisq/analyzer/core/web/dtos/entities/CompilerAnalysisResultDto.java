@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -20,50 +20,53 @@
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
 import java.time.OffsetDateTime;
-import java.util.Map;
 import java.util.UUID;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import org.planqk.nisq.analyzer.core.model.CompilationResult;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
 
-@Relation(itemRelation = "analysisResult", collectionRelation = "analysisResults")
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Relation(itemRelation = "compilerAnalysisResult", collectionRelation = "compilerAnalysisResults")
 @EqualsAndHashCode(callSuper = false)
 @Data
-public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
+public class CompilerAnalysisResultDto extends RepresentationModel<CompilerAnalysisResultDto> {
 
     UUID id;
 
-    String qpu;
-
     String provider;
 
-    String sdkConnector;
+    String qpu;
 
-    ImplementationDto implementation;
+    String compiler;
 
     int analyzedDepth;
 
     int analyzedWidth;
 
-    private Map<String, String> inputParameters;
+    String circuitName;
 
-    private OffsetDateTime time;
+    String initialCircuit;
+
+    String transpiledCircuit;
+
+    OffsetDateTime time;
 
     public static final class Converter {
 
-        public static AnalysisResultDto convert(final AnalysisResult object) {
-            AnalysisResultDto dto = new AnalysisResultDto();
+        public static CompilerAnalysisResultDto convert(final CompilationResult object) {
+            CompilerAnalysisResultDto dto = new CompilerAnalysisResultDto();
             dto.setId(object.getId());
-            dto.setQpu(object.getQpu());
             dto.setProvider(object.getProvider());
-            dto.setSdkConnector(object.getSdkConnector());
-            dto.setImplementation(ImplementationDto.Converter.convert(object.getImplementation()));
+            dto.setQpu(object.getQpu());
+            dto.setCompiler(object.getCompiler());
             dto.setAnalyzedDepth(object.getAnalyzedDepth());
             dto.setAnalyzedWidth(object.getAnalyzedWidth());
-            dto.setInputParameters(object.getInputParameters());
+            dto.setCircuitName(object.getCircuitName());
+            dto.setInitialCircuit(object.getInitialCircuit());
+            dto.setTranspiledCircuit(object.getTranspiledCircuit());
             dto.setTime(object.getTime());
             return dto;
         }

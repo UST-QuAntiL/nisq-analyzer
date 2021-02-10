@@ -54,6 +54,10 @@ public class ImplementationDto extends RepresentationModel<ImplementationDto> {
 
     @Getter
     @Setter
+    private String language;
+
+    @Getter
+    @Setter
     private String selectionRule;
 
     @Getter
@@ -96,6 +100,7 @@ public class ImplementationDto extends RepresentationModel<ImplementationDto> {
             dto.setSelectionRule(object.getSelectionRule());
             dto.setFileLocation(object.getFileLocation());
             dto.setSdk(object.getSdk().getName());
+            dto.setLanguage(object.getLanguage());
 
             ParameterListDto inputParams = new ParameterListDto();
             inputParams.add(object.getInputParameters().stream().map(ParameterDto.Converter::convert)
@@ -117,6 +122,7 @@ public class ImplementationDto extends RepresentationModel<ImplementationDto> {
             implementation.setSelectionRule(object.getSelectionRule());
             implementation.setFileLocation(object.getFileLocation());
             implementation.setSdk(sdk);
+            implementation.setLanguage(object.getLanguage());
             implementation.setInputParameters(object.getInputParameters().getParameters().stream()
                     .map(ParameterDto.Converter::convert)
                     .collect(Collectors.toList()));

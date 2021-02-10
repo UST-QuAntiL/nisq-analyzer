@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -21,10 +21,10 @@ package org.planqk.nisq.analyzer.core.repository;
 
 import java.util.UUID;
 
-import org.planqk.nisq.analyzer.core.model.Qpu;
+import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 @RepositoryRestResource(exported = false)
-public interface QpuRepository extends JpaRepository<Qpu, UUID> {
+public interface CompilationJobRepository extends JpaRepository<CompilationJob, UUID> {
 }

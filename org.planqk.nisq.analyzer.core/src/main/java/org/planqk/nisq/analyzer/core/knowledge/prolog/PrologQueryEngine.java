@@ -29,6 +29,7 @@ import java.util.UUID;
 import org.jpl7.PrologException;
 import org.jpl7.Query;
 import org.jpl7.Term;
+import org.planqk.nisq.analyzer.core.model.AnalysisCandidate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -123,7 +124,7 @@ public class PrologQueryEngine {
      * @param implementationId the id of the implementation for which
      * @return a list with an Id for each QPU that can execute the given implementation
      */
-    public List<UUID> getSuitableQpus(UUID implementationId) {
+    public List<AnalysisCandidate> getSuitableCandidates(UUID implementationId) {
         // check if file with required rule exists and create otherwise
         if (!prologKnowledgeBaseHandler.doesPrologFileExist(Constants.QPU_TRANSP_RULE_NAME)) {
             try {
@@ -135,11 +136,12 @@ public class PrologQueryEngine {
         }
         prologKnowledgeBaseHandler.activatePrologFile(Constants.QPU_TRANSP_RULE_NAME);
 
-        List<UUID> suitableQPUs = new ArrayList<>();
+        List<AnalysisCandidate> suitableCandidates = new ArrayList<>();
 
         // determine the suited QPUs for the implementation and the width/depth through the Prolog knowledge base
         String qpuVariable = "Qpu";
-        String query = "transpilableOnQpu('" + implementationId + "'," + qpuVariable + ").";
+        String connectorVariable = "Connector";
+        String query = "transpilableOnQpu('" + implementationId + "'," + qpuVariable + "," + connectorVariable + ").";
         LOG.debug("Executing the following query to determine the suitable QPUs: {}", query);
         Map<String, Term>[] solutions = getSolutions(query);
 
@@ -147,18 +149,24 @@ public class PrologQueryEngine {
         if (Objects.nonNull(solutions)) {
             LOG.debug("Retrieved {} possible qpu candidates for the query.", solutions.length);
             for (Map<String, Term> solution : solutions) {
-                if (Objects.nonNull(solution.get(qpuVariable))) {
-                    LOG.debug("Found solution: {}", solution.get(qpuVariable).name());
+
+                if (solution.containsKey(qpuVariable) && solution.containsKey(connectorVariable)) {
+
                     try {
-                        suitableQPUs.add(UUID.fromString(solution.get(qpuVariable).name()));
+                        suitableCandidates.add(new AnalysisCandidate(
+                                UUID.fromString(solution.get(qpuVariable).name()),
+                                solution.get(connectorVariable).name()
+                                ));
+
                     } catch (IllegalArgumentException e) {
-                        LOG.error("Unable to parse result to UUID!");
+                        LOG.error("Unable to parse result.");
                     }
+
                 }
             }
         }
 
-        return suitableQPUs;
+        return suitableCandidates;
     }
 
     /**

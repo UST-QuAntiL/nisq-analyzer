@@ -1,19 +1,13 @@
 package org.planqk.nisq.analyzer.core.web.controller;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
@@ -38,19 +32,28 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Tag(name = "analysis-result")
 @RestController
 @CrossOrigin(allowedHeaders = "*", origins = "*")
-@RequestMapping("/" + Constants.RESULTS)
+@RequestMapping("/" + Constants.ANALYSIS_RESULTS)
 public class AnalysisResultController {
     private final static Logger LOG = LoggerFactory.getLogger(AnalysisResultController.class);
 
     private final AnalysisResultRepository analysisResultRepository;
+
     private final ExecutionResultRepository executionResultRepository;
+
     private final NisqAnalyzerControlService controlService;
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
@@ -104,12 +107,13 @@ public class AnalysisResultController {
             Implementation implementation = analysisResult.getImplementation();
 
             // Retrieve the type of the parameter from the algorithm definition
-            Map<String, ParameterValue> typedParams = ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), analysisResult.getInputParameters());
+            Map<String, ParameterValue> typedParams =
+                    ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), analysisResult.getInputParameters());
 
             ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(analysisResult, typedParams);
 
             ExecutionResultDto dto = ExecutionResultDto.Converter.convert(result);
-            dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(implementation.getId(), result.getId())).withSelfRel());
+            dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(result.getId())).withSelfRel());
             return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
         } catch (RuntimeException e) {
             LOG.error("Error while executing implementation", e);
@@ -125,12 +129,9 @@ public class AnalysisResultController {
         dto.add(linkTo(methodOn(ImplementationController.class)
                 .getImplementation(result.getImplementation().getId()))
                 .withRel(Constants.EXECUTED_ALGORITHM_LINK));
-        dto.add(linkTo(methodOn(QpuController.class)
-                .getQpu(result.getQpu().getId()))
-                .withRel(Constants.USED_QPU_LINK));
         for (ExecutionResult executionResult : executionResultRepository.findByAnalysisResult(result)) {
-            dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(result.getImplementation().getId(),
-                    executionResult.getId())).withRel(Constants.EXECUTION + "-" + executionResult.getId()));
+            dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(executionResult.getId()))
+                    .withRel(Constants.EXECUTION + "-" + executionResult.getId()));
         }
         return dto;
     }

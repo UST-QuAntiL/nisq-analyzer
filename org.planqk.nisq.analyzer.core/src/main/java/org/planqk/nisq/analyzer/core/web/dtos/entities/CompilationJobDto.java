@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,46 +19,34 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.planqk.nisq.analyzer.core.model.CompilationJob;
+
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.assertj.core.util.Lists;
-import org.planqk.nisq.analyzer.core.model.Qpu;
-import org.springframework.hateoas.RepresentationModel;
 
-/**
- * Data transfer object for multiple {@link Qpu}s.
- */
-@NoArgsConstructor
-class RawQpuListDto extends RepresentationModel<RawQpuListDto> {
+public class CompilationJobDto extends CompilerAnalysisResultListDto {
 
     @Getter
     @Setter
-    @JsonProperty("qpuDtoes")
-    private final List<QpuDto> qpuDtoList = Lists.newArrayList();
-
-    public void add(final QpuDto... qpu) {
-        this.qpuDtoList.addAll(Arrays.asList(qpu));
-    }
-}
-
-@NoArgsConstructor
-public class QpuListDto extends RepresentationModel<RawQpuListDto> {
+    private UUID id;
 
     @Getter
     @Setter
-    @JsonProperty("_embedded")
-    private RawQpuListDto embedded;
+    private boolean ready;
 
-    public List<QpuDto> getQpuDtoList() {
-        return this.embedded.getQpuDtoList();
-    }
+    public static final class Converter {
 
-    public void add(final QpuDto... qpu) {
-        this.embedded.add(qpu);
+        public static CompilationJobDto convert(final CompilationJob object) {
+            CompilationJobDto dto = new CompilationJobDto();
+            dto.setId(object.getId());
+            dto.setReady(object.isReady());
+            if (object.isReady()) {
+                dto.add(object.getJobResults().stream().map(CompilerAnalysisResultDto.Converter::convert).collect(Collectors.toList()));
+            }
+            return dto;
+        }
     }
 }

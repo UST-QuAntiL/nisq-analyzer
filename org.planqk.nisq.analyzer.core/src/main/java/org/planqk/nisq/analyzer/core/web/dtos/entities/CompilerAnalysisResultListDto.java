@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,46 +19,23 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.assertj.core.util.Lists;
-import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.springframework.hateoas.RepresentationModel;
 
-/**
- * Data transfer object for multiple {@link Qpu}s.
- */
-@NoArgsConstructor
-class RawQpuListDto extends RepresentationModel<RawQpuListDto> {
+import lombok.Getter;
+
+public class CompilerAnalysisResultListDto extends RepresentationModel<CompilerAnalysisResultListDto> {
 
     @Getter
-    @Setter
-    @JsonProperty("qpuDtoes")
-    private final List<QpuDto> qpuDtoList = Lists.newArrayList();
+    private final List<CompilerAnalysisResultDto> compilerAnalysisResultList = new ArrayList<>();
 
-    public void add(final QpuDto... qpu) {
-        this.qpuDtoList.addAll(Arrays.asList(qpu));
-    }
-}
-
-@NoArgsConstructor
-public class QpuListDto extends RepresentationModel<RawQpuListDto> {
-
-    @Getter
-    @Setter
-    @JsonProperty("_embedded")
-    private RawQpuListDto embedded;
-
-    public List<QpuDto> getQpuDtoList() {
-        return this.embedded.getQpuDtoList();
+    public void add(final List<CompilerAnalysisResultDto> compilerAnalysisResultDtos) {
+        this.compilerAnalysisResultList.addAll(compilerAnalysisResultDtos);
     }
 
-    public void add(final QpuDto... qpu) {
-        this.embedded.add(qpu);
+    public void add(final CompilerAnalysisResultDto compilerAnalysisResultDto) {
+        this.compilerAnalysisResultList.add(compilerAnalysisResultDto);
     }
 }

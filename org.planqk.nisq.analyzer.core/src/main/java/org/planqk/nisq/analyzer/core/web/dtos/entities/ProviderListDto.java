@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,46 +19,51 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.assertj.core.util.Lists;
-import org.planqk.nisq.analyzer.core.model.Qpu;
-import org.springframework.hateoas.RepresentationModel;
+import org.planqk.nisq.analyzer.core.model.Provider;
 
-/**
- * Data transfer object for multiple {@link Qpu}s.
- */
 @NoArgsConstructor
-class RawQpuListDto extends RepresentationModel<RawQpuListDto> {
+@AllArgsConstructor
+class EmbeddedProviderListDto {
 
     @Getter
     @Setter
-    @JsonProperty("qpuDtoes")
-    private final List<QpuDto> qpuDtoList = Lists.newArrayList();
-
-    public void add(final QpuDto... qpu) {
-        this.qpuDtoList.addAll(Arrays.asList(qpu));
-    }
+    @JsonProperty("providerDtoes")
+    private List<ProviderDto> providers;
 }
 
 @NoArgsConstructor
-public class QpuListDto extends RepresentationModel<RawQpuListDto> {
+@AllArgsConstructor
+public class ProviderListDto {
 
     @Getter
     @Setter
     @JsonProperty("_embedded")
-    private RawQpuListDto embedded;
+    private EmbeddedProviderListDto embedded;
 
-    public List<QpuDto> getQpuDtoList() {
-        return this.embedded.getQpuDtoList();
+    public List<ProviderDto> getProviders() {
+        return this.embedded.getProviders();
     }
 
-    public void add(final QpuDto... qpu) {
-        this.embedded.add(qpu);
+    public static final class Converter {
+        public static ProviderListDto convert(List<Provider> providers) {
+
+            ProviderListDto dto = new ProviderListDto();
+
+            new EmbeddedProviderListDto(providers.stream().map(ProviderDto.Converter::convert).collect(Collectors.toList()));
+
+            return dto;
+        }
+
+        public static List<Provider> convert(ProviderListDto dto) {
+            return dto.getProviders().stream().map(ProviderDto.Converter::convert).collect(Collectors.toList());
+        }
     }
 }

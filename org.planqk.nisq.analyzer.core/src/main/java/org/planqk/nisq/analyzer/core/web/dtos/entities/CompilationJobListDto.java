@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,29 +17,25 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.connector;
+package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
-import lombok.AllArgsConstructor;
+import org.springframework.hateoas.RepresentationModel;
+
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@NoArgsConstructor
-@AllArgsConstructor
-public class QiskitExecutionResult {
-
-    @Setter
-    @Getter
-    private String id;
+public class CompilationJobListDto extends RepresentationModel<CompilationJobListDto> {
 
     @Getter
-    @Setter
-    private boolean complete;
+    private final List<CompilationJobDto> compilationJobList = new ArrayList<>();
 
-    @Getter
-    @Setter
-    private Map<String, Object> result = new HashMap<>();
+    public void add(final List<CompilationJobDto> compilationJobDtos) {
+        this.compilationJobList.addAll(compilationJobDtos);
+    }
+
+    public void add(final CompilationJobDto compilationJobDto) {
+        this.compilationJobList.add(compilationJobDto);
+    }
 }

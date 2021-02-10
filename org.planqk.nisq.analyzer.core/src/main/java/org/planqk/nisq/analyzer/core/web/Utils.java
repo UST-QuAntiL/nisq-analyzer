@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,39 +17,25 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
+package org.planqk.nisq.analyzer.core.web;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
-/**
- * Entity representing a quantum processing unit (Qpu).
- */
-@NoArgsConstructor
-public class Qpu extends HasId {
+import org.apache.commons.io.IOUtils;
 
-    @Getter
-    @Setter
-    private String name;
+public class Utils {
 
-    @Getter
-    @Setter
-    private int qubitCount;
-
-    @Getter
-    @Setter
-    private float t1;
-
-    @Getter
-    @Setter
-    private float maxGateTime;
-
-    @Getter
-    @Setter
-    private boolean simulator = false;
-
-    @Getter
-    @Setter
-    private String provider;
+    public static File inputStreamToFile (InputStream in, String fileEnding) throws IOException {
+        final File tempFile = File.createTempFile("temp", "." + fileEnding);
+        tempFile.deleteOnExit();
+        try (FileOutputStream out = new FileOutputStream(tempFile)) {
+            IOUtils.copy(in, out);
+            return tempFile;
+        } catch (IOException e) {
+            return null;
+        }
+    }
 }

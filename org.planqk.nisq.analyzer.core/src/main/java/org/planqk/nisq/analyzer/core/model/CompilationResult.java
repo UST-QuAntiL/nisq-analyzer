@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -20,12 +20,9 @@
 package org.planqk.nisq.analyzer.core.model;
 
 import java.time.OffsetDateTime;
-import java.util.Map;
-import java.util.UUID;
 
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
+import javax.persistence.Lob;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,29 +30,36 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Object to represent the result of a analysis for a certain qpu and implementation
+ * Object to represent the result of a compilation for a certain qpu and circuit
  */
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AnalysisResult extends HasId {
-    private UUID implementedAlgorithm;
+public class CompilationResult extends HasId {
 
-    // Reference to the QPU instance which is stored in the QProv database
-    private String qpu;
     private String provider;
-    private String sdkConnector;
 
-    @ManyToOne
-    private Implementation implementation;
+    private String qpu;
 
-    @ElementCollection
-    private Map<String, String> inputParameters;
-
-    private OffsetDateTime time;
+    private String compiler;
 
     private int analyzedDepth;
+
     private int analyzedWidth;
+
+    private String circuitName;
+
+    @Lob
+    private String initialCircuit;
+
+    @Lob
+    private String transpiledCircuit;
+
+    private String transpiledLanguage;
+
+    private String token;
+
+    private OffsetDateTime time;
 }

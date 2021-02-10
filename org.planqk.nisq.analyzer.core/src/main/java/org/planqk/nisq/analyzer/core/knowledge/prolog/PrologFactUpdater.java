@@ -21,13 +21,11 @@ package org.planqk.nisq.analyzer.core.knowledge.prolog;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import org.planqk.nisq.analyzer.core.connector.SdkConnector;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Qpu;
-import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -68,6 +66,26 @@ public class PrologFactUpdater {
     }
 
     /**
+     * Update the Prolog knowledge base with the required facts for a newly added SDK connector.
+     *
+     * @param connector SDK connector to add
+     */
+    public void handleSDKConnectorInsertion(SdkConnector connector) {
+        LOG.debug("Handling insertion of SDK connector with name {} in Prolog knowledge base.", connector.getClass().getSimpleName());
+
+        String prologContent = createSDKConnectorFacts(
+                connector.getClass().getSimpleName(),
+                connector.supportedSdks(),
+                connector.supportedProviders()
+        );
+        try {
+            prologKnowledgeBaseHandler.persistPrologFile(prologContent, connector.getClass().getSimpleName());
+        } catch (IOException e) {
+            LOG.error("Unable to store prolog file to add new facts after SDK connector insertion: {}", e.getMessage());
+        }
+    }
+
+    /**
      * Update the Prolog knowledge base with the required facts for a newly added QPU.
      *
      * @param qpu the added QPU
@@ -77,9 +95,10 @@ public class PrologFactUpdater {
 
         String prologContent = createQpuFacts(qpu.getId(),
                 qpu.getQubitCount(),
-                qpu.getSupportedSdks().stream().map(Sdk::getName).collect(Collectors.toList()),
+                qpu.getProvider(),
                 qpu.getT1(),
-                qpu.getMaxGateTime());
+                qpu.getMaxGateTime(),
+                qpu.isSimulator());
         try {
             prologKnowledgeBaseHandler.persistPrologFile(prologContent, qpu.getId().toString());
         } catch (IOException e) {
@@ -120,14 +139,14 @@ public class PrologFactUpdater {
      * @param maxGateTime   the maximum gate time for the given QPU
      * @param supportedSdks the list of supported SDKs of the QPU that is updated in the repository
      */
-    public void handleQpuUpdate(UUID id, int qubitCount, List<String> supportedSdks, float t1Time, float maxGateTime) {
+    public void handleQpuUpdate(UUID id, int qubitCount, List<String> supportedSdks, float t1Time, float maxGateTime, boolean isSimulator) {
         LOG.debug("Handling update of QPU with Id {} in Prolog knowledge base.", id);
 
         // deactivate and delete the Prolog file with the old facts
         prologKnowledgeBaseHandler.deletePrologFile(id.toString());
 
         // create and activate the Prolog file with the new facts
-        String prologContent = createQpuFacts(id, qubitCount, supportedSdks, t1Time, maxGateTime);
+        String prologContent = createQpuFacts(id, qubitCount, "", t1Time, maxGateTime, isSimulator);
         try {
             prologKnowledgeBaseHandler.persistPrologFile(prologContent, id.toString());
         } catch (IOException e) {
@@ -180,7 +199,7 @@ public class PrologFactUpdater {
     /**
      * Create a string containing all required prolog fact for an QPU.
      */
-    private String createQpuFacts(UUID qpuId, int qubitCount, List<String> supportedSdks, float t1Time, float maxGateTime) {
+    private String createQpuFacts(UUID qpuId, int qubitCount, String provider, float t1Time, float maxGateTime, boolean isSimulator) {
         String prologContent = "";
 
         // import prolog packages
@@ -191,11 +210,13 @@ public class PrologFactUpdater {
         prologContent += ":- multifile usedSdk/2." + newline;
         prologContent += ":- multifile t1Time/2." + newline;
         prologContent += ":- multifile maxGateTime/2." + newline;
+        prologContent += ":- multifile hasProvider/2." + newline;
 
         prologContent += createProvidesQubitFact(qpuId, qubitCount) + newline;
-        prologContent += createUsesSdkFacts(qpuId, supportedSdks) + newline;
+        prologContent += createHasProviderFact(qpuId, provider) + newline;
         prologContent += createT1TimeFact(qpuId, t1Time) + newline;
         prologContent += createMaxGateTimeFact(qpuId, maxGateTime) + newline;
+        prologContent += createIsSimulatorFact(qpuId, isSimulator);
         return prologContent;
     }
 
@@ -212,6 +233,53 @@ public class PrologFactUpdater {
             prologContent += "usedSdk('" + qpuId + "'," + supportedSdk.toLowerCase() + ")." + newline;
         }
         return prologContent;
+    }
+
+    /**
+     * Create the fact that the given QPU has the given provider
+     * @param qpuId the id of the QPU
+     * @param provider the provider of the QPU
+     * @return the Prolog fact
+     */
+    private String createHasProviderFact(UUID qpuId, String provider) {
+        return "hasProvider('" + qpuId + "','" + provider.toLowerCase() + "').";
+    }
+
+    private String createSDKConnectorFacts(String name, List<String> supportedSDKs, List<String> supportedProvider) {
+
+        String prologContent = "";
+
+        // the following lines are required to define the same predicate in multiple files
+        prologContent += ":- multifile supportsSDK/2." + newline;
+        prologContent += ":- multifile supportsProvider/2." + newline;
+
+        // Add SDKs that are supported by the SDK connector
+        for (String sdk : supportedSDKs) {
+            prologContent += "supportsSDK(" + name.toLowerCase() + ","  + sdk.toLowerCase() + ")." + newline;
+        }
+
+        // Add providers that are supported by the SDK connector
+        for (String provider : supportedProvider) {
+            prologContent += "supportsProvider(" + name.toLowerCase() + "," + provider.toLowerCase() + ")." + newline;
+        }
+
+        return prologContent;
+    }
+
+    /**
+     * Create a fact whether the given QPU is a simulator
+     *
+     * @param qpuId         the id of the QPU
+     * @param
+     * @return the Prolog fact
+     */
+    private String createIsSimulatorFact(UUID qpuId, boolean isSimulator) {
+
+        if (isSimulator) {
+            return "isSimulator('" + qpuId + "')." + newline;
+        } else {
+            return "";
+        }
     }
 
     /**

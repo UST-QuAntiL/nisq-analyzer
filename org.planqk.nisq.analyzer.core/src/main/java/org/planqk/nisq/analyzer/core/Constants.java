@@ -26,20 +26,39 @@ public class Constants {
 
     // URL snippets
     public static final String IMPLEMENTATIONS = "implementations";
-    public static final String QPUS = "qpus";
     public static final String SDKS = "sdks";
     public static final String EXECUTION = "execute";
     public static final String SELECTION = "selection";
+    public static final String COMPILER_SELECTION = "compiler-selection";
     public static final String SELECTION_PARAMS = "selection-params";
-    public static final String RESULTS = "results";
+    public static final String ANALYSIS_RESULTS = "analysis-results";
+    public static final String COMPILER_RESULTS = "compiler-results";
+    public static final String EXECUTION_RESULTS = "execution-results";
+    public static final String COMPILER_JOBS = "jobs";
 
     // link names
     public static final String USED_SDK = "used-sdk";
-    public static final String SUPPORTED_SDK = "supported-sdk";
     public static final String INPUT_PARAMS = "input-parameters";
     public static final String OUTPUT_PARAMS = "output-parameters";
     public static final String RESULTS_LINK = "results";
     public static final String EXECUTED_ALGORITHM_LINK = "executed-algorithm";
-    public static final String USED_QPU_LINK = "used-qpu";
     public static final String USED_ANALYSIS_RESULT = "analysis-result";
+    public static final String USED_COMPILATION_RESULT = "compilation-result";
+
+    // circuit languages
+    public static final String OPENQASM = "openqasm";
+    public static final String QUIL = "quil";
+    public static final String PYQUIL = "pyquil";
+
+    // provider
+    public static final String IBMQ = "ibmq";
+    public static final String RIGETTI = "rigetti";
+
+    // sdks
+    public static final String QISKIT = "qiskit";
+    public static final String PYTKET = "pytket";
+    public static final String FOREST = "forest";
+
+    // parameter
+    public static final String TOKEN_PARAMETER = "token";
 }

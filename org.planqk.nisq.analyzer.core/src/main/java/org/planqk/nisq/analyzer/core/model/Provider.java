@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,15 +19,15 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
+import java.net.URL;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.planqk.nisq.analyzer.core.model.HasId;
 
-/**
- * Entity representing a quantum processing unit (Qpu).
- */
 @NoArgsConstructor
-public class Qpu extends HasId {
+public class Provider extends HasId {
 
     @Getter
     @Setter
@@ -35,21 +35,5 @@ public class Qpu extends HasId {
 
     @Getter
     @Setter
-    private int qubitCount;
-
-    @Getter
-    @Setter
-    private float t1;
-
-    @Getter
-    @Setter
-    private float maxGateTime;
-
-    @Getter
-    @Setter
-    private boolean simulator = false;
-
-    @Getter
-    @Setter
-    private String provider;
+    private URL offeringURL;
 }

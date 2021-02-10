@@ -56,6 +56,10 @@ public class Implementation extends HasId {
 
     @Getter
     @Setter
+    private String language;
+
+    @Getter
+    @Setter
     private UUID implementedAlgorithm;
 
     @Getter
