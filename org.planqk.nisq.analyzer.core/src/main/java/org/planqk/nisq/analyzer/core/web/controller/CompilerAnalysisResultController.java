@@ -39,6 +39,7 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilerAnalysisResultRepository;
+import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilerAnalysisResultDto;
@@ -72,6 +73,8 @@ public class CompilerAnalysisResultController {
     private final static Logger LOG = LoggerFactory.getLogger(AnalysisResultController.class);
 
     private final CompilerAnalysisResultRepository compilerAnalysisResultRepository;
+
+    private final ExecutionResultRepository executionResultRepository;
 
     private final CompilationJobRepository compilationJobRepository;
 
@@ -157,6 +160,10 @@ public class CompilerAnalysisResultController {
         CompilerAnalysisResultDto dto = CompilerAnalysisResultDto.Converter.convert(result);
         dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisResult(result.getId())).withSelfRel());
         dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).executeCompilationResult(result.getId())).withRel(Constants.EXECUTION));
+        for (ExecutionResult executionResult : executionResultRepository.findByCompilationResult(result)) {
+            dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(executionResult.getId()))
+                .withRel(Constants.EXECUTION + "-" + executionResult.getId()));
+        }
         return dto;
     }
 
