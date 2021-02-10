@@ -98,8 +98,10 @@ public class PyTketSdkConnector implements SdkConnector {
         switch (transpiledLanguage.toLowerCase()) {
             case "openqasm":
                 request = new PyTketRequest(qpuName, parameters, transpiledCircuit, providerName, PyTketRequest.TranspiledLanguage.OpenQASM);
+                break;
             case "quil":
                 request = new PyTketRequest(qpuName, parameters, transpiledCircuit, providerName, PyTketRequest.TranspiledLanguage.Quil);
+                break;
         }
 
         if (request != null) {
