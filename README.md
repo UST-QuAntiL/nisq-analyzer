@@ -53,10 +53,9 @@ Use the [HAL Browser](http://localhost:8081/nisq-analyzer/browser/index.html#htt
 
 ### Data Creation  
 1. create a SDK via `POST /nisq-analyzer/sdks/`
-2. create a QPU via `POST /nisq-analyzer/qpus/` (use the UUID of the created SDK)
-3. create an implementation via `POST /nisq-analyzer/implementations/` (via API, an arbitrary UUID for the implementedAlgorithm attribute can be used for implementations of one quantum algorithm)
+2. create an implementation via `POST /nisq-analyzer/implementations/` (via API, an arbitrary UUID for the implementedAlgorithm attribute can be used for implementations of one quantum algorithm)
 
-### Selection and Execution Mechanism of NISQ Analyzer + Qiskit Service
+### Implementation and QPU Selection & Execution Mechanism of NISQ Analyzer + Qiskit Service
 Get the required selection parameters via `GET /nisq-analyzer/selection-params` with {algoId}.  
 
 For using the selection mechanism use  
@@ -77,6 +76,26 @@ Get analysis results via `GET /nisq-analyzer/results/algorithm/{algoId}`.
 Start the execution of an implementation and its analysis result via `POST /nisq-analyzer/results/{resId}/execute`.  
 Get execution results of an implementation via `POST /nisq-analyzer/implementations/{implId}/results/`.  
 
+### Compiler Selection & Circuit Execution Mechanism of NISQ Analyzer  
+
+* For running the compiler-selection with all its components use the docker-compose in [nisq-analyzer-content/compiler-selection](https://github.com/UST-QuAntiL/nisq-analyzer-content/tree/master/compiler-selection). 
+
+For using the compiler selection mechanism use  
+`POST /nisq-analyzer/compiler-selection`
+```
+{
+  "providerName": "NAME-OF-PROVIDER",
+  "qpuName": "QPU-NAME",
+  "token": "YOUR-IBMQ-TOKEN",
+  "circuitLanguage": "LANGUAGE-OF-CIRCUIT",
+  "circuitName": "NAME-OF-CIRCUIT",
+  "circuitUrl: "URL-OF-RAW-CIRCUIT"
+}
+```
+**Note**: Instead of the URL, also a file can be uploaded containing the quantum circuit.  
+Get compiler analysis results via `GET /nisq-analyzer/compiler-results/jobs/{resId}`.  
+Start the execution of a certain compiled circuit via `POST /nisq-analyzer/compiler-results/{resId}/execute`.  
+Get execution result of the circuit via `POST /nisq-analyzer/execution-results/{resultId}`.  
 
 ## Haftungsausschluss
 
