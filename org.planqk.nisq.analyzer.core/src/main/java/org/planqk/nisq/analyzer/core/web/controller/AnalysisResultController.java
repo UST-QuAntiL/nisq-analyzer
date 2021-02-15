@@ -8,17 +8,26 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.transaction.Transactional;
+
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
+import org.planqk.nisq.analyzer.core.model.ImplementationSelectionJob;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
+import org.planqk.nisq.analyzer.core.repository.ImplementationSelectionJobRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationSelectionJobDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationSelectionJobListDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
@@ -54,6 +63,8 @@ public class AnalysisResultController {
 
     private final ExecutionResultRepository executionResultRepository;
 
+    private final ImplementationSelectionJobRepository implementationSelectionJobRepository;
+
     private final NisqAnalyzerControlService controlService;
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
@@ -75,6 +86,17 @@ public class AnalysisResultController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve all compiler analysis jobs")
+    @GetMapping("/" + Constants.IMPLEMENTATION_SELECTION_JOBS)
+    @Transactional
+    public HttpEntity<ImplementationSelectionJobListDto> getImplementationSelectionJobs() {
+        ImplementationSelectionJobListDto model = new ImplementationSelectionJobListDto();
+        model.add(implementationSelectionJobRepository.findAll().stream().map(this::createDto).collect(Collectors.toList()));
+        model.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJobs()).withSelfRel());
+        return new ResponseEntity<>(model, HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve a single analysis result")
     @GetMapping("/{resId}")
     public HttpEntity<AnalysisResultDto> getAnalysisResult(@PathVariable UUID resId) {
@@ -87,6 +109,22 @@ public class AnalysisResultController {
         }
 
         return new ResponseEntity<>(createAnalysisResultDto(result.get()), HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve a single implementation selection result")
+    @GetMapping("/" + Constants.IMPLEMENTATION_SELECTION_JOBS + "/{resId}")
+    @Transactional
+    public HttpEntity<ImplementationSelectionJobDto> getImplementationSelectionJob(@PathVariable UUID resId) {
+        LOG.debug("Get to retrieve implementation selection job with id: {}.", resId);
+
+        Optional<ImplementationSelectionJob> result = implementationSelectionJobRepository.findById(resId);
+        if (!result.isPresent()) {
+            LOG.error("Unable to retrieve implementation selection result with id {} from the repository.", resId);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(createDto(result.get()), HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
@@ -133,6 +171,12 @@ public class AnalysisResultController {
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(executionResult.getId()))
                     .withRel(Constants.EXECUTION + "-" + executionResult.getId()));
         }
+        return dto;
+    }
+
+    private ImplementationSelectionJobDto createDto(ImplementationSelectionJob job) {
+        ImplementationSelectionJobDto dto = ImplementationSelectionJobDto.Converter.convert(job);
+        dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJob(job.getId())).withSelfRel());
         return dto;
     }
 }

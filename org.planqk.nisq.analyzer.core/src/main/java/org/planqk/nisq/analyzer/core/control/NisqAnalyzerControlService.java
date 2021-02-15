@@ -51,6 +51,7 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.HasId;
 import org.planqk.nisq.analyzer.core.model.Implementation;
+import org.planqk.nisq.analyzer.core.model.ImplementationSelectionJob;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Provider;
@@ -61,6 +62,7 @@ import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilerAnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
+import org.planqk.nisq.analyzer.core.repository.ImplementationSelectionJobRepository;
 import org.planqk.nisq.analyzer.core.translator.TranslatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,6 +98,8 @@ public class NisqAnalyzerControlService {
     final private TranslatorService translatorService;
 
     final private CompilationJobRepository compilationJobRepository;
+
+    final private ImplementationSelectionJobRepository implementationSelectionJobRepository;
 
     /**
      * Execute the given quantum algorithm implementation with the given input parameters and return the corresponding output of the execution.
@@ -180,9 +184,8 @@ public class NisqAnalyzerControlService {
      * @throws UnsatisfiedLinkError Is thrown if the jpl driver is not on the java class path
      */
 
-    public List<AnalysisResult> performSelection(UUID algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
+    public void performSelection(ImplementationSelectionJob job, UUID algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
         LOG.debug("Performing implementation and QPU selection for algorithm with Id: {}", algorithm);
-        List<AnalysisResult> analysisResult = new ArrayList<>();
 
         // check all implementation if they can handle the given set of input parameters
         List<Implementation> implementations = implementationRepository.findByImplementedAlgorithm(algorithm);
@@ -274,7 +277,7 @@ public class NisqAnalyzerControlService {
                             circuitInformation.getCircuitDepth())) {
 
                         // qpu is suited candidate to execute the implementation
-                        analysisResult.add(analysisResultRepository.save(new AnalysisResult(
+                        job.getJobResults().add(analysisResultRepository.save(new AnalysisResult(
                                 algorithm, qpu.getName(), provider.getName(),
                                 selectedSdkConnector.getName(), executableImpl, inputParameters, OffsetDateTime.now(),
                                 circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth())));
@@ -287,7 +290,9 @@ public class NisqAnalyzerControlService {
                 }
             }
         }
-        return analysisResult;
+
+        job.setReady(true);
+        implementationSelectionJobRepository.save(job);
     }
 
     /**
