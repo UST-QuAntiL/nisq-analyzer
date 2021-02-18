@@ -204,6 +204,8 @@ public class NisqAnalyzerControlService {
         LOG.debug("{} implementations are executable for the given input parameters after applying the selection rules.",
                 executableImplementations.size());
 
+        List<AnalysisResult> analysisResults = new ArrayList<>();
+
         // Iterate over all providers listed in QProv
         for (Provider provider : qProvService.getProviders()) {
 
@@ -277,10 +279,14 @@ public class NisqAnalyzerControlService {
                             circuitInformation.getCircuitDepth())) {
 
                         // qpu is suited candidate to execute the implementation
-                        job.getJobResults().add(analysisResultRepository.save(new AnalysisResult(
+                       AnalysisResult result = analysisResultRepository.save(new AnalysisResult(
                                 algorithm, qpu.getName(), provider.getName(),
                                 selectedSdkConnector.getName(), executableImpl, inputParameters, OffsetDateTime.now(),
-                                circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth())));
+                                circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth()));
+
+                        analysisResults.add(result);
+                        job.setJobResults(analysisResults);
+                        job = implementationSelectionJobRepository.save(job);
 
                         LOG.debug("QPU {} suitable for implementation {}.", qpu.getName(), executableImpl.getName());
                     } else {

@@ -42,9 +42,8 @@ public class ImplementationSelectionJobDto extends AnalysisResultListDto {
             ImplementationSelectionJobDto dto = new ImplementationSelectionJobDto();
             dto.setId(object.getId());
             dto.setReady(object.isReady());
-            if (object.isReady()) {
-                dto.add(object.getJobResults().stream().map(AnalysisResultDto.Converter::convert).collect(Collectors.toList()));
-            }
+            dto.add(object.getJobResults().stream().map(AnalysisResultDto.Converter::convert).collect(Collectors.toList()));
+
             return dto;
         }
     }
