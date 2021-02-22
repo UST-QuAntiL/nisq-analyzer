@@ -212,6 +212,6 @@ public class ForestSdkConnector implements SdkConnector {
 
     @Override
     public String getName() {
-        return this.getClass().getSimpleName().toLowerCase();
+        return this.getClass().getSimpleName().toLowerCase().replace("sdkconnector", "");
     }
 }

@@ -74,7 +74,7 @@ public class PrologFactUpdater {
         LOG.debug("Handling insertion of SDK connector with name {} in Prolog knowledge base.", connector.getClass().getSimpleName());
 
         String prologContent = createSDKConnectorFacts(
-                connector.getClass().getSimpleName(),
+                connector.getName(),
                 connector.supportedSdks(),
                 connector.supportedProviders()
         );

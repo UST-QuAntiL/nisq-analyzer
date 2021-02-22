@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,20 +19,28 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import java.util.UUID;
-import lombok.EqualsAndHashCode;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
+
 import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
+@Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AnalysisCandidate {
+public class AnalysisJob extends HasId {
 
-    private UUID qpu;
+    private boolean ready;
 
-    private String compiler;
+    @OneToMany(cascade = CascadeType.PERSIST)
+    private List<AnalysisResult> jobResults = new ArrayList<>();
+
 }

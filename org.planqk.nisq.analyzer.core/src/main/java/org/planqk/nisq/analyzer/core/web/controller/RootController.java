@@ -31,14 +31,14 @@ import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
-import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
+import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
+import org.planqk.nisq.analyzer.core.repository.ImplementationSelectionJobRepository;
 import org.planqk.nisq.analyzer.core.web.Utils;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultDto;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilerAnalysisResultListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisJobDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.requests.CompilerSelectionDto;
@@ -77,10 +77,14 @@ public class RootController {
 
     private final CompilationJobRepository compilationJobRepository;
 
+    private final ImplementationSelectionJobRepository implementationSelectionJobRepository;
+
     public RootController(NisqAnalyzerControlService nisqAnalyzerService,
-                          CompilationJobRepository compilationJobRepository) {
+                          CompilationJobRepository compilationJobRepository,
+                          ImplementationSelectionJobRepository implementationSelectionJobRepository) {
         this.nisqAnalyzerService = nisqAnalyzerService;
         this.compilationJobRepository = compilationJobRepository;
+        this.implementationSelectionJobRepository = implementationSelectionJobRepository;
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200")}, description = "Root operation, returns further links")
@@ -129,7 +133,7 @@ public class RootController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select implementations for an algorithm")
     @PostMapping("/" + Constants.SELECTION)
-    public HttpEntity<AnalysisResultListDto> selectImplementations(@RequestBody SelectionRequestDto params) {
+    public HttpEntity<AnalysisJobDto> selectImplementations(@RequestBody SelectionRequestDto params) {
         LOG.debug("Post to select implementations for algorithm with Id {} received.", params.getAlgorithmId());
 
         if (Objects.isNull(params.getAlgorithmId())) {
@@ -143,9 +147,12 @@ public class RootController {
         }
         LOG.debug("Received {} parameters for the selection.", params.getParameters().size());
 
-        List<AnalysisResult> analysisResults;
+        AnalysisJob job = implementationSelectionJobRepository.save( new AnalysisJob());
+
         try {
-            analysisResults = nisqAnalyzerService.performSelection(params.getAlgorithmId(), params.getParameters());
+            new Thread( () -> {
+                nisqAnalyzerService.performSelection(job, params.getAlgorithmId(), params.getParameters());
+            }).start();
         } catch (UnsatisfiedLinkError e) {
             LOG.error(
                     "UnsatisfiedLinkError while activating prolog rule. Please make sure prolog is installed and configured correctly to use the NISQ analyzer functionality!",
@@ -153,9 +160,9 @@ public class RootController {
             return new ResponseEntity("No prolog engine accessible from the server. Selection not possible!", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        AnalysisResultListDto analysisResultListDto = new AnalysisResultListDto();
-        analysisResultListDto.add(analysisResults.stream().map(AnalysisResultDto.Converter::convert).collect(Collectors.toList()));
-        return new ResponseEntity<>(analysisResultListDto, HttpStatus.OK);
+        AnalysisJobDto dto = AnalysisJobDto.Converter.convert(job);
+        dto.add(linkTo(methodOn(AnalysisResultController.class).getImplementationSelectionJob(job.getId())).withSelfRel());
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),

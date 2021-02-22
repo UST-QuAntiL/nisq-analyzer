@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,22 +17,34 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
+package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
 import java.util.UUID;
-import lombok.EqualsAndHashCode;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import java.util.stream.Collectors;
 
+import lombok.Getter;
+import lombok.Setter;
+import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 
-@EqualsAndHashCode
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class AnalysisCandidate {
+public class AnalysisJobDto extends AnalysisResultListDto {
 
-    private UUID qpu;
+    @Getter
+    @Setter
+    private UUID id;
 
-    private String compiler;
+    @Getter
+    @Setter
+    private boolean ready;
+
+    public static final class Converter {
+
+        public static AnalysisJobDto convert(final AnalysisJob object) {
+            AnalysisJobDto dto = new AnalysisJobDto();
+            dto.setId(object.getId());
+            dto.setReady(object.isReady());
+            dto.add(object.getJobResults().stream().map(AnalysisResultDto.Converter::convert).collect(Collectors.toList()));
+
+            return dto;
+        }
+    }
 }

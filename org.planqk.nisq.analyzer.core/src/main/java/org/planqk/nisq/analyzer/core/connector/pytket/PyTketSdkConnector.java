@@ -237,6 +237,6 @@ public class PyTketSdkConnector implements SdkConnector {
 
     @Override
     public String getName() {
-        return this.getClass().getSimpleName().toLowerCase();
+        return this.getClass().getSimpleName().toLowerCase().replace("sdkconnector", "");
     }
 }

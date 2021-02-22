@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,22 +17,14 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
+package org.planqk.nisq.analyzer.core.repository;
 
 import java.util.UUID;
-import lombok.EqualsAndHashCode;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
+import org.planqk.nisq.analyzer.core.model.AnalysisJob;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-@EqualsAndHashCode
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class AnalysisCandidate {
-
-    private UUID qpu;
-
-    private String compiler;
+@RepositoryRestResource(exported = false)
+public interface ImplementationSelectionJobRepository extends JpaRepository<AnalysisJob, UUID> {
 }

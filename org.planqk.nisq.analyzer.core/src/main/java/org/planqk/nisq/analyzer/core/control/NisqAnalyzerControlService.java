@@ -51,6 +51,7 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.HasId;
 import org.planqk.nisq.analyzer.core.model.Implementation;
+import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Provider;
@@ -61,6 +62,7 @@ import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilerAnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
+import org.planqk.nisq.analyzer.core.repository.ImplementationSelectionJobRepository;
 import org.planqk.nisq.analyzer.core.translator.TranslatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,6 +99,8 @@ public class NisqAnalyzerControlService {
 
     final private CompilationJobRepository compilationJobRepository;
 
+    final private ImplementationSelectionJobRepository implementationSelectionJobRepository;
+
     /**
      * Execute the given quantum algorithm implementation with the given input parameters and return the corresponding output of the execution.
      *
@@ -112,11 +116,11 @@ public class NisqAnalyzerControlService {
 
         // get suited Sdk connector plugin
         SdkConnector selectedSdkConnector = connectorList.stream()
-                .filter(executor -> executor.getName().equals(result.getSdkConnector()))
+                .filter(executor -> executor.getName().equals(result.getCompiler()))
                 .findFirst().orElse(null);
         if (Objects.isNull(selectedSdkConnector)) {
-            LOG.error("Unable to find connector plugin with name {}.", result.getSdkConnector());
-            throw new RuntimeException("Unable to find connector plugin with name " + result.getSdkConnector());
+            LOG.error("Unable to find connector plugin with name {}.", result.getCompiler());
+            throw new RuntimeException("Unable to find connector plugin with name " + result.getCompiler());
         }
 
         // Retrieve the QPU from QProv
@@ -180,9 +184,8 @@ public class NisqAnalyzerControlService {
      * @throws UnsatisfiedLinkError Is thrown if the jpl driver is not on the java class path
      */
 
-    public List<AnalysisResult> performSelection(UUID algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
+    public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
         LOG.debug("Performing implementation and QPU selection for algorithm with Id: {}", algorithm);
-        List<AnalysisResult> analysisResult = new ArrayList<>();
 
         // check all implementation if they can handle the given set of input parameters
         List<Implementation> implementations = implementationRepository.findByImplementedAlgorithm(algorithm);
@@ -200,6 +203,8 @@ public class NisqAnalyzerControlService {
                 .collect(Collectors.toList());
         LOG.debug("{} implementations are executable for the given input parameters after applying the selection rules.",
                 executableImplementations.size());
+
+        List<AnalysisResult> analysisResults = new ArrayList<>();
 
         // Iterate over all providers listed in QProv
         for (Provider provider : qProvService.getProviders()) {
@@ -243,11 +248,11 @@ public class NisqAnalyzerControlService {
 
                     // get suited Sdk connector
                     SdkConnector selectedSdkConnector = connectorList.stream()
-                            .filter(executor -> executor.getName().equals(candidate.getSdkConnector()))
+                            .filter(executor -> executor.getName().equals(candidate.getCompiler()))
                             .findFirst().orElse(null);
 
                     if (Objects.isNull(selectedSdkConnector)) {
-                        LOG.warn("Unable to find Sdk connector: {}.", candidate.getSdkConnector());
+                        LOG.warn("Unable to find Sdk connector: {}.", candidate.getCompiler());
                         continue;
                     }
 
@@ -274,10 +279,14 @@ public class NisqAnalyzerControlService {
                             circuitInformation.getCircuitDepth())) {
 
                         // qpu is suited candidate to execute the implementation
-                        analysisResult.add(analysisResultRepository.save(new AnalysisResult(
+                       AnalysisResult result = analysisResultRepository.save(new AnalysisResult(
                                 algorithm, qpu.getName(), provider.getName(),
                                 selectedSdkConnector.getName(), executableImpl, inputParameters, OffsetDateTime.now(),
-                                circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth())));
+                                circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth()));
+
+                        analysisResults.add(result);
+                        job.setJobResults(analysisResults);
+                        job = implementationSelectionJobRepository.save(job);
 
                         LOG.debug("QPU {} suitable for implementation {}.", qpu.getName(), executableImpl.getName());
                     } else {
@@ -287,7 +296,9 @@ public class NisqAnalyzerControlService {
                 }
             }
         }
-        return analysisResult;
+
+        job.setReady(true);
+        implementationSelectionJobRepository.save(job);
     }
 
     /**
@@ -453,7 +464,7 @@ public class NisqAnalyzerControlService {
 
         for (SdkConnector connector : connectorList) {
 
-            String connectorName = connector.getClass().getSimpleName();
+            String connectorName = connector.getName();
 
             if (!prologKnowledgeBaseHandler.doesPrologFileExist(connectorName)) {
                 prologFactUpdater.handleSDKConnectorInsertion(connector);
