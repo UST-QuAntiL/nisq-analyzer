@@ -248,11 +248,11 @@ public class NisqAnalyzerControlService {
 
                     // get suited Sdk connector
                     SdkConnector selectedSdkConnector = connectorList.stream()
-                            .filter(executor -> executor.getName().equals(candidate.getSdkConnector()))
+                            .filter(executor -> executor.getName().equals(candidate.getCompiler()))
                             .findFirst().orElse(null);
 
                     if (Objects.isNull(selectedSdkConnector)) {
-                        LOG.warn("Unable to find Sdk connector: {}.", candidate.getSdkConnector());
+                        LOG.warn("Unable to find Sdk connector: {}.", candidate.getCompiler());
                         continue;
                     }
 
@@ -464,7 +464,7 @@ public class NisqAnalyzerControlService {
 
         for (SdkConnector connector : connectorList) {
 
-            String connectorName = connector.getClass().getSimpleName();
+            String connectorName = connector.getName();
 
             if (!prologKnowledgeBaseHandler.doesPrologFileExist(connectorName)) {
                 prologFactUpdater.handleSDKConnectorInsertion(connector);

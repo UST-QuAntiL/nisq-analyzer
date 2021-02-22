@@ -34,5 +34,5 @@ public class AnalysisCandidate {
 
     private UUID qpu;
 
-    private String sdkConnector;
+    private String compiler;
 }
