@@ -35,7 +35,7 @@ public class Constants {
     public static final String COMPILER_RESULTS = "compiler-results";
     public static final String EXECUTION_RESULTS = "execution-results";
     public static final String COMPILER_JOBS = "jobs";
-    public static final String IMPLEMENTATION_SELECTION_JOBS = "jobs";
+    public static final String ANALYSIS_JOBS = "jobs";
 
     // link names
     public static final String USED_SDK = "used-sdk";

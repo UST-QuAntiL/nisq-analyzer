@@ -36,7 +36,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ImplementationSelectionJob extends HasId {
+public class AnalysisJob extends HasId {
 
     private boolean ready;
 

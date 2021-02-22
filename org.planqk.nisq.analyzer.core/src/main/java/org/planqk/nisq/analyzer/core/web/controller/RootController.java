@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
-import org.planqk.nisq.analyzer.core.model.ImplementationSelectionJob;
+import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationSelectionJobRepository;
 import org.planqk.nisq.analyzer.core.web.Utils;
@@ -147,7 +147,7 @@ public class RootController {
         }
         LOG.debug("Received {} parameters for the selection.", params.getParameters().size());
 
-        ImplementationSelectionJob job = implementationSelectionJobRepository.save( new ImplementationSelectionJob());
+        AnalysisJob job = implementationSelectionJobRepository.save( new AnalysisJob());
 
         try {
             new Thread( () -> {

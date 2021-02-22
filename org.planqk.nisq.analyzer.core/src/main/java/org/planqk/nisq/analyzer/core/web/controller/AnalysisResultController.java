@@ -15,7 +15,7 @@ import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
-import org.planqk.nisq.analyzer.core.model.ImplementationSelectionJob;
+import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
@@ -84,7 +84,7 @@ public class AnalysisResultController {
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve all compiler analysis jobs")
-    @GetMapping("/" + Constants.IMPLEMENTATION_SELECTION_JOBS)
+    @GetMapping("/" + Constants.ANALYSIS_JOBS)
     @Transactional
     public HttpEntity<AnalysisJobListDto> getImplementationSelectionJobs() {
         AnalysisJobListDto model = new AnalysisJobListDto();
@@ -110,12 +110,12 @@ public class AnalysisResultController {
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve a single implementation selection result")
-    @GetMapping("/" + Constants.IMPLEMENTATION_SELECTION_JOBS + "/{resId}")
+    @GetMapping("/" + Constants.ANALYSIS_JOBS + "/{resId}")
     @Transactional
     public HttpEntity<AnalysisJobDto> getImplementationSelectionJob(@PathVariable UUID resId) {
         LOG.debug("Get to retrieve implementation selection job with id: {}.", resId);
 
-        Optional<ImplementationSelectionJob> result = implementationSelectionJobRepository.findById(resId);
+        Optional<AnalysisJob> result = implementationSelectionJobRepository.findById(resId);
         if (!result.isPresent()) {
             LOG.error("Unable to retrieve implementation selection result with id {} from the repository.", resId);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -171,7 +171,7 @@ public class AnalysisResultController {
         return dto;
     }
 
-    private AnalysisJobDto createDto(ImplementationSelectionJob job) {
+    private AnalysisJobDto createDto(AnalysisJob job) {
         AnalysisJobDto dto = AnalysisJobDto.Converter.convert(job);
         dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJob(job.getId())).withSelfRel());
         return dto;

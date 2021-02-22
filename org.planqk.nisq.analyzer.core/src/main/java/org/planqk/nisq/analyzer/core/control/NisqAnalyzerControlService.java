@@ -51,7 +51,7 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.HasId;
 import org.planqk.nisq.analyzer.core.model.Implementation;
-import org.planqk.nisq.analyzer.core.model.ImplementationSelectionJob;
+import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Provider;
@@ -184,7 +184,7 @@ public class NisqAnalyzerControlService {
      * @throws UnsatisfiedLinkError Is thrown if the jpl driver is not on the java class path
      */
 
-    public void performSelection(ImplementationSelectionJob job, UUID algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
+    public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
         LOG.debug("Performing implementation and QPU selection for algorithm with Id: {}", algorithm);
 
         // check all implementation if they can handle the given set of input parameters

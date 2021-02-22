@@ -21,10 +21,10 @@ package org.planqk.nisq.analyzer.core.repository;
 
 import java.util.UUID;
 
-import org.planqk.nisq.analyzer.core.model.ImplementationSelectionJob;
+import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 @RepositoryRestResource(exported = false)
-public interface ImplementationSelectionJobRepository extends JpaRepository<ImplementationSelectionJob, UUID> {
+public interface ImplementationSelectionJobRepository extends JpaRepository<AnalysisJob, UUID> {
 }

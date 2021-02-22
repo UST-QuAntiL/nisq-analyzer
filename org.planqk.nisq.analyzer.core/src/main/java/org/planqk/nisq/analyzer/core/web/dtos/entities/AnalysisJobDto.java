@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.planqk.nisq.analyzer.core.model.ImplementationSelectionJob;
+import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 
 public class AnalysisJobDto extends AnalysisResultListDto {
 
@@ -38,7 +38,7 @@ public class AnalysisJobDto extends AnalysisResultListDto {
 
     public static final class Converter {
 
-        public static AnalysisJobDto convert(final ImplementationSelectionJob object) {
+        public static AnalysisJobDto convert(final AnalysisJob object) {
             AnalysisJobDto dto = new AnalysisJobDto();
             dto.setId(object.getId());
             dto.setReady(object.isReady());
