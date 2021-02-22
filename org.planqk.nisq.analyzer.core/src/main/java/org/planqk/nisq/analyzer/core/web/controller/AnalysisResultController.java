@@ -13,7 +13,6 @@ import javax.transaction.Transactional;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
-import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.ImplementationSelectionJob;
@@ -23,11 +22,9 @@ import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationSelectionJobRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobDto;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationSelectionJobDto;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationSelectionJobListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisJobDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisJobListDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
@@ -89,8 +86,8 @@ public class AnalysisResultController {
             description = "Retrieve all compiler analysis jobs")
     @GetMapping("/" + Constants.IMPLEMENTATION_SELECTION_JOBS)
     @Transactional
-    public HttpEntity<ImplementationSelectionJobListDto> getImplementationSelectionJobs() {
-        ImplementationSelectionJobListDto model = new ImplementationSelectionJobListDto();
+    public HttpEntity<AnalysisJobListDto> getImplementationSelectionJobs() {
+        AnalysisJobListDto model = new AnalysisJobListDto();
         model.add(implementationSelectionJobRepository.findAll().stream().map(this::createDto).collect(Collectors.toList()));
         model.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJobs()).withSelfRel());
         return new ResponseEntity<>(model, HttpStatus.OK);
@@ -115,7 +112,7 @@ public class AnalysisResultController {
             description = "Retrieve a single implementation selection result")
     @GetMapping("/" + Constants.IMPLEMENTATION_SELECTION_JOBS + "/{resId}")
     @Transactional
-    public HttpEntity<ImplementationSelectionJobDto> getImplementationSelectionJob(@PathVariable UUID resId) {
+    public HttpEntity<AnalysisJobDto> getImplementationSelectionJob(@PathVariable UUID resId) {
         LOG.debug("Get to retrieve implementation selection job with id: {}.", resId);
 
         Optional<ImplementationSelectionJob> result = implementationSelectionJobRepository.findById(resId);
@@ -174,8 +171,8 @@ public class AnalysisResultController {
         return dto;
     }
 
-    private ImplementationSelectionJobDto createDto(ImplementationSelectionJob job) {
-        ImplementationSelectionJobDto dto = ImplementationSelectionJobDto.Converter.convert(job);
+    private AnalysisJobDto createDto(ImplementationSelectionJob job) {
+        AnalysisJobDto dto = AnalysisJobDto.Converter.convert(job);
         dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJob(job.getId())).withSelfRel());
         return dto;
     }

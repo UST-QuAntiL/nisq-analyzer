@@ -116,11 +116,11 @@ public class NisqAnalyzerControlService {
 
         // get suited Sdk connector plugin
         SdkConnector selectedSdkConnector = connectorList.stream()
-                .filter(executor -> executor.getName().equals(result.getSdkConnector()))
+                .filter(executor -> executor.getName().equals(result.getCompiler()))
                 .findFirst().orElse(null);
         if (Objects.isNull(selectedSdkConnector)) {
-            LOG.error("Unable to find connector plugin with name {}.", result.getSdkConnector());
-            throw new RuntimeException("Unable to find connector plugin with name " + result.getSdkConnector());
+            LOG.error("Unable to find connector plugin with name {}.", result.getCompiler());
+            throw new RuntimeException("Unable to find connector plugin with name " + result.getCompiler());
         }
 
         // Retrieve the QPU from QProv

@@ -19,22 +19,32 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import lombok.Getter;
-import org.springframework.hateoas.RepresentationModel;
+import lombok.Setter;
+import org.planqk.nisq.analyzer.core.model.ImplementationSelectionJob;
 
-public class ImplementationSelectionJobListDto extends RepresentationModel<ImplementationSelectionJobListDto> {
+public class AnalysisJobDto extends AnalysisResultListDto {
 
     @Getter
-    private final List<ImplementationSelectionJobDto> implementationSelectionJobList = new ArrayList<>();
+    @Setter
+    private UUID id;
 
-    public void add(final List<ImplementationSelectionJobDto> jobs) {
-        this.implementationSelectionJobList.addAll(jobs);
-    }
+    @Getter
+    @Setter
+    private boolean ready;
 
-    public void add(final ImplementationSelectionJobDto job) {
-        this.implementationSelectionJobList.add(job);
+    public static final class Converter {
+
+        public static AnalysisJobDto convert(final ImplementationSelectionJob object) {
+            AnalysisJobDto dto = new AnalysisJobDto();
+            dto.setId(object.getId());
+            dto.setReady(object.isReady());
+            dto.add(object.getJobResults().stream().map(AnalysisResultDto.Converter::convert).collect(Collectors.toList()));
+
+            return dto;
+        }
     }
 }
