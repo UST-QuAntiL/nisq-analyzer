@@ -151,6 +151,7 @@ public class RootController {
         AnalysisJob job = new AnalysisJob();
         job.setImplementedAlgorithm(params.getAlgorithmId());
         job.setTime(OffsetDateTime.now());
+        job.setInputParameters(params.getParameters());
         analysisJobRepository.save(job);
 
         try {

@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
 import java.time.OffsetDateTime;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -43,6 +44,10 @@ public class AnalysisJobDto extends AnalysisResultListDto {
 
     @Getter
     @Setter
+    private Map<String, String> inputParameters;
+
+    @Getter
+    @Setter
     private boolean ready;
 
     public static final class Converter {
@@ -52,6 +57,7 @@ public class AnalysisJobDto extends AnalysisResultListDto {
             dto.setId(object.getId());
             dto.setImplementedAlgorithm(object.getImplementedAlgorithm());
             dto.setTime(object.getTime());
+            dto.setInputParameters(object.getInputParameters());
             dto.setReady(object.isReady());
             dto.add(object.getJobResults().stream().map(AnalysisResultDto.Converter::convert).collect(Collectors.toList()));
 
