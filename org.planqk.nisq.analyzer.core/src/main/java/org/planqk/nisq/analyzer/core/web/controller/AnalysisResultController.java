@@ -65,7 +65,7 @@ public class AnalysisResultController {
     private final NisqAnalyzerControlService controlService;
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve all analysis results for an Algorithm")
+            description = "Retrieve all analysis results for an algorithm")
     @Parameter(in = ParameterIn.QUERY
             , description = "Sorting criteria in the format: property(,asc|desc). "
             + "Default sort order is ascending. " + "Multiple sort criteria are supported."
@@ -74,7 +74,7 @@ public class AnalysisResultController {
     @GetMapping("/algorithm/{algoId}")
     public HttpEntity<AnalysisResultListDto> getAnalysisResults(@PathVariable UUID algoId,
                                                                 @Parameter(hidden = true) Sort sort) {
-        LOG.debug("Get to retrieve all analysis results for impl with id: {}.", algoId);
+        LOG.debug("Get to retrieve all analysis results for algo with id: {}.", algoId);
         AnalysisResultListDto model = new AnalysisResultListDto();
         model.add(analysisResultRepository.findByImplementedAlgorithm(algoId, sort)
                 .stream().map(this::createAnalysisResultDto).collect(Collectors.toList()));
@@ -88,7 +88,7 @@ public class AnalysisResultController {
     @Transactional
     public HttpEntity<AnalysisJobListDto> getAnalysisJobs() {
         AnalysisJobListDto model = new AnalysisJobListDto();
-        model.add(analysisJobRepository.findAll().stream().map(this::createDto).collect(Collectors.toList()));
+        model.add(analysisJobRepository.findAll().stream().map(this::createAnalysisJobDto).collect(Collectors.toList()));
         model.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJobs()).withSelfRel());
         return new ResponseEntity<>(model, HttpStatus.OK);
     }
@@ -109,6 +109,24 @@ public class AnalysisResultController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+        description = "Retrieve all analysis jobs for an algorithm")
+    @Parameter(in = ParameterIn.QUERY
+        , description = "Sorting criteria in the format: property(,asc|desc). "
+        + "Default sort order is ascending. " + "Multiple sort criteria are supported."
+        , name = "sort"
+        , content = @Content(array = @ArraySchema(schema = @Schema(type = "string"))))
+    @GetMapping("/" + Constants.ANALYSIS_JOBS + "/algorithm/{algoId}")
+    public HttpEntity<AnalysisJobListDto> getAnalysisJobsOfAlgorithm(@PathVariable UUID algoId,
+                                                                @Parameter(hidden = true) Sort sort) {
+        LOG.debug("Get to retrieve all analysis jobs for algo with id: {}.", algoId);
+        AnalysisJobListDto model = new AnalysisJobListDto();
+        model.add(analysisJobRepository.findByImplementedAlgorithm(algoId, sort)
+            .stream().map(this::createAnalysisJobDto).collect(Collectors.toList()));
+        model.add(linkTo(methodOn(AnalysisResultController.class).getAnalysisJobsOfAlgorithm(algoId, sort)).withSelfRel());
+        return new ResponseEntity<>(model, HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve a single implementation selection result")
     @GetMapping("/" + Constants.ANALYSIS_JOBS + "/{resId}")
     @Transactional
@@ -121,7 +139,7 @@ public class AnalysisResultController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(createDto(result.get()), HttpStatus.OK);
+        return new ResponseEntity<>(createAnalysisJobDto(result.get()), HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
@@ -171,9 +189,9 @@ public class AnalysisResultController {
         return dto;
     }
 
-    private AnalysisJobDto createDto(AnalysisJob job) {
+    private AnalysisJobDto createAnalysisJobDto(AnalysisJob job) {
         AnalysisJobDto dto = AnalysisJobDto.Converter.convert(job);
-        dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJob(job.getId())).withSelfRel());
+        dto.add(linkTo(methodOn(AnalysisResultController.class).getAnalysisJob(job.getId())).withSelfRel());
         return dto;
     }
 }
