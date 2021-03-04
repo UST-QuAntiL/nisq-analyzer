@@ -62,7 +62,7 @@ import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilerAnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
-import org.planqk.nisq.analyzer.core.repository.ImplementationSelectionJobRepository;
+import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.translator.TranslatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,7 +99,7 @@ public class NisqAnalyzerControlService {
 
     final private CompilationJobRepository compilationJobRepository;
 
-    final private ImplementationSelectionJobRepository implementationSelectionJobRepository;
+    final private AnalysisJobRepository analysisJobRepository;
 
     /**
      * Execute the given quantum algorithm implementation with the given input parameters and return the corresponding output of the execution.
@@ -286,7 +286,7 @@ public class NisqAnalyzerControlService {
 
                         analysisResults.add(result);
                         job.setJobResults(analysisResults);
-                        job = implementationSelectionJobRepository.save(job);
+                        job = analysisJobRepository.save(job);
 
                         LOG.debug("QPU {} suitable for implementation {}.", qpu.getName(), executableImpl.getName());
                     } else {
@@ -298,7 +298,7 @@ public class NisqAnalyzerControlService {
         }
 
         job.setReady(true);
-        implementationSelectionJobRepository.save(job);
+        analysisJobRepository.save(job);
     }
 
     /**

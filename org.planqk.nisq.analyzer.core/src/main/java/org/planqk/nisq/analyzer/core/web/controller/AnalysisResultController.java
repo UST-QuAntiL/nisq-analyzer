@@ -19,7 +19,7 @@ import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
-import org.planqk.nisq.analyzer.core.repository.ImplementationSelectionJobRepository;
+import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
@@ -60,7 +60,7 @@ public class AnalysisResultController {
 
     private final ExecutionResultRepository executionResultRepository;
 
-    private final ImplementationSelectionJobRepository implementationSelectionJobRepository;
+    private final AnalysisJobRepository analysisJobRepository;
 
     private final NisqAnalyzerControlService controlService;
 
@@ -86,9 +86,9 @@ public class AnalysisResultController {
             description = "Retrieve all compiler analysis jobs")
     @GetMapping("/" + Constants.ANALYSIS_JOBS)
     @Transactional
-    public HttpEntity<AnalysisJobListDto> getImplementationSelectionJobs() {
+    public HttpEntity<AnalysisJobListDto> getAnalysisJobs() {
         AnalysisJobListDto model = new AnalysisJobListDto();
-        model.add(implementationSelectionJobRepository.findAll().stream().map(this::createDto).collect(Collectors.toList()));
+        model.add(analysisJobRepository.findAll().stream().map(this::createDto).collect(Collectors.toList()));
         model.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJobs()).withSelfRel());
         return new ResponseEntity<>(model, HttpStatus.OK);
     }
@@ -112,10 +112,10 @@ public class AnalysisResultController {
             description = "Retrieve a single implementation selection result")
     @GetMapping("/" + Constants.ANALYSIS_JOBS + "/{resId}")
     @Transactional
-    public HttpEntity<AnalysisJobDto> getImplementationSelectionJob(@PathVariable UUID resId) {
+    public HttpEntity<AnalysisJobDto> getAnalysisJob(@PathVariable UUID resId) {
         LOG.debug("Get to retrieve implementation selection job with id: {}.", resId);
 
-        Optional<AnalysisJob> result = implementationSelectionJobRepository.findById(resId);
+        Optional<AnalysisJob> result = analysisJobRepository.findById(resId);
         if (!result.isPresent()) {
             LOG.error("Unable to retrieve implementation selection result with id {} from the repository.", resId);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
