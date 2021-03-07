@@ -113,6 +113,8 @@ public abstract class NisqAnalyzerTestCase {
         assertContainsImplementation(shorAlgorithmUuid, "shor-general-pytket");
         assertContainsImplementation(groverTruthtableUuid, "grover-general-truthtable-qiskit");
         assertContainsImplementation(groverTruthtableUuid, "grover-fix-truthtable-qiskit");
+        assertContainsImplementation(groverSatUuid, "grover-fix-sat-qiskit");
+        assertContainsImplementation(groverSatUuid, "grover-general-sat-qiskit");
     }
 
     private Sdk createSDK(String name){
@@ -215,6 +217,36 @@ public abstract class NisqAnalyzerTestCase {
                 new Parameter("assignment", DataType.String, "", "")
         ));
         implementationRepository.save(groverGeneralTruthtable);
+
+        Implementation groverFixSAT = new Implementation();
+        groverFixSAT.setName("grover-fix-sat-qiskit");
+        groverFixSAT.setImplementedAlgorithm(groverSatUuid);
+        groverFixSAT.setFileLocation(URI.create("https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations/Grover-SAT/grover-fix-sat-qiskit.py").toURL());
+        groverFixSAT.setSelectionRule("processable(Formula, grover-fix-sat-qiskit) :- Formula = '(A | B) & (A | ~B) & (~A | B)'.");
+        groverFixSAT.setLanguage("Qiskit");
+        groverFixSAT.setSdk(qiskitSDK);
+        groverFixSAT.setInputParameters(Arrays.asList(
+                new Parameter("Formula", DataType.String, "Formula = (A | B) & (A | ~B) & (~A | B)", "")
+        ));
+        groverFixSAT.setOutputParameters(Arrays.asList(
+                new Parameter("assignment", DataType.String, "", "")
+        ));
+        implementationRepository.save(groverFixSAT);
+
+        Implementation groverGeneralSAT = new Implementation();
+        groverGeneralSAT.setName("grover-general-sat-qiskit");
+        groverGeneralSAT.setImplementedAlgorithm(groverSatUuid);
+        groverGeneralSAT.setFileLocation(URI.create("https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations/Grover-SAT/grover-general-sat-qiskit.py").toURL());
+        groverGeneralSAT.setSelectionRule("processable(Formula, grover-general-sat-qiskit) :- Formula =~ '^[0-9A-Za-z|&()~^ ]+$'.");
+        groverGeneralSAT.setLanguage("Qiskit");
+        groverGeneralSAT.setSdk(qiskitSDK);
+        groverGeneralSAT.setInputParameters(Arrays.asList(
+                new Parameter("Formula", DataType.String, "", "")
+        ));
+        groverGeneralSAT.setOutputParameters(Arrays.asList(
+                new Parameter("assignment", DataType.String, "", "")
+        ));
+        implementationRepository.save(groverGeneralSAT);
     }
 
     private void assertContainsSDK(String name){
@@ -237,6 +269,13 @@ public abstract class NisqAnalyzerTestCase {
     protected Map<String, String> composeGroverInputParameters(String oracle){
         Map<String,String> params = new HashMap<>();
         params.put("Oracle", oracle);
+        params.put("token", System.getenv("token"));
+        return params;
+    }
+
+    protected Map<String, String> composeGroverSATInputParameters(String formula){
+        Map<String,String> params = new HashMap<>();
+        params.put("Formula", formula);
         params.put("token", System.getenv("token"));
         return params;
     }

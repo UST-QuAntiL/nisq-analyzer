@@ -172,4 +172,32 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         assertContainsImplForQpu(job, "grover-general-truthtable-qiskit", "ibmq_qasm_simulator");
         assertContainsImplForQpu(job, "grover-general-truthtable-qiskit", "ibmq_16_melbourne");
     }
+
+    @Test
+    public void testSelectionGroverSAT(){
+        AnalysisJob job = implementationSelectionJobRepository.save(new AnalysisJob());
+        nisqAnalyzerControlService.performSelection(job,groverSatUuid, composeGroverSATInputParameters("(A | B) & (A | ~B) & (~A | B)"));
+
+        assertContainsImpl(job, "grover-fix-sat-qiskit");
+        assertContainsImpl(job, "grover-general-sat-qiskit");
+
+        assertContainsImplForQpu(job, "grover-fix-sat-qiskit", "ibmq_qasm_simulator");
+        assertNotContainsImplForQpu(job, "grover-fix-sat-qiskit", "ibmq_16_melbourne");
+        assertContainsImplForQpu(job, "grover-general-sat-qiskit", "ibmq_qasm_simulator");
+        assertNotContainsImplForQpu(job, "grover-general-sat-qiskit", "ibmq_16_melbourne");
+    }
+
+    @Test
+    public void testSelectionGroverSATGeneral(){
+        AnalysisJob job = implementationSelectionJobRepository.save(new AnalysisJob());
+        nisqAnalyzerControlService.performSelection(job,groverSatUuid, composeGroverSATInputParameters("(A | B)"));
+
+        assertNotContainsImpl(job, "grover-fix-sat-qiskit");
+        assertContainsImpl(job, "grover-general-sat-qiskit");
+
+        assertNotContainsImplForQpu(job, "grover-fix-sat-qiskit", "ibmq_qasm_simulator");
+        assertNotContainsImplForQpu(job, "grover-fix-sat-qiskit", "ibmq_16_melbourne");
+        assertContainsImplForQpu(job, "grover-general-sat-qiskit", "ibmq_qasm_simulator");
+        assertContainsImplForQpu(job, "grover-general-sat-qiskit", "ibmq_16_melbourne");
+    }
 }
