@@ -47,6 +47,19 @@ Prerequisites:
 
 Suitable sample data in JSON format can be found in [nisq-analyzer-content](https://github.com/UST-QuAntiL/nisq-analyzer-content/tree/master/objects).  
 
+## Unit Tests
+Running the unit test requires some changes to the run configuration:
+
+- Run the JVM with parameters for linking the Prolog libs correctly e.g. 
+  ```
+  -Djava.library.path=/usr/lib/swi-prolog/lib/amd64
+  -DSWI_HOME_DIR=/usr/bin/swipl
+  ```
+- set an environment variable for the IBMQ token
+  ```
+  token = ***THISISMYIBMQTOKEN*****
+  ```
+
 ## Usage via API
 
 Use the [HAL Browser](http://localhost:8081/nisq-analyzer/browser/index.html#http://localhost:8081/nisq-analyzer/) or [Swagger-UI](http://localhost:8081/nisq-analyzer/swagger-ui/index.html?configUrl=/nisq-analyzer/v3/api-docs/swagger-config#/).
