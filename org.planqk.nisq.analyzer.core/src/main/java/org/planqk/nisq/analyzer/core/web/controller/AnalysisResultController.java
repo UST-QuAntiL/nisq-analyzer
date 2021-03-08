@@ -127,15 +127,15 @@ public class AnalysisResultController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve a single implementation selection result")
+            description = "Retrieve a single analysis job result")
     @GetMapping("/" + Constants.ANALYSIS_JOBS + "/{resId}")
     @Transactional
     public HttpEntity<AnalysisJobDto> getAnalysisJob(@PathVariable UUID resId) {
-        LOG.debug("Get to retrieve implementation selection job with id: {}.", resId);
+        LOG.debug("Get to retrieve analysis job with id: {}.", resId);
 
         Optional<AnalysisJob> result = analysisJobRepository.findById(resId);
         if (!result.isPresent()) {
-            LOG.error("Unable to retrieve implementation selection result with id {} from the repository.", resId);
+            LOG.error("Unable to retrieve analysis job result with id {} from the repository.", resId);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
