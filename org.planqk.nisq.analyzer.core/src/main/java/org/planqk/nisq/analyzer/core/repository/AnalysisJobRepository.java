@@ -19,12 +19,15 @@
 
 package org.planqk.nisq.analyzer.core.repository;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 @RepositoryRestResource(exported = false)
-public interface ImplementationSelectionJobRepository extends JpaRepository<AnalysisJob, UUID> {
+public interface AnalysisJobRepository extends JpaRepository<AnalysisJob, UUID> {
+    List<AnalysisJob> findByImplementedAlgorithm(UUID implementedAlgorithm, Sort sort);
 }

@@ -24,6 +24,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -34,7 +35,7 @@ import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
-import org.planqk.nisq.analyzer.core.repository.ImplementationSelectionJobRepository;
+import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.web.Utils;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilerAnalysisResultListDto;
@@ -77,14 +78,14 @@ public class RootController {
 
     private final CompilationJobRepository compilationJobRepository;
 
-    private final ImplementationSelectionJobRepository implementationSelectionJobRepository;
+    private final AnalysisJobRepository analysisJobRepository;
 
     public RootController(NisqAnalyzerControlService nisqAnalyzerService,
                           CompilationJobRepository compilationJobRepository,
-                          ImplementationSelectionJobRepository implementationSelectionJobRepository) {
+                          AnalysisJobRepository analysisJobRepository) {
         this.nisqAnalyzerService = nisqAnalyzerService;
         this.compilationJobRepository = compilationJobRepository;
-        this.implementationSelectionJobRepository = implementationSelectionJobRepository;
+        this.analysisJobRepository = analysisJobRepository;
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200")}, description = "Root operation, returns further links")
@@ -147,7 +148,11 @@ public class RootController {
         }
         LOG.debug("Received {} parameters for the selection.", params.getParameters().size());
 
-        AnalysisJob job = implementationSelectionJobRepository.save( new AnalysisJob());
+        AnalysisJob job = new AnalysisJob();
+        job.setImplementedAlgorithm(params.getAlgorithmId());
+        job.setTime(OffsetDateTime.now());
+        job.setInputParameters(params.getParameters());
+        analysisJobRepository.save(job);
 
         try {
             new Thread( () -> {
@@ -161,7 +166,7 @@ public class RootController {
         }
 
         AnalysisJobDto dto = AnalysisJobDto.Converter.convert(job);
-        dto.add(linkTo(methodOn(AnalysisResultController.class).getImplementationSelectionJob(job.getId())).withSelfRel());
+        dto.add(linkTo(methodOn(AnalysisResultController.class).getAnalysisJob(job.getId())).withSelfRel());
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 

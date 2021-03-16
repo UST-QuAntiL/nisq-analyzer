@@ -19,10 +19,14 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 
@@ -37,6 +41,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AnalysisJob extends HasId {
+
+    private UUID implementedAlgorithm;
+
+    private OffsetDateTime time;
+
+    @ElementCollection
+    private Map<String, String> inputParameters;
 
     private boolean ready;
 
