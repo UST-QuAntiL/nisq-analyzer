@@ -32,14 +32,13 @@ import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
-import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
-import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
+import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
+import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.web.Utils;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobDto;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilerAnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisJobDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.requests.CompilerSelectionDto;
@@ -155,7 +154,7 @@ public class RootController {
         analysisJobRepository.save(job);
 
         try {
-            new Thread( () -> {
+            new Thread(() -> {
                 nisqAnalyzerService.performSelection(job, params.getAlgorithmId(), params.getParameters());
             }).start();
         } catch (UnsatisfiedLinkError e) {
@@ -173,10 +172,10 @@ public class RootController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable compiler for an implementation passed in as file")
     @PostMapping(value = "/" + Constants.COMPILER_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public HttpEntity<CompilerAnalysisResultListDto> selectCompilerForFile(@RequestParam String providerName, @RequestParam String qpuName,
-                                                                           @RequestParam String circuitLanguage, @RequestParam String circuitName,
-                                                                           @RequestParam String token,
-                                                                           @RequestParam("circuit") MultipartFile circuitCode) {
+    public HttpEntity<CompilationJobDto> selectCompilerForFile(@RequestParam String providerName, @RequestParam String qpuName,
+                                                               @RequestParam String circuitLanguage, @RequestParam String circuitName,
+                                                               @RequestParam String token,
+                                                               @RequestParam("circuit") MultipartFile circuitCode) {
 
         // get temp file for passed circuit code
         File circuitFile;
