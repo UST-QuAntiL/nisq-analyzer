@@ -17,24 +17,25 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.web.dtos.requests;
+package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import lombok.Data;
+import org.springframework.hateoas.RepresentationModel;
 
-@Data
-public class QpuSelectionDto {
+import lombok.Getter;
 
-    boolean simulatorsAllowed;
+public class QpuSelectionJobListDto extends RepresentationModel<QpuSelectionJobListDto> {
 
-    List<String> allowedProviders;
+    @Getter
+    private final List<QpuSelectionJobDto> qpuSelectionJobList = new ArrayList<>();
 
-    String circuitLanguage;
+    public void add(final List<QpuSelectionJobDto> qpuSelectionJobDtos) {
+        this.qpuSelectionJobList.addAll(qpuSelectionJobDtos);
+    }
 
-    URL circuitUrl;
-
-    Map<String,String> tokens;
+    public void add(final QpuSelectionJobDto qpuSelectionJobDto) {
+        this.qpuSelectionJobList.add(qpuSelectionJobDto);
+    }
 }

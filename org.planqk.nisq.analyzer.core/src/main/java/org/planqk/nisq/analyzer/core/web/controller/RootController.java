@@ -25,6 +25,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import java.io.File;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -181,7 +182,7 @@ public class RootController {
     @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitFile(@RequestParam boolean simulatorsAllowed,
                                                                   @RequestParam List<String> allowedProviders, @RequestParam String circuitLanguage,
-                                                                  @RequestParam List<String> tokens, @RequestParam("circuit") MultipartFile circuitCode) {
+                                                                  @RequestParam Map<String,String> tokens, @RequestParam("circuit") MultipartFile circuitCode) {
         LOG.debug("Post to select QPU for given quantum circuit with language: {}", circuitLanguage);
 
         // get temp file for passed circuit code

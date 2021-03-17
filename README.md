@@ -97,6 +97,22 @@ Get compiler analysis results via `GET /nisq-analyzer/compiler-results/jobs/{res
 Start the execution of a certain compiled circuit via `POST /nisq-analyzer/compiler-results/{resId}/execute`.  
 Get execution result of the circuit via `POST /nisq-analyzer/execution-results/{resultId}`.  
 
+### QPU & Compiler Selection for Quantum Circuits
+
+For using the QPU and compiler selection mechanism use
+`POST /nisq-analyzer/qpu-selection`
+```
+{
+  "simulatorsAllowed": "true/false",
+  "allowedProviders": ["NAME-OF-QUANTUM-CLOUD-OFFERING", "NAME-OF-QUANTUM-CLOUD-OFFERING-2"],
+  "tokens": {"NAME-OF-QUANTUM-CLOUD-OFFERING": "TOKEN-FOR-QUANTUM-CLOUD-OFFERING"}
+  "circuitLanguage": "LANGUAGE-OF-CIRCUIT",
+  "circuitUrl: "URL-OF-RAW-CIRCUIT"
+}
+```
+
+Get analysis results via `GET /nisq-analyzer/qpu-selection-results/jobs/{resId}`.
+
 ## Haftungsausschluss
 
 Dies ist ein Forschungsprototyp.

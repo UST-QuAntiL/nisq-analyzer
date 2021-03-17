@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -363,11 +364,11 @@ public class NisqAnalyzerControlService {
      * @param allowedProviders  an optional list with providers to include into the selection. If not specified all providers are taken into account.
      * @param circuitLanguage   the language of the circuit for which the QPU selection should be performed
      * @param circuitCode       the file containing the circuit
-     * @param tokens            a list of access tokens for the different quantum hardware providers
+     * @param tokens            a map with access tokens for the different quantum hardware providers
      * @param simulatorsAllowed <code>true</code> if also simulators should be included into the selection, <code>false</code> otherwise
      */
     public void performQpuSelectionForCircuit(QpuSelectionJob job, List<String> allowedProviders, String circuitLanguage, File circuitCode,
-                                              List<String> tokens, boolean simulatorsAllowed) {
+                                              Map<String,String> tokens, boolean simulatorsAllowed) {
 
         // iterate over all providers listed in QProv for the QPU selection
         for (Provider provider : qProvService.getProviders()) {
@@ -393,10 +394,18 @@ public class NisqAnalyzerControlService {
                     continue;
                 }
 
+                String token = tokens.get(provider.getName());
+                if (Objects.isNull(token)) {
+                    LOG.debug("No suited access token for this provider available. Skipping!");
+                    continue;
+                }
+
+                // we currently restrict the set of compilers to use to reduce the runtime
+                List<String> compilersToUse = Arrays.asList(Constants.QISKIT, Constants.FOREST);
+
                 // perform compiler selection for the given QPU and circuit
                 List<CompilationResult> compilationResults =
-                        selectCompiler(provider.getName(), qpu.getName(), circuitLanguage, circuitCode, "temp", null,
-                                tokens.get(0)); // TODO: select token
+                        selectCompiler(provider.getName(), qpu.getName(), circuitLanguage, circuitCode, "temp", compilersToUse, token);
                 LOG.debug("Retrieved {} compilation results!", compilationResults.size());
 
                 // add results to the database and the job
@@ -515,7 +524,6 @@ public class NisqAnalyzerControlService {
                 }
                 continue;
             }
-            LOG.debug("Compilation result: {}", circuitInformation.toString());
 
             if (Objects.isNull(qpu)) {
                 LOG.warn("Unable to retrieve QPU with name '{}' from QProv. Adding all compilation results without executability filtering!",
