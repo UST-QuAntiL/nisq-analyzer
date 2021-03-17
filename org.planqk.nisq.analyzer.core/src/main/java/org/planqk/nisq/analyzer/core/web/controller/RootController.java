@@ -41,7 +41,9 @@ import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisJobDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuSelectionJobDto;
 import org.planqk.nisq.analyzer.core.web.dtos.requests.CompilerSelectionDto;
+import org.planqk.nisq.analyzer.core.web.dtos.requests.QpuSelectionDto;
 import org.planqk.nisq.analyzer.core.web.dtos.requests.SelectionRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -170,6 +172,40 @@ public class RootController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
+            @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for an quantum circuit passed in as file")
+    @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitFile(@RequestParam boolean simulatorsAllowed,
+                                                                  @RequestParam List<String> allowedProviders, @RequestParam String circuitLanguage,
+                                                                  @RequestParam List<String> tokens, @RequestParam("circuit") MultipartFile circuitCode) {
+        LOG.debug("Post to select QPU for given quantum circuit with language: {}", circuitLanguage);
+
+        // get temp file for passed circuit code
+        File circuitFile = Utils.getFileObjectFromMultipart(circuitCode);
+        if (Objects.isNull(circuitFile)) {
+            return new ResponseEntity("Unable to parse file from given data", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // TODO
+        return new ResponseEntity(HttpStatus.NOT_IMPLEMENTED);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
+            @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for an quantum circuit loaded from the given URL")
+    @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitUrl(@RequestBody QpuSelectionDto params) {
+        LOG.debug("Post to select QPU for quantum circuit at URL '{}', with language '{}', and allowed providers '{}'!", params.getCircuitUrl(), params.getCircuitLanguage(), params.getAllowedProviders());
+
+        // get file from passed URL
+        File circuitFile = Utils.getFileObjectFromUrl(params.getCircuitUrl());
+        if (Objects.isNull(circuitFile)) {
+            return new ResponseEntity("Unable to load file from given URL", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // TODO
+        return new ResponseEntity(HttpStatus.NOT_IMPLEMENTED);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable compiler for an implementation passed in as file")
     @PostMapping(value = "/" + Constants.COMPILER_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public HttpEntity<CompilationJobDto> selectCompilerForFile(@RequestParam String providerName, @RequestParam String qpuName,
@@ -178,12 +214,8 @@ public class RootController {
                                                                @RequestParam("circuit") MultipartFile circuitCode) {
 
         // get temp file for passed circuit code
-        File circuitFile;
-        try {
-            String[] fileNameParts = circuitCode.getOriginalFilename().split("\\.");
-            String fileEnding = fileNameParts[fileNameParts.length - 1];
-            circuitFile = Utils.inputStreamToFile(circuitCode.getInputStream(), fileEnding);
-        } catch (IOException e) {
+        File circuitFile = Utils.getFileObjectFromMultipart(circuitCode);
+        if (Objects.isNull(circuitFile)) {
             return new ResponseEntity("Unable to parse file from given data", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
@@ -213,12 +245,8 @@ public class RootController {
         }
 
         // get file from passed URL
-        File circuitFile;
-        try {
-            String[] fileNameParts = compilerSelectionDto.getCircuitUrl().toString().split("\\.");
-            String fileEnding = fileNameParts[fileNameParts.length - 1];
-            circuitFile = Utils.inputStreamToFile(compilerSelectionDto.getCircuitUrl().openStream(), fileEnding);
-        } catch (IOException e) {
+        File circuitFile = Utils.getFileObjectFromUrl(compilerSelectionDto.getCircuitUrl());
+        if (Objects.isNull(circuitFile)) {
             return new ResponseEntity("Unable to load file from given URL", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 

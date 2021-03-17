@@ -23,17 +23,41 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 public class Utils {
 
-    public static File inputStreamToFile (InputStream in, String fileEnding) throws IOException {
+    public static File inputStreamToFile(InputStream in, String fileEnding) throws IOException {
         final File tempFile = File.createTempFile("temp", "." + fileEnding);
         tempFile.deleteOnExit();
         try (FileOutputStream out = new FileOutputStream(tempFile)) {
             IOUtils.copy(in, out);
             return tempFile;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    public static File getFileObjectFromMultipart(MultipartFile multipartFile) {
+        try {
+            String[] fileNameParts = multipartFile.getOriginalFilename().split("\\.");
+            String fileEnding = fileNameParts[fileNameParts.length - 1];
+            return Utils.inputStreamToFile(multipartFile.getInputStream(), fileEnding);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    public static File getFileObjectFromUrl(URL url) {
+        try {
+            String[] fileNameParts = url.toString().split("\\.");
+            String fileEnding = fileNameParts[fileNameParts.length - 1];
+            return Utils.inputStreamToFile(url.openStream(), fileEnding);
         } catch (IOException e) {
             return null;
         }

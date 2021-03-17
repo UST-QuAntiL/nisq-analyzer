@@ -30,6 +30,7 @@ public class Constants {
     public static final String EXECUTION = "execute";
     public static final String SELECTION = "selection";
     public static final String COMPILER_SELECTION = "compiler-selection";
+    public static final String QPU_SELECTION = "qpu-selection";
     public static final String SELECTION_PARAMS = "selection-params";
     public static final String ANALYSIS_RESULTS = "analysis-results";
     public static final String COMPILER_RESULTS = "compiler-results";
