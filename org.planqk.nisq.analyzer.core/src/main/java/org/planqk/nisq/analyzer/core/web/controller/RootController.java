@@ -193,8 +193,12 @@ public class RootController {
         // create object for the QPU selection job and call asynchronously to update the job
         QpuSelectionJob job = qpuSelectionJobRepository.save(new QpuSelectionJob());
 
-        // TODO
-        return new ResponseEntity(HttpStatus.NOT_IMPLEMENTED);
+        // TODO: invoke selection
+
+        // send back QPU selection job to track the progress
+        QpuSelectionJobDto dto = QpuSelectionJobDto.Converter.convert(job);
+        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId())).withSelfRel());
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
@@ -212,8 +216,12 @@ public class RootController {
         // create object for the QPU selection job and call asynchronously to update the job
         QpuSelectionJob job = qpuSelectionJobRepository.save(new QpuSelectionJob());
 
-        // TODO
-        return new ResponseEntity(HttpStatus.NOT_IMPLEMENTED);
+        // TODO: invoke selection
+
+        // send back QPU selection job to track the progress
+        QpuSelectionJobDto dto = QpuSelectionJobDto.Converter.convert(job);
+        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId())).withSelfRel());
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),

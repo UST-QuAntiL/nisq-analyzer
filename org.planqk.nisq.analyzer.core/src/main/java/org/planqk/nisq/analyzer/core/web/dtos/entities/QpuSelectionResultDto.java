@@ -20,32 +20,33 @@
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
+import org.planqk.nisq.analyzer.core.model.CompilationResult;
+import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
+import org.springframework.hateoas.RepresentationModel;
+import org.springframework.hateoas.server.core.Relation;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-public class QpuSelectionJobDto extends QpuSelectionResultListDto {
+@Relation(itemRelation = "qpuSelectionResult", collectionRelation = "qpuSelectionResults")
+@EqualsAndHashCode(callSuper = false)
+@Data
+public class QpuSelectionResultDto extends RepresentationModel<QpuSelectionResultDto> {
 
-    @Getter
-    @Setter
-    private UUID id;
+    UUID id;
 
-    @Getter
-    @Setter
-    private boolean ready;
+    String provider;
+
+    String qpu;
 
     public static final class Converter {
 
-        public static QpuSelectionJobDto convert(final QpuSelectionJob object) {
-            QpuSelectionJobDto dto = new QpuSelectionJobDto();
+        public static QpuSelectionResultDto convert(final QpuSelectionResult object) {
+            QpuSelectionResultDto dto = new QpuSelectionResultDto();
             dto.setId(object.getId());
-            dto.setReady(object.isReady());
-            if (object.isReady()) {
-                dto.add(object.getJobResults().stream().map(QpuSelectionResultDto.Converter::convert).collect(Collectors.toList()));
-            }
+            dto.setProvider(object.getProvider());
+            dto.setQpu(object.getQpu());
             return dto;
         }
     }

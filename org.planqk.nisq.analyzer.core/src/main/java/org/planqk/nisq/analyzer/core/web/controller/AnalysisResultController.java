@@ -84,7 +84,7 @@ public class AnalysisResultController {
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve all compiler analysis jobs")
-    @GetMapping("/" + Constants.ANALYSIS_JOBS)
+    @GetMapping("/" + Constants.JOBS)
     @Transactional
     public HttpEntity<AnalysisJobListDto> getAnalysisJobs() {
         AnalysisJobListDto model = new AnalysisJobListDto();
@@ -115,7 +115,7 @@ public class AnalysisResultController {
         + "Default sort order is ascending. " + "Multiple sort criteria are supported."
         , name = "sort"
         , content = @Content(array = @ArraySchema(schema = @Schema(type = "string"))))
-    @GetMapping("/" + Constants.ANALYSIS_JOBS + "/algorithm/{algoId}")
+    @GetMapping("/" + Constants.JOBS + "/algorithm/{algoId}")
     public HttpEntity<AnalysisJobListDto> getAnalysisJobsOfAlgorithm(@PathVariable UUID algoId,
                                                                 @Parameter(hidden = true) Sort sort) {
         LOG.debug("Get to retrieve all analysis jobs for algo with id: {}.", algoId);
@@ -128,7 +128,7 @@ public class AnalysisResultController {
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve a single analysis job result")
-    @GetMapping("/" + Constants.ANALYSIS_JOBS + "/{resId}")
+    @GetMapping("/" + Constants.JOBS + "/{resId}")
     @Transactional
     public HttpEntity<AnalysisJobDto> getAnalysisJob(@PathVariable UUID resId) {
         LOG.debug("Get to retrieve analysis job with id: {}.", resId);
