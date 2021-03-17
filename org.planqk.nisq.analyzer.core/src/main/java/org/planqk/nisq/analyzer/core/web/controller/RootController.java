@@ -23,7 +23,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -34,8 +33,10 @@ import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
+import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
+import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
 import org.planqk.nisq.analyzer.core.web.Utils;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisJobDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobDto;
@@ -81,12 +82,16 @@ public class RootController {
 
     private final AnalysisJobRepository analysisJobRepository;
 
+    private final QpuSelectionJobRepository qpuSelectionJobRepository;
+
     public RootController(NisqAnalyzerControlService nisqAnalyzerService,
                           CompilationJobRepository compilationJobRepository,
-                          AnalysisJobRepository analysisJobRepository) {
+                          AnalysisJobRepository analysisJobRepository,
+                          QpuSelectionJobRepository qpuSelectionJobRepository) {
         this.nisqAnalyzerService = nisqAnalyzerService;
         this.compilationJobRepository = compilationJobRepository;
         this.analysisJobRepository = analysisJobRepository;
+        this.qpuSelectionJobRepository = qpuSelectionJobRepository;
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200")}, description = "Root operation, returns further links")
@@ -185,6 +190,9 @@ public class RootController {
             return new ResponseEntity("Unable to parse file from given data", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+        // create object for the QPU selection job and call asynchronously to update the job
+        QpuSelectionJob job = qpuSelectionJobRepository.save(new QpuSelectionJob());
+
         // TODO
         return new ResponseEntity(HttpStatus.NOT_IMPLEMENTED);
     }
@@ -200,6 +208,9 @@ public class RootController {
         if (Objects.isNull(circuitFile)) {
             return new ResponseEntity("Unable to load file from given URL", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
+        // create object for the QPU selection job and call asynchronously to update the job
+        QpuSelectionJob job = qpuSelectionJobRepository.save(new QpuSelectionJob());
 
         // TODO
         return new ResponseEntity(HttpStatus.NOT_IMPLEMENTED);
