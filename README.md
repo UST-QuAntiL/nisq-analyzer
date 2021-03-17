@@ -111,6 +111,10 @@ For using the QPU and compiler selection mechanism use
 }
 ```
 
+**Note**: Instead of the URL, also a file can be uploaded containing the quantum circuit.
+
+**Note2**: The `allowedProviders` field is optional, and if it is not set, all providers are included in the QPU & compiler selection.
+
 Get analysis results via `GET /nisq-analyzer/qpu-selection-results/jobs/{resId}`.
 
 ## Haftungsausschluss
