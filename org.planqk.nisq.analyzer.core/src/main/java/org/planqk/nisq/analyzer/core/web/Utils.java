@@ -26,11 +26,13 @@ import java.io.InputStream;
 import java.net.URL;
 
 import org.apache.commons.io.IOUtils;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
 public class Utils {
+
+    private final static Logger LOG = LoggerFactory.getLogger(Utils.class);
 
     public static File inputStreamToFile(InputStream in, String fileEnding) throws IOException {
         final File tempFile = File.createTempFile("temp", "." + fileEnding);
@@ -49,16 +51,18 @@ public class Utils {
             String fileEnding = fileNameParts[fileNameParts.length - 1];
             return Utils.inputStreamToFile(multipartFile.getInputStream(), fileEnding);
         } catch (IOException e) {
+            LOG.warn("Exception while loading file from multipart object: {}", e.getLocalizedMessage());
             return null;
         }
     }
 
     public static File getFileObjectFromUrl(URL url) {
         try {
-            String[] fileNameParts = url.toString().split("\\.");
+            String[] fileNameParts = url.toString().split("/");
             String fileEnding = fileNameParts[fileNameParts.length - 1];
             return Utils.inputStreamToFile(url.openStream(), fileEnding);
         } catch (IOException e) {
+            LOG.warn("Exception while loading file from URL: {}", e.getLocalizedMessage());
             return null;
         }
     }
