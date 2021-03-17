@@ -43,6 +43,7 @@ import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologKnowledgeBaseHandler
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologQueryEngine;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologUtility;
 import org.planqk.nisq.analyzer.core.model.AnalysisCandidate;
+import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.model.CompilationResult;
@@ -51,18 +52,18 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.HasId;
 import org.planqk.nisq.analyzer.core.model.Implementation;
-import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Provider;
 import org.planqk.nisq.analyzer.core.model.Qpu;
+import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 import org.planqk.nisq.analyzer.core.qprov.QProvService;
+import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilerAnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
-import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.translator.TranslatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -169,7 +170,8 @@ public class NisqAnalyzerControlService {
 
         // execute implementation
         new Thread(() -> selectedSdkConnector
-                .executeTranspiledQuantumCircuit(result.getTranspiledCircuit(), result.getTranspiledLanguage(), result.getProvider(), result.getQpu(), inputParameters,
+                .executeTranspiledQuantumCircuit(result.getTranspiledCircuit(), result.getTranspiledLanguage(), result.getProvider(), result.getQpu(),
+                        inputParameters,
                         executionResult, executionResultRepository)).start();
 
         return executionResult;
@@ -279,7 +281,7 @@ public class NisqAnalyzerControlService {
                             circuitInformation.getCircuitDepth())) {
 
                         // qpu is suited candidate to execute the implementation
-                       AnalysisResult result = analysisResultRepository.save(new AnalysisResult(
+                        AnalysisResult result = analysisResultRepository.save(new AnalysisResult(
                                 algorithm, qpu.getName(), provider.getName(),
                                 selectedSdkConnector.getName(), executableImpl, inputParameters, OffsetDateTime.now(),
                                 circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth()));
@@ -448,6 +450,21 @@ public class NisqAnalyzerControlService {
         LOG.debug("Results: " + job.getJobResults().size());
         job.setReady(true);
         compilationJobRepository.save(job);
+    }
+
+    /**
+     * Perform the selection of a suitable QPUs for the given quantum circuit
+     *
+     * @param job the QPU selection job for the long-running task
+     * @param allowedProviders an optional list with providers to include into the selection. If not specified all providers are taken into account.
+     * @param circuitLanguage the language of the circuit for which the QPU selection should be performed
+     * @param circuitCode the file containing the circuit
+     * @param tokens a list of access tokens for the different quantum hardware providers
+     * @param simulatorsAllowed <code>true</code> if also simulators should be included into the selection, <code>false</code> otherwise
+     */
+    public void performQpuSelectionForCircuit(QpuSelectionJob job, List<String> allowedProviders, String circuitLanguage, File circuitCode,
+                                              List<String> tokens, boolean simulatorsAllowed) {
+        // TODO
     }
 
     private void rebuildImplementationPrologFiles() {

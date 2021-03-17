@@ -192,8 +192,11 @@ public class RootController {
 
         // create object for the QPU selection job and call asynchronously to update the job
         QpuSelectionJob job = qpuSelectionJobRepository.save(new QpuSelectionJob());
-
-        // TODO: invoke selection
+        new Thread(() -> {
+            nisqAnalyzerService
+                    .performQpuSelectionForCircuit(job, allowedProviders, circuitLanguage, circuitFile,
+                            tokens, simulatorsAllowed);
+        }).start();
 
         // send back QPU selection job to track the progress
         QpuSelectionJobDto dto = QpuSelectionJobDto.Converter.convert(job);
@@ -215,8 +218,11 @@ public class RootController {
 
         // create object for the QPU selection job and call asynchronously to update the job
         QpuSelectionJob job = qpuSelectionJobRepository.save(new QpuSelectionJob());
-
-        // TODO: invoke selection
+        new Thread(() -> {
+            nisqAnalyzerService
+                    .performQpuSelectionForCircuit(job, params.getAllowedProviders(), params.getCircuitLanguage(), circuitFile,
+                            params.getTokens(), params.isSimulatorsAllowed());
+        }).start();
 
         // send back QPU selection job to track the progress
         QpuSelectionJobDto dto = QpuSelectionJobDto.Converter.convert(job);
