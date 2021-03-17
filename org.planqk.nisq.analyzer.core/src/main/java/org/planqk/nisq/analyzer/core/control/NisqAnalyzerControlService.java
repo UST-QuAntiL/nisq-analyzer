@@ -64,6 +64,7 @@ import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilerAnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
+import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
 import org.planqk.nisq.analyzer.core.translator.TranslatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,6 +102,8 @@ public class NisqAnalyzerControlService {
     final private CompilationJobRepository compilationJobRepository;
 
     final private AnalysisJobRepository analysisJobRepository;
+
+    final private QpuSelectionJobRepository qpuSelectionJobRepository;
 
     /**
      * Execute the given quantum algorithm implementation with the given input parameters and return the corresponding output of the execution.
@@ -332,6 +335,87 @@ public class NisqAnalyzerControlService {
      */
     public void performCompilerSelection(CompilationJob job, String providerName, String qpuName, String circuitLanguage,
                                          File circuitCode, String circuitName, List<String> compilerNames, String token) {
+
+        // analyze compilers and retrieve suitable compilation results
+        List<CompilationResult> compilerAnalysisResults = selectCompiler(providerName, qpuName, circuitLanguage, circuitCode, circuitName, compilerNames, token);
+
+        // add result to DB and connect with CompilationJob
+        for (CompilationResult result : compilerAnalysisResults) {
+            CompilationResult compilationResult = compilerAnalysisResultRepository.save(result);
+            job.getJobResults().add(compilationResult);
+        }
+
+        // store updated result object
+        LOG.debug("Results: " + job.getJobResults().size());
+        job.setReady(true);
+        compilationJobRepository.save(job);
+    }
+
+    /**
+     * Perform the selection of a suitable QPUs for the given quantum circuit
+     *
+     * @param job the QPU selection job for the long-running task
+     * @param allowedProviders an optional list with providers to include into the selection. If not specified all providers are taken into account.
+     * @param circuitLanguage the language of the circuit for which the QPU selection should be performed
+     * @param circuitCode the file containing the circuit
+     * @param tokens a list of access tokens for the different quantum hardware providers
+     * @param simulatorsAllowed <code>true</code> if also simulators should be included into the selection, <code>false</code> otherwise
+     */
+    public void performQpuSelectionForCircuit(QpuSelectionJob job, List<String> allowedProviders, String circuitLanguage, File circuitCode,
+                                              List<String> tokens, boolean simulatorsAllowed) {
+
+        // iterate over all providers listed in QProv for the QPU selection
+        for (Provider provider : qProvService.getProviders()) {
+
+            // filter providers that are not contained in the list of allowed providers
+            if (Objects.nonNull(allowedProviders) &&
+                    allowedProviders.stream().noneMatch(allowedProvider -> allowedProvider.equalsIgnoreCase(provider.getName()))) {
+                LOG.debug("Provider '{}' is not contained in list of allowed providers. Skipping!", provider.getName());
+                continue;
+            }
+
+            LOG.debug("Performing QPU selection for provider with name: {}", provider.getName());
+
+            // get available QPUs
+            List<Qpu> qpus = qProvService.getQPUs(provider);
+            LOG.debug("Found {} QPUs from provider '{}'!", qpus.size(), provider.getName());
+
+            for (Qpu qpu : qpus) {
+                LOG.debug("Checking if QPU '{}' is suitable for the execution of the given circuit...", qpu.getName());
+
+                if (!simulatorsAllowed && qpu.isSimulator()) {
+                    LOG.debug("Skipping simulator as they are disabled for the selection!");
+                    continue;
+                }
+
+                // get suitable SDK connectors for the given provider
+                List<SdkConnector> suitableConnectors = connectorList.stream().filter(sdkConnector -> sdkConnector.supportedProviders().contains(provider.getName().toLowerCase())).collect(Collectors.toList());
+                LOG.debug("Found {} suitable SDK connectors...", suitableConnectors.size());
+                // TODO
+            }
+        }
+
+        // store updated result object
+        LOG.debug("Results: " + job.getJobResults().size());
+        job.setReady(true);
+        qpuSelectionJobRepository.save(job);
+    }
+
+    /**
+     * Compile the given circuit for the given QPU with all supported or a subset of the supported compilers and return the resulting compiled
+     * circuits as well as some analysis details
+     *
+     * @param providerName    the name of the provider of the QPU
+     * @param qpuName         the name of the QPU for which the circuit should be compiled
+     * @param circuitLanguage the language of the quantum circuit
+     * @param circuitCode     the file containing the circuit to compile
+     * @param circuitName     user defined name to (partly) distinguish circuits
+     * @param compilerNames   an optional list of compiler names to restrict the compilers to use. If not set, all supported compilers are used
+     * @param token           the token to access the specified QPU
+     * @return the List of compilation results
+     */
+    private List<CompilationResult> selectCompiler(String providerName, String qpuName, String circuitLanguage,
+                                                   File circuitCode, String circuitName, List<String> compilerNames, String token) {
         List<CompilationResult> compilerAnalysisResults = new ArrayList<>();
         LOG.debug("Performing compiler selection for QPU with name '{}' from provider with name '{}'!", qpuName, providerName);
         Qpu qpu = qProvService.getQpuByName(qpuName, providerName).orElse(null);
@@ -423,48 +507,23 @@ public class NisqAnalyzerControlService {
                 LOG.warn("Unable to retrieve QPU with name '{}' from QProv. Adding all compilation results without executability filtering!",
                         qpuName);
 
-                // add resulting compiled circuit to data base and result list
-                CompilationResult compilationResult = compilerAnalysisResultRepository
-                        .save(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
-                                circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
-                                circuitInformation.getTranspiledLanguage(), token, OffsetDateTime.now()));
-                job.getJobResults().add(compilationResult);
-                compilerAnalysisResults.add(compilationResult);
+                // add resulting compiled circuit to result list
+                compilerAnalysisResults.add(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
+                        circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
+                        circuitInformation.getTranspiledLanguage(), token, OffsetDateTime.now()));
                 continue;
             }
 
             // check if QPU is simulator or can handle the depth in the current decoherence time
             if (qpu.isSimulator() || qpu.getT1() / qpu.getMaxGateTime() >= circuitInformation.getCircuitDepth()) {
-                CompilationResult compilationResult = compilerAnalysisResultRepository
-                        .save(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
-                                circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
-                                circuitInformation.getTranspiledLanguage(), token, OffsetDateTime.now()));
-                job.getJobResults().add(compilationResult);
-                compilerAnalysisResults.add(compilationResult);
+                compilerAnalysisResults.add(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
+                        circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
+                        circuitInformation.getTranspiledLanguage(), token, OffsetDateTime.now()));
             } else {
                 LOG.debug("Skipping compilation result as depth ({}) is higher than estimated maximum depth!", circuitInformation.getCircuitDepth());
             }
         }
-
-        // store updated result object
-        LOG.debug("Results: " + job.getJobResults().size());
-        job.setReady(true);
-        compilationJobRepository.save(job);
-    }
-
-    /**
-     * Perform the selection of a suitable QPUs for the given quantum circuit
-     *
-     * @param job the QPU selection job for the long-running task
-     * @param allowedProviders an optional list with providers to include into the selection. If not specified all providers are taken into account.
-     * @param circuitLanguage the language of the circuit for which the QPU selection should be performed
-     * @param circuitCode the file containing the circuit
-     * @param tokens a list of access tokens for the different quantum hardware providers
-     * @param simulatorsAllowed <code>true</code> if also simulators should be included into the selection, <code>false</code> otherwise
-     */
-    public void performQpuSelectionForCircuit(QpuSelectionJob job, List<String> allowedProviders, String circuitLanguage, File circuitCode,
-                                              List<String> tokens, boolean simulatorsAllowed) {
-        // TODO
+        return compilerAnalysisResults;
     }
 
     private void rebuildImplementationPrologFiles() {
