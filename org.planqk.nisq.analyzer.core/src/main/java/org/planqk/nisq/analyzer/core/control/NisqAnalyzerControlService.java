@@ -57,6 +57,7 @@ import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Provider;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
+import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
 import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
@@ -65,6 +66,7 @@ import org.planqk.nisq.analyzer.core.repository.CompilerAnalysisResultRepository
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
+import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 import org.planqk.nisq.analyzer.core.translator.TranslatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,6 +106,8 @@ public class NisqAnalyzerControlService {
     final private AnalysisJobRepository analysisJobRepository;
 
     final private QpuSelectionJobRepository qpuSelectionJobRepository;
+
+    final private QpuSelectionResultRepository qpuSelectionResultRepository;
 
     /**
      * Execute the given quantum algorithm implementation with the given input parameters and return the corresponding output of the execution.
@@ -337,7 +341,8 @@ public class NisqAnalyzerControlService {
                                          File circuitCode, String circuitName, List<String> compilerNames, String token) {
 
         // analyze compilers and retrieve suitable compilation results
-        List<CompilationResult> compilerAnalysisResults = selectCompiler(providerName, qpuName, circuitLanguage, circuitCode, circuitName, compilerNames, token);
+        List<CompilationResult> compilerAnalysisResults =
+                selectCompiler(providerName, qpuName, circuitLanguage, circuitCode, circuitName, compilerNames, token);
 
         // add result to DB and connect with CompilationJob
         for (CompilationResult result : compilerAnalysisResults) {
@@ -354,11 +359,11 @@ public class NisqAnalyzerControlService {
     /**
      * Perform the selection of a suitable QPUs for the given quantum circuit
      *
-     * @param job the QPU selection job for the long-running task
-     * @param allowedProviders an optional list with providers to include into the selection. If not specified all providers are taken into account.
-     * @param circuitLanguage the language of the circuit for which the QPU selection should be performed
-     * @param circuitCode the file containing the circuit
-     * @param tokens a list of access tokens for the different quantum hardware providers
+     * @param job               the QPU selection job for the long-running task
+     * @param allowedProviders  an optional list with providers to include into the selection. If not specified all providers are taken into account.
+     * @param circuitLanguage   the language of the circuit for which the QPU selection should be performed
+     * @param circuitCode       the file containing the circuit
+     * @param tokens            a list of access tokens for the different quantum hardware providers
      * @param simulatorsAllowed <code>true</code> if also simulators should be included into the selection, <code>false</code> otherwise
      */
     public void performQpuSelectionForCircuit(QpuSelectionJob job, List<String> allowedProviders, String circuitLanguage, File circuitCode,
@@ -388,10 +393,19 @@ public class NisqAnalyzerControlService {
                     continue;
                 }
 
-                // get suitable SDK connectors for the given provider
-                List<SdkConnector> suitableConnectors = connectorList.stream().filter(sdkConnector -> sdkConnector.supportedProviders().contains(provider.getName().toLowerCase())).collect(Collectors.toList());
-                LOG.debug("Found {} suitable SDK connectors...", suitableConnectors.size());
-                // TODO
+                // perform compiler selection for the given QPU and circuit
+                List<CompilationResult> compilationResults =
+                        selectCompiler(provider.getName(), qpu.getName(), circuitLanguage, circuitCode, "temp", null,
+                                tokens.get(0)); // TODO: select token
+                LOG.debug("Retrieved {} compilation results!", compilationResults.size());
+
+                // add results to the database and the job
+                for (CompilationResult result : compilationResults) {
+                    QpuSelectionResult qpuSelectionResult = qpuSelectionResultRepository
+                            .save(new QpuSelectionResult(provider.getName(), qpu.getName(), qpu.getQueueSize(), result.getTranspiledCircuit(),
+                                    result.getTranspiledLanguage(), result.getCompiler(), result.getAnalyzedDepth(), result.getAnalyzedWidth()));
+                    job.getJobResults().add(qpuSelectionResult);
+                }
             }
         }
 

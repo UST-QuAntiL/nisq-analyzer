@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.model;
 
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -39,4 +40,17 @@ public class QpuSelectionResult extends HasId {
     private String provider;
 
     private String qpu;
+
+    private int queueSize;
+
+    @Lob
+    private String transpiledCircuit;
+
+    private String transpiledLanguage;
+
+    private String usedCompiler;
+
+    private int analyzedDepth;
+
+    private int analyzedWidth;
 }
