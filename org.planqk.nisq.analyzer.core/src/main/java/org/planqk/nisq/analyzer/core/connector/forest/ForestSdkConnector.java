@@ -28,6 +28,7 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -172,7 +173,13 @@ public class ForestSdkConnector implements SdkConnector {
             // Check if the Forest service was successful
             if (response.getStatusCode().is2xxSuccessful()) {
                 LOG.debug("Circuit transpiled using Forest Service.");
-                return response.getBody();
+                CircuitInformation circuitInformation = response.getBody();
+
+                // update language required for selection
+                if (Objects.nonNull(circuitInformation)) {
+                    circuitInformation.setTranspiledLanguage(Constants.QUIL);
+                }
+                return circuitInformation;
             } else if (response.getStatusCode().is4xxClientError()) {
                 LOG.error(String.format("Forest Service rejected request (HTTP %d)", response.getStatusCodeValue()));
             } else if (response.getStatusCode().is5xxServerError()) {
