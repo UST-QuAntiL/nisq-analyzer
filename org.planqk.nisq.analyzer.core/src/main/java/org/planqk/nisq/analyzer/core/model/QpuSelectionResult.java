@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,41 +19,38 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import lombok.Getter;
+import javax.persistence.Entity;
+import javax.persistence.Lob;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /**
- * Entity representing a quantum processing unit (Qpu).
+ * Object to represent the result of a QPU selection job for a certain quantum circuit
  */
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@Data
 @NoArgsConstructor
-public class Qpu extends HasId {
+@AllArgsConstructor
+public class QpuSelectionResult extends HasId {
 
-    @Getter
-    @Setter
-    private String name;
-
-    @Getter
-    @Setter
-    private int qubitCount;
-
-    @Getter
-    @Setter
-    private float t1;
-
-    @Getter
-    @Setter
-    private float maxGateTime;
-
-    @Getter
-    @Setter
-    private boolean simulator = false;
-
-    @Getter
-    @Setter
     private String provider;
 
-    @Getter
-    @Setter
+    private String qpu;
+
     private int queueSize;
+
+    @Lob
+    private String transpiledCircuit;
+
+    private String transpiledLanguage;
+
+    private String usedCompiler;
+
+    private int analyzedDepth;
+
+    private int analyzedWidth;
 }

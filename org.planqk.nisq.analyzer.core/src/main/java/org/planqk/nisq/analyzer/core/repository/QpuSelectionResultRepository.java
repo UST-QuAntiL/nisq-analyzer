@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,43 +17,14 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
+package org.planqk.nisq.analyzer.core.repository;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.util.UUID;
 
-/**
- * Entity representing a quantum processing unit (Qpu).
- */
-@NoArgsConstructor
-public class Qpu extends HasId {
+import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-    @Getter
-    @Setter
-    private String name;
-
-    @Getter
-    @Setter
-    private int qubitCount;
-
-    @Getter
-    @Setter
-    private float t1;
-
-    @Getter
-    @Setter
-    private float maxGateTime;
-
-    @Getter
-    @Setter
-    private boolean simulator = false;
-
-    @Getter
-    @Setter
-    private String provider;
-
-    @Getter
-    @Setter
-    private int queueSize;
+@RepositoryRestResource(exported = false)
+public interface QpuSelectionResultRepository extends JpaRepository<QpuSelectionResult, UUID> {
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,43 +17,36 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
+package org.planqk.nisq.analyzer.core.web.dtos.entities;
+
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Entity representing a quantum processing unit (Qpu).
- */
-@NoArgsConstructor
-public class Qpu extends HasId {
+public class QpuSelectionJobDto extends QpuSelectionResultListDto {
 
     @Getter
     @Setter
-    private String name;
+    private UUID id;
 
     @Getter
     @Setter
-    private int qubitCount;
+    private boolean ready;
 
-    @Getter
-    @Setter
-    private float t1;
+    public static final class Converter {
 
-    @Getter
-    @Setter
-    private float maxGateTime;
-
-    @Getter
-    @Setter
-    private boolean simulator = false;
-
-    @Getter
-    @Setter
-    private String provider;
-
-    @Getter
-    @Setter
-    private int queueSize;
+        public static QpuSelectionJobDto convert(final QpuSelectionJob object) {
+            QpuSelectionJobDto dto = new QpuSelectionJobDto();
+            dto.setId(object.getId());
+            dto.setReady(object.isReady());
+            if (object.isReady()) {
+                dto.add(object.getJobResults().stream().map(QpuSelectionResultDto.Converter::convert).collect(Collectors.toList()));
+            }
+            return dto;
+        }
+    }
 }

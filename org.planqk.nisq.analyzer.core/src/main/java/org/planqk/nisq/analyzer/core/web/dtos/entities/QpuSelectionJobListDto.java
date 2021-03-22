@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,43 +17,25 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
+package org.planqk.nisq.analyzer.core.web.dtos.entities;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.hateoas.RepresentationModel;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-/**
- * Entity representing a quantum processing unit (Qpu).
- */
-@NoArgsConstructor
-public class Qpu extends HasId {
+public class QpuSelectionJobListDto extends RepresentationModel<QpuSelectionJobListDto> {
 
     @Getter
-    @Setter
-    private String name;
+    private final List<QpuSelectionJobDto> qpuSelectionJobList = new ArrayList<>();
 
-    @Getter
-    @Setter
-    private int qubitCount;
+    public void add(final List<QpuSelectionJobDto> qpuSelectionJobDtos) {
+        this.qpuSelectionJobList.addAll(qpuSelectionJobDtos);
+    }
 
-    @Getter
-    @Setter
-    private float t1;
-
-    @Getter
-    @Setter
-    private float maxGateTime;
-
-    @Getter
-    @Setter
-    private boolean simulator = false;
-
-    @Getter
-    @Setter
-    private String provider;
-
-    @Getter
-    @Setter
-    private int queueSize;
+    public void add(final QpuSelectionJobDto qpuSelectionJobDto) {
+        this.qpuSelectionJobList.add(qpuSelectionJobDto);
+    }
 }
