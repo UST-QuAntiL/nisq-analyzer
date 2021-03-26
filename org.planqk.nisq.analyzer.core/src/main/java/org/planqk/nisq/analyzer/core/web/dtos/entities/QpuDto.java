@@ -59,6 +59,10 @@ public class QpuDto extends RepresentationModel<QpuDto> {
     @Setter
     private boolean simulator;
 
+    @Getter
+    @Setter
+    private int queueSize;
+
     public static final class Converter {
 
         public static QpuDto convert(final Qpu object) {
@@ -68,6 +72,7 @@ public class QpuDto extends RepresentationModel<QpuDto> {
             dto.setNumberOfQubits(object.getQubitCount());
             dto.setT1(object.getT1());
             dto.setMaxGateTime(object.getMaxGateTime());
+            dto.setQueueSize(object.getQueueSize());
             return dto;
         }
 
@@ -81,6 +86,7 @@ public class QpuDto extends RepresentationModel<QpuDto> {
             qpu.setName(object.getName());
             qpu.setQubitCount(object.getNumberOfQubits());
             qpu.setSimulator(object.isSimulator());
+            qpu.setQueueSize(object.getQueueSize());
 
             // time unit has to be converted
             qpu.setT1(convert_micro_to_nano_seconds(object.getT1()));

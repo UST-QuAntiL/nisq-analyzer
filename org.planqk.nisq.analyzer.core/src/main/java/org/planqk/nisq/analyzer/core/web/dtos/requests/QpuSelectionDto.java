@@ -17,14 +17,24 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.repository;
+package org.planqk.nisq.analyzer.core.web.dtos.requests;
 
-import java.util.UUID;
+import java.net.URL;
+import java.util.List;
+import java.util.Map;
 
-import org.planqk.nisq.analyzer.core.model.AnalysisJob;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+import lombok.Data;
 
-@RepositoryRestResource(exported = false)
-public interface ImplementationSelectionJobRepository extends JpaRepository<AnalysisJob, UUID> {
+@Data
+public class QpuSelectionDto {
+
+    boolean simulatorsAllowed;
+
+    List<String> allowedProviders;
+
+    String circuitLanguage;
+
+    URL circuitUrl;
+
+    Map<String,String> tokens;
 }

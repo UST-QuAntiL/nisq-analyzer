@@ -28,13 +28,13 @@ import org.springframework.hateoas.RepresentationModel;
 public class AnalysisJobListDto extends RepresentationModel<AnalysisJobListDto> {
 
     @Getter
-    private final List<AnalysisJobDto> implementationSelectionJobList = new ArrayList<>();
+    private final List<AnalysisJobDto> analysisJobList = new ArrayList<>();
 
     public void add(final List<AnalysisJobDto> jobs) {
-        this.implementationSelectionJobList.addAll(jobs);
+        this.analysisJobList.addAll(jobs);
     }
 
     public void add(final AnalysisJobDto job) {
-        this.implementationSelectionJobList.add(job);
+        this.analysisJobList.add(job);
     }
 }

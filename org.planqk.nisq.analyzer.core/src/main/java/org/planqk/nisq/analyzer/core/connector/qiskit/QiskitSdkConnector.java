@@ -28,6 +28,7 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -173,7 +174,13 @@ public class QiskitSdkConnector implements SdkConnector {
             // Check if the Qiskit service was successful
             if (response.getStatusCode().is2xxSuccessful()) {
                 LOG.debug("Circuit transpiled using Qiskit Service.");
-                return response.getBody();
+                CircuitInformation circuitInformation = response.getBody();
+
+                // update language required for selection
+                if (Objects.nonNull(circuitInformation)) {
+                    circuitInformation.setTranspiledLanguage(Constants.OPENQASM);
+                }
+                return circuitInformation;
             } else if (response.getStatusCode().is4xxClientError()) {
                 LOG.error(String.format("Qiskit Service rejected request (HTTP %d)", response.getStatusCodeValue()));
             } else if (response.getStatusCode().is5xxServerError()) {

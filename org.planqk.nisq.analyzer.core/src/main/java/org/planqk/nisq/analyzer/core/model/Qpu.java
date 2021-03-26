@@ -52,4 +52,8 @@ public class Qpu extends HasId {
     @Getter
     @Setter
     private String provider;
+
+    @Getter
+    @Setter
+    private int queueSize;
 }

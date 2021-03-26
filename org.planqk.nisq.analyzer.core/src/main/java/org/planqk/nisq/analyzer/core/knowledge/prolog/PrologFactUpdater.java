@@ -211,6 +211,7 @@ public class PrologFactUpdater {
         prologContent += ":- multifile t1Time/2." + newline;
         prologContent += ":- multifile maxGateTime/2." + newline;
         prologContent += ":- multifile hasProvider/2." + newline;
+        prologContent += ":- multifile isSimulator/1." + newline;
 
         prologContent += createProvidesQubitFact(qpuId, qubitCount) + newline;
         prologContent += createHasProviderFact(qpuId, provider) + newline;

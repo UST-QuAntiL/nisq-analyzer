@@ -19,16 +19,15 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import java.time.OffsetDateTime;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
+
 import lombok.Getter;
 import lombok.Setter;
-import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 
-public class AnalysisJobDto extends AnalysisResultListDto {
+public class QpuSelectionJobDto extends QpuSelectionResultListDto {
 
     @Getter
     @Setter
@@ -36,31 +35,17 @@ public class AnalysisJobDto extends AnalysisResultListDto {
 
     @Getter
     @Setter
-    private UUID implementedAlgorithm;
-
-    @Getter
-    @Setter
-    private OffsetDateTime time;
-
-    @Getter
-    @Setter
-    private Map<String, String> inputParameters;
-
-    @Getter
-    @Setter
     private boolean ready;
 
     public static final class Converter {
 
-        public static AnalysisJobDto convert(final AnalysisJob object) {
-            AnalysisJobDto dto = new AnalysisJobDto();
+        public static QpuSelectionJobDto convert(final QpuSelectionJob object) {
+            QpuSelectionJobDto dto = new QpuSelectionJobDto();
             dto.setId(object.getId());
-            dto.setImplementedAlgorithm(object.getImplementedAlgorithm());
-            dto.setTime(object.getTime());
-            dto.setInputParameters(object.getInputParameters());
             dto.setReady(object.isReady());
-            dto.add(object.getJobResults().stream().map(AnalysisResultDto.Converter::convert).collect(Collectors.toList()));
-
+            if (object.isReady()) {
+                dto.add(object.getJobResults().stream().map(QpuSelectionResultDto.Converter::convert).collect(Collectors.toList()));
+            }
             return dto;
         }
     }

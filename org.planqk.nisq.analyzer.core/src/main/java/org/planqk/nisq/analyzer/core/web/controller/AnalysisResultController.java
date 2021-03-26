@@ -19,7 +19,7 @@ import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
-import org.planqk.nisq.analyzer.core.repository.ImplementationSelectionJobRepository;
+import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
@@ -60,12 +60,12 @@ public class AnalysisResultController {
 
     private final ExecutionResultRepository executionResultRepository;
 
-    private final ImplementationSelectionJobRepository implementationSelectionJobRepository;
+    private final AnalysisJobRepository analysisJobRepository;
 
     private final NisqAnalyzerControlService controlService;
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve all analysis results for an Algorithm")
+            description = "Retrieve all analysis results for an algorithm")
     @Parameter(in = ParameterIn.QUERY
             , description = "Sorting criteria in the format: property(,asc|desc). "
             + "Default sort order is ascending. " + "Multiple sort criteria are supported."
@@ -74,7 +74,7 @@ public class AnalysisResultController {
     @GetMapping("/algorithm/{algoId}")
     public HttpEntity<AnalysisResultListDto> getAnalysisResults(@PathVariable UUID algoId,
                                                                 @Parameter(hidden = true) Sort sort) {
-        LOG.debug("Get to retrieve all analysis results for impl with id: {}.", algoId);
+        LOG.debug("Get to retrieve all analysis results for algo with id: {}.", algoId);
         AnalysisResultListDto model = new AnalysisResultListDto();
         model.add(analysisResultRepository.findByImplementedAlgorithm(algoId, sort)
                 .stream().map(this::createAnalysisResultDto).collect(Collectors.toList()));
@@ -84,11 +84,11 @@ public class AnalysisResultController {
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve all compiler analysis jobs")
-    @GetMapping("/" + Constants.ANALYSIS_JOBS)
+    @GetMapping("/" + Constants.JOBS)
     @Transactional
-    public HttpEntity<AnalysisJobListDto> getImplementationSelectionJobs() {
+    public HttpEntity<AnalysisJobListDto> getAnalysisJobs() {
         AnalysisJobListDto model = new AnalysisJobListDto();
-        model.add(implementationSelectionJobRepository.findAll().stream().map(this::createDto).collect(Collectors.toList()));
+        model.add(analysisJobRepository.findAll().stream().map(this::createAnalysisJobDto).collect(Collectors.toList()));
         model.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJobs()).withSelfRel());
         return new ResponseEntity<>(model, HttpStatus.OK);
     }
@@ -109,19 +109,37 @@ public class AnalysisResultController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve a single implementation selection result")
-    @GetMapping("/" + Constants.ANALYSIS_JOBS + "/{resId}")
-    @Transactional
-    public HttpEntity<AnalysisJobDto> getImplementationSelectionJob(@PathVariable UUID resId) {
-        LOG.debug("Get to retrieve implementation selection job with id: {}.", resId);
+        description = "Retrieve all analysis jobs for an algorithm")
+    @Parameter(in = ParameterIn.QUERY
+        , description = "Sorting criteria in the format: property(,asc|desc). "
+        + "Default sort order is ascending. " + "Multiple sort criteria are supported."
+        , name = "sort"
+        , content = @Content(array = @ArraySchema(schema = @Schema(type = "string"))))
+    @GetMapping("/" + Constants.JOBS + "/algorithm/{algoId}")
+    public HttpEntity<AnalysisJobListDto> getAnalysisJobsOfAlgorithm(@PathVariable UUID algoId,
+                                                                @Parameter(hidden = true) Sort sort) {
+        LOG.debug("Get to retrieve all analysis jobs for algo with id: {}.", algoId);
+        AnalysisJobListDto model = new AnalysisJobListDto();
+        model.add(analysisJobRepository.findByImplementedAlgorithm(algoId, sort)
+            .stream().map(this::createAnalysisJobDto).collect(Collectors.toList()));
+        model.add(linkTo(methodOn(AnalysisResultController.class).getAnalysisJobsOfAlgorithm(algoId, sort)).withSelfRel());
+        return new ResponseEntity<>(model, HttpStatus.OK);
+    }
 
-        Optional<AnalysisJob> result = implementationSelectionJobRepository.findById(resId);
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve a single analysis job result")
+    @GetMapping("/" + Constants.JOBS + "/{resId}")
+    @Transactional
+    public HttpEntity<AnalysisJobDto> getAnalysisJob(@PathVariable UUID resId) {
+        LOG.debug("Get to retrieve analysis job with id: {}.", resId);
+
+        Optional<AnalysisJob> result = analysisJobRepository.findById(resId);
         if (!result.isPresent()) {
-            LOG.error("Unable to retrieve implementation selection result with id {} from the repository.", resId);
+            LOG.error("Unable to retrieve analysis job result with id {} from the repository.", resId);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(createDto(result.get()), HttpStatus.OK);
+        return new ResponseEntity<>(createAnalysisJobDto(result.get()), HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
@@ -171,9 +189,9 @@ public class AnalysisResultController {
         return dto;
     }
 
-    private AnalysisJobDto createDto(AnalysisJob job) {
+    private AnalysisJobDto createAnalysisJobDto(AnalysisJob job) {
         AnalysisJobDto dto = AnalysisJobDto.Converter.convert(job);
-        dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJob(job.getId())).withSelfRel());
+        dto.add(linkTo(methodOn(AnalysisResultController.class).getAnalysisJob(job.getId())).withSelfRel());
         return dto;
     }
 }

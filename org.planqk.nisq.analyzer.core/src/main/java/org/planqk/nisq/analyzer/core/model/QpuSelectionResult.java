@@ -19,39 +19,38 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.persistence.CascadeType;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.OneToMany;
+import javax.persistence.Lob;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+/**
+ * Object to represent the result of a QPU selection job for a certain quantum circuit
+ */
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AnalysisJob extends HasId {
+public class QpuSelectionResult extends HasId {
 
-    private UUID implementedAlgorithm;
+    private String provider;
 
-    private OffsetDateTime time;
+    private String qpu;
 
-    @ElementCollection
-    private Map<String, String> inputParameters;
+    private int queueSize;
 
-    private boolean ready;
+    @Lob
+    private String transpiledCircuit;
 
-    @OneToMany(cascade = CascadeType.PERSIST)
-    private List<AnalysisResult> jobResults = new ArrayList<>();
+    private String transpiledLanguage;
 
+    private String usedCompiler;
+
+    private int analyzedDepth;
+
+    private int analyzedWidth;
 }

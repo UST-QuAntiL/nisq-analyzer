@@ -30,12 +30,13 @@ public class Constants {
     public static final String EXECUTION = "execute";
     public static final String SELECTION = "selection";
     public static final String COMPILER_SELECTION = "compiler-selection";
+    public static final String QPU_SELECTION = "qpu-selection";
     public static final String SELECTION_PARAMS = "selection-params";
     public static final String ANALYSIS_RESULTS = "analysis-results";
     public static final String COMPILER_RESULTS = "compiler-results";
+    public static final String QPU_SELECTION_RESULTS = "qpu-selection-results";
     public static final String EXECUTION_RESULTS = "execution-results";
-    public static final String COMPILER_JOBS = "jobs";
-    public static final String ANALYSIS_JOBS = "jobs";
+    public static final String JOBS = "jobs";
 
     // link names
     public static final String USED_SDK = "used-sdk";

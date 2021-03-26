@@ -17,41 +17,17 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
+package org.planqk.nisq.analyzer.core.repository;
 
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
-import javax.persistence.CascadeType;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
+import org.planqk.nisq.analyzer.core.model.AnalysisJob;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
-@EqualsAndHashCode(callSuper = true)
-@Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class AnalysisJob extends HasId {
-
-    private UUID implementedAlgorithm;
-
-    private OffsetDateTime time;
-
-    @ElementCollection
-    private Map<String, String> inputParameters;
-
-    private boolean ready;
-
-    @OneToMany(cascade = CascadeType.PERSIST)
-    private List<AnalysisResult> jobResults = new ArrayList<>();
-
+@RepositoryRestResource(exported = false)
+public interface AnalysisJobRepository extends JpaRepository<AnalysisJob, UUID> {
+    List<AnalysisJob> findByImplementedAlgorithm(UUID implementedAlgorithm, Sort sort);
 }

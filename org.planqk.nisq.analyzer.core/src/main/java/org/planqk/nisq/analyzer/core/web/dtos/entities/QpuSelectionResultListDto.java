@@ -17,41 +17,25 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
+package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
-import javax.persistence.CascadeType;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
+import org.springframework.hateoas.RepresentationModel;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
-@EqualsAndHashCode(callSuper = true)
-@Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class AnalysisJob extends HasId {
+public class QpuSelectionResultListDto extends RepresentationModel<QpuSelectionResultListDto> {
 
-    private UUID implementedAlgorithm;
+    @Getter
+    private final List<QpuSelectionResultDto> qpuSelectionResultList = new ArrayList<>();
 
-    private OffsetDateTime time;
+    public void add(final List<QpuSelectionResultDto> qpuSelectionResultDtos) {
+        this.qpuSelectionResultList.addAll(qpuSelectionResultDtos);
+    }
 
-    @ElementCollection
-    private Map<String, String> inputParameters;
-
-    private boolean ready;
-
-    @OneToMany(cascade = CascadeType.PERSIST)
-    private List<AnalysisResult> jobResults = new ArrayList<>();
-
+    public void add(final QpuSelectionResultDto qpuSelectionResultDto) {
+        this.qpuSelectionResultList.add(qpuSelectionResultDto);
+    }
 }

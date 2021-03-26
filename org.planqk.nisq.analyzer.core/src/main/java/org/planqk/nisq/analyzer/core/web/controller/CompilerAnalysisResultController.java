@@ -87,13 +87,13 @@ public class CompilerAnalysisResultController {
         CompilerAnalysisResultListDto model = new CompilerAnalysisResultListDto();
         model.add(compilerAnalysisResultRepository.findAll().stream().map(this::createDto).collect(Collectors.toList()));
         model.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisResults()).withSelfRel());
-        model.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJobs()).withRel(Constants.COMPILER_JOBS));
+        model.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJobs()).withRel(Constants.JOBS));
         return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve all compiler analysis jobs")
-    @GetMapping("/" + Constants.COMPILER_JOBS)
+    @GetMapping("/" + Constants.JOBS)
     @Transactional
     public HttpEntity<CompilationJobListDto> getCompilerAnalysisJobs() {
         CompilationJobListDto model = new CompilationJobListDto();
@@ -119,7 +119,7 @@ public class CompilerAnalysisResultController {
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve a single compilation result")
-    @GetMapping("/" + Constants.COMPILER_JOBS + "/{resId}")
+    @GetMapping("/" + Constants.JOBS + "/{resId}")
     @Transactional
     public HttpEntity<CompilationJobDto> getCompilerAnalysisJob(@PathVariable UUID resId) {
         LOG.debug("Get to retrieve compilation job with id: {}.", resId);

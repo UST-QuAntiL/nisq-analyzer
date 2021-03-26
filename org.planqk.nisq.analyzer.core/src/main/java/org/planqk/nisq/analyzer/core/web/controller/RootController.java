@@ -23,25 +23,29 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.io.File;
-import java.io.IOException;
+import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
-import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
+import org.planqk.nisq.analyzer.core.model.CompilationJob;
+import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
+import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
-import org.planqk.nisq.analyzer.core.repository.ImplementationSelectionJobRepository;
+import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
 import org.planqk.nisq.analyzer.core.web.Utils;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobDto;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilerAnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisJobDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.CompilationJobDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuSelectionJobDto;
 import org.planqk.nisq.analyzer.core.web.dtos.requests.CompilerSelectionDto;
+import org.planqk.nisq.analyzer.core.web.dtos.requests.QpuSelectionDto;
 import org.planqk.nisq.analyzer.core.web.dtos.requests.SelectionRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,14 +81,18 @@ public class RootController {
 
     private final CompilationJobRepository compilationJobRepository;
 
-    private final ImplementationSelectionJobRepository implementationSelectionJobRepository;
+    private final AnalysisJobRepository analysisJobRepository;
+
+    private final QpuSelectionJobRepository qpuSelectionJobRepository;
 
     public RootController(NisqAnalyzerControlService nisqAnalyzerService,
                           CompilationJobRepository compilationJobRepository,
-                          ImplementationSelectionJobRepository implementationSelectionJobRepository) {
+                          AnalysisJobRepository analysisJobRepository,
+                          QpuSelectionJobRepository qpuSelectionJobRepository) {
         this.nisqAnalyzerService = nisqAnalyzerService;
         this.compilationJobRepository = compilationJobRepository;
-        this.implementationSelectionJobRepository = implementationSelectionJobRepository;
+        this.analysisJobRepository = analysisJobRepository;
+        this.qpuSelectionJobRepository = qpuSelectionJobRepository;
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200")}, description = "Root operation, returns further links")
@@ -147,10 +155,14 @@ public class RootController {
         }
         LOG.debug("Received {} parameters for the selection.", params.getParameters().size());
 
-        AnalysisJob job = implementationSelectionJobRepository.save( new AnalysisJob());
+        AnalysisJob job = new AnalysisJob();
+        job.setImplementedAlgorithm(params.getAlgorithmId());
+        job.setTime(OffsetDateTime.now());
+        job.setInputParameters(params.getParameters());
+        analysisJobRepository.save(job);
 
         try {
-            new Thread( () -> {
+            new Thread(() -> {
                 nisqAnalyzerService.performSelection(job, params.getAlgorithmId(), params.getParameters());
             }).start();
         } catch (UnsatisfiedLinkError e) {
@@ -161,25 +173,75 @@ public class RootController {
         }
 
         AnalysisJobDto dto = AnalysisJobDto.Converter.convert(job);
-        dto.add(linkTo(methodOn(AnalysisResultController.class).getImplementationSelectionJob(job.getId())).withSelfRel());
+        dto.add(linkTo(methodOn(AnalysisResultController.class).getAnalysisJob(job.getId())).withSelfRel());
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
+            @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit passed in as file")
+    @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitFile(@RequestParam boolean simulatorsAllowed,
+                                                                  @RequestParam List<String> allowedProviders, @RequestParam String circuitLanguage,
+                                                                  @RequestParam Map<String,String> tokens, @RequestParam("circuit") MultipartFile circuitCode) {
+        LOG.debug("Post to select QPU for given quantum circuit with language: {}", circuitLanguage);
+
+        // get temp file for passed circuit code
+        File circuitFile = Utils.getFileObjectFromMultipart(circuitCode);
+        if (Objects.isNull(circuitFile)) {
+            return new ResponseEntity("Unable to parse file from given data", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // create object for the QPU selection job and call asynchronously to update the job
+        QpuSelectionJob job = qpuSelectionJobRepository.save(new QpuSelectionJob());
+        new Thread(() -> {
+            nisqAnalyzerService
+                    .performQpuSelectionForCircuit(job, allowedProviders, circuitLanguage, circuitFile,
+                            tokens, simulatorsAllowed);
+        }).start();
+
+        // send back QPU selection job to track the progress
+        QpuSelectionJobDto dto = QpuSelectionJobDto.Converter.convert(job);
+        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId())).withSelfRel());
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
+            @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit loaded from the given URL")
+    @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitUrl(@RequestBody QpuSelectionDto params) {
+        LOG.debug("Post to select QPU for quantum circuit at URL '{}', with language '{}', and allowed providers '{}'!", params.getCircuitUrl(), params.getCircuitLanguage(), params.getAllowedProviders());
+
+        // get file from passed URL
+        File circuitFile = Utils.getFileObjectFromUrl(params.getCircuitUrl());
+        if (Objects.isNull(circuitFile)) {
+            return new ResponseEntity("Unable to load file from given URL", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // create object for the QPU selection job and call asynchronously to update the job
+        QpuSelectionJob job = qpuSelectionJobRepository.save(new QpuSelectionJob());
+        new Thread(() -> {
+            nisqAnalyzerService
+                    .performQpuSelectionForCircuit(job, params.getAllowedProviders(), params.getCircuitLanguage(), circuitFile,
+                            params.getTokens(), params.isSimulatorsAllowed());
+        }).start();
+
+        // send back QPU selection job to track the progress
+        QpuSelectionJobDto dto = QpuSelectionJobDto.Converter.convert(job);
+        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId())).withSelfRel());
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable compiler for an implementation passed in as file")
     @PostMapping(value = "/" + Constants.COMPILER_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public HttpEntity<CompilerAnalysisResultListDto> selectCompilerForFile(@RequestParam String providerName, @RequestParam String qpuName,
-                                                                           @RequestParam String circuitLanguage, @RequestParam String circuitName,
-                                                                           @RequestParam String token,
-                                                                           @RequestParam("circuit") MultipartFile circuitCode) {
+    public HttpEntity<CompilationJobDto> selectCompilerForFile(@RequestParam String providerName, @RequestParam String qpuName,
+                                                               @RequestParam String circuitLanguage, @RequestParam String circuitName,
+                                                               @RequestParam String token,
+                                                               @RequestParam("circuit") MultipartFile circuitCode) {
 
         // get temp file for passed circuit code
-        File circuitFile;
-        try {
-            String[] fileNameParts = circuitCode.getOriginalFilename().split("\\.");
-            String fileEnding = fileNameParts[fileNameParts.length - 1];
-            circuitFile = Utils.inputStreamToFile(circuitCode.getInputStream(), fileEnding);
-        } catch (IOException e) {
+        File circuitFile = Utils.getFileObjectFromMultipart(circuitCode);
+        if (Objects.isNull(circuitFile)) {
             return new ResponseEntity("Unable to parse file from given data", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
@@ -209,12 +271,8 @@ public class RootController {
         }
 
         // get file from passed URL
-        File circuitFile;
-        try {
-            String[] fileNameParts = compilerSelectionDto.getCircuitUrl().toString().split("\\.");
-            String fileEnding = fileNameParts[fileNameParts.length - 1];
-            circuitFile = Utils.inputStreamToFile(compilerSelectionDto.getCircuitUrl().openStream(), fileEnding);
-        } catch (IOException e) {
+        File circuitFile = Utils.getFileObjectFromUrl(compilerSelectionDto.getCircuitUrl());
+        if (Objects.isNull(circuitFile)) {
             return new ResponseEntity("Unable to load file from given URL", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
