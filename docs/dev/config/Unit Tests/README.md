@@ -35,5 +35,5 @@ The unit tests expect that there is a database running in background and additio
 The simplest solution is to run the docker compose provided in 
 
 ```
-docker-compose up -d resources/test-compose.yml
+docker-compose -f resources/test-compose.yml up -d
 ```
