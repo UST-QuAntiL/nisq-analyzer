@@ -22,6 +22,7 @@ package org.planqk.nisq.analyzer.core;
 import java.util.Arrays;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
@@ -63,6 +64,7 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         Assertions.assertTrue(qProvService.getProviders().stream().allMatch(p -> p.getName().equals("IBMQ")));
     }
 
+    @Ignore("Ignored by default due to long expected runtime")
     @Test
     public void testSelectionShor15(){
 
@@ -84,6 +86,7 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         assertNotContainsImplForQpu(job, "shor-general-pytket", "ibmq_16_melbourne");
     }
 
+    @Ignore("Ignored by default due to long expected runtime")
     @Test
     public void testSelectionShor9(){
 
@@ -101,6 +104,7 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         assertNotContainsImplForQpu(job, "shor-general-pytket", "ibmq_16_melbourne");
     }
 
+    @Ignore("Ignored by default due to long expected runtime")
     @Test
     public void testSelectionShor6(){
 

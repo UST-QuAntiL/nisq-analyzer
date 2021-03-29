@@ -37,3 +37,7 @@ The simplest solution is to run the docker compose provided in
 ```
 docker-compose -f resources/test-compose.yml up -d
 ```
+
+
+##4. Ignored Tests
+Due to long expected runtime some tests are ignored by default. To include them into the test bench remove or comment out the **@Ignore** annotation right above the test methods.
