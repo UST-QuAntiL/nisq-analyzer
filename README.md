@@ -45,7 +45,7 @@ Prerequisites:
 
 ## Sample Data
 
-Suitable sample data in JSON format can be found in [nisq-analyzer-content](https://github.com/UST-QuAntiL/nisq-analyzer-content/tree/master/objects).  
+Suitable sample data in JSON format can be found in [nisq-analyzer-content](https://github.com/UST-QuAntiL/nisq-analyzer-content/tree/master/objects).
 
 ## Usage via API
 
