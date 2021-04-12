@@ -105,9 +105,9 @@ For using the QPU and compiler selection mechanism use
 {
   "simulatorsAllowed": "true/false",
   "allowedProviders": ["NAME-OF-QUANTUM-CLOUD-OFFERING", "NAME-OF-QUANTUM-CLOUD-OFFERING-2"],
-  "tokens": {"NAME-OF-QUANTUM-CLOUD-OFFERING": "TOKEN-FOR-QUANTUM-CLOUD-OFFERING"}
+  "tokens": {"NAME-OF-QUANTUM-CLOUD-OFFERING": "TOKEN-FOR-QUANTUM-CLOUD-OFFERING"},
   "circuitLanguage": "LANGUAGE-OF-CIRCUIT",
-  "circuitUrl: "URL-OF-RAW-CIRCUIT"
+  "circuitUrl": "URL-OF-RAW-CIRCUIT"
 }
 ```
 
