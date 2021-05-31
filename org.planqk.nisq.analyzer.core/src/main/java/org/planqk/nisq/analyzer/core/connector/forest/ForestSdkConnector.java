@@ -79,9 +79,9 @@ public class ForestSdkConnector implements SdkConnector {
 
     @Override
     public void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters,
-                                                      ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
+                                                      ExecutionResult executionResult, ExecutionResultRepository resultRepository, String bearerToken) {
         LOG.debug("Executing quantum algorithm implementation with Forest Sdk connector plugin!");
-        ForestRequest request = new ForestRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters);
+        ForestRequest request = new ForestRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters, bearerToken);
         executeQuantumCircuit(request, executionResult, resultRepository);
     }
 
@@ -141,9 +141,9 @@ public class ForestSdkConnector implements SdkConnector {
 
     @Override
     public CircuitInformation getCircuitProperties(Implementation implementation, String providerName, String qpuName,
-                                                   Map<String, ParameterValue> parameters) {
+                                                   Map<String, ParameterValue> parameters, String bearerToken) {
         LOG.debug("Analysing quantum algorithm implementation with Forest Sdk connector plugin!");
-        ForestRequest request = new ForestRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, parameters);
+        ForestRequest request = new ForestRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, parameters, bearerToken);
         return executeCircuitPropertiesRequest(request);
     }
 

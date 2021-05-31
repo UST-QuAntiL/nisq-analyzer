@@ -80,9 +80,9 @@ public class QiskitSdkConnector implements SdkConnector {
 
     @Override
     public void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters,
-                                                      ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
+                                                      ExecutionResult executionResult, ExecutionResultRepository resultRepository, String bearerToken) {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
-        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters);
+        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters, bearerToken);
         executeQuantumCircuit(request, executionResult, resultRepository);
     }
 
@@ -142,9 +142,9 @@ public class QiskitSdkConnector implements SdkConnector {
 
     @Override
     public CircuitInformation getCircuitProperties(Implementation implementation, String providerName, String qpuName,
-                                                   Map<String, ParameterValue> parameters) {
+                                                   Map<String, ParameterValue> parameters, String bearerToken) {
         LOG.debug("Analysing quantum algorithm implementation with Qiskit Sdk connector plugin!");
-        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, parameters);
+        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, parameters, bearerToken);
         return executeCircuitPropertiesRequest(request);
     }
 

@@ -71,6 +71,7 @@ public abstract class NisqAnalyzerTestCase {
     protected SdkRepository sdkRepository;
 
     protected UUID shorAlgorithmUuid = UUID.randomUUID();
+    protected UUID shorPlanQKAlgorithmUuid = UUID.randomUUID();
     protected UUID groverTruthtableUuid = UUID.randomUUID();
     protected UUID groverSatUuid = UUID.randomUUID();
 
@@ -140,6 +141,20 @@ public abstract class NisqAnalyzerTestCase {
         ));
         implementationRepository.save(shor15qiskit);
 
+        Implementation shor15qiskitPlanQK = new Implementation();
+        shor15qiskitPlanQK.setName("shor15-qiskit-PlanQK");
+        shor15qiskitPlanQK.setImplementedAlgorithm(shorPlanQKAlgorithmUuid);
+        shor15qiskitPlanQK.setFileLocation(URI.create("https://platform.planqk.de/qc-catalog/algorithms/e7413acf-c25e-4de8-ab78-75bfc836a839/implementations/1207510f-9007-48b3-93b8-ea51359c0ced/files/1d827208-1976-487e-819b-64df6e990bf3/content").toURL());
+        shor15qiskitPlanQK.setSelectionRule("processable(N, shor-fix-15-qiskit) :- N is 15.");
+        shor15qiskitPlanQK.setLanguage("Qiskit");
+        shor15qiskitPlanQK.setSdk(qiskitSDK);
+        shor15qiskitPlanQK.setInputParameters(Arrays.asList(
+                new Parameter("N", DataType.Integer, "N = 15", "")
+        ));
+        shor15qiskitPlanQK.setOutputParameters(Arrays.asList(
+                new Parameter("phases", DataType.String, "", "")
+        ));
+        implementationRepository.save(shor15qiskitPlanQK);
 
         Implementation shor15pytket = new Implementation();
         shor15pytket.setName("shor15-pytket");

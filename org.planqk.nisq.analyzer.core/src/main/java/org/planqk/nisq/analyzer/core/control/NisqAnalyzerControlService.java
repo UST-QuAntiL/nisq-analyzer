@@ -118,7 +118,7 @@ public class NisqAnalyzerControlService {
      * @return the ExecutionResult to track the current status and store the result
      * @throws RuntimeException is thrown in case the execution of the algorithm implementation fails
      */
-    public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result, Map<String, ParameterValue> inputParameters)
+    public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result, Map<String, ParameterValue> inputParameters, String bearerToken)
             throws RuntimeException {
         final Implementation implementation = result.getImplementation();
         LOG.debug("Executing quantum algorithm implementation with Id: {} and name: {}", implementation.getId(), implementation.getName());
@@ -147,7 +147,7 @@ public class NisqAnalyzerControlService {
         // execute implementation
         new Thread(() -> selectedSdkConnector
                 .executeQuantumAlgorithmImplementation(implementation, qpu.get(), inputParameters, executionResult,
-                        executionResultRepository)).start();
+                        executionResultRepository, bearerToken)).start();
 
         return executionResult;
     }
@@ -194,7 +194,7 @@ public class NisqAnalyzerControlService {
      * @throws UnsatisfiedLinkError Is thrown if the jpl driver is not on the java class path
      */
 
-    public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
+    public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters, String bearerToken) throws UnsatisfiedLinkError {
         LOG.debug("Performing implementation and QPU selection for algorithm with Id: {}", algorithm);
 
         // check all implementation if they can handle the given set of input parameters
@@ -270,7 +270,7 @@ public class NisqAnalyzerControlService {
 
                     // analyze the quantum circuit by utilizing the capabilities of the suited plugin and retrieve important circuit properties
                     CircuitInformation circuitInformation =
-                            selectedSdkConnector.getCircuitProperties(executableImpl, qpu.getProvider(), qpu.getName(), execInputParameters);
+                            selectedSdkConnector.getCircuitProperties(executableImpl, qpu.getProvider(), qpu.getName(), execInputParameters, bearerToken);
 
                     // if something unexpected happened
                     if (Objects.isNull(circuitInformation)) {

@@ -79,11 +79,11 @@ public class PyTketSdkConnector implements SdkConnector {
 
     @Override
     public void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters,
-                                                      ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
+                                                      ExecutionResult executionResult, ExecutionResultRepository resultRepository, String bearerToken) {
 
         LOG.debug("Executing quantum algorithm implementation with PyTKet Sdk connector plugin!");
         PyTketRequest request =
-                new PyTketRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), qpu.getProvider(), parameters);
+                new PyTketRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), qpu.getProvider(), parameters, bearerToken);
         executeQuantumCircuit(request, executionResult, resultRepository);
     }
 
@@ -162,10 +162,10 @@ public class PyTketSdkConnector implements SdkConnector {
 
     @Override
     public CircuitInformation getCircuitProperties(Implementation implementation, String providerName, String qpuName,
-                                                   Map<String, ParameterValue> parameters) {
+                                                   Map<String, ParameterValue> parameters, String bearerToken) {
         LOG.debug("Analysing quantum algorithm implementation with PyTket Sdk connector plugin!");
         PyTketRequest request =
-                new PyTketRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, providerName, parameters);
+                new PyTketRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, providerName, parameters, bearerToken);
         return executeCircuitPropertiesRequest(request);
     }
 
