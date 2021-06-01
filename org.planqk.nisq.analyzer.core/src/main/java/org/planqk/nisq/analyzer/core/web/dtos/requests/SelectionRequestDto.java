@@ -32,5 +32,5 @@ public class SelectionRequestDto extends ParameterKeyValueDto {
 
     @Getter
     @Setter
-    private String bearerToken;
+    private String refreshToken;
 }

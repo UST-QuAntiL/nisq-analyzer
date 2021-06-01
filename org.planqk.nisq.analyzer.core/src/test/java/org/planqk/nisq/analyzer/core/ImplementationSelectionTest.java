@@ -92,54 +92,12 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         assertNotContainsImplForQpu(job, "shor-general-pytket", "ibmq_16_melbourne");
     }
 
-    private static String getBearerTokenFromRefreshToken(String refreshToken) {
-        try {
-            String[] cmdArray = new String[13];
-            cmdArray[0] = "curl";
-            cmdArray[1] = "--location";
-            cmdArray[2] = "--request";
-            cmdArray[3] = "POST";
-            cmdArray[4] = "https://platform.planqk.de/auth/realms/planqk/protocol/openid-connect/token";
-            cmdArray[5] = "--header";
-            cmdArray[6] = "'Content-Type: application/x-www-form-urlencoded'";
-            cmdArray[7] = "--data-urlencode";
-            cmdArray[8] = "grant_type=refresh_token";
-            cmdArray[9] = "--data-urlencode";
-            cmdArray[10] = "client_id=vue-frontend";
-            cmdArray[11] = "--data-urlencode";
-            cmdArray[12] = "refresh_token=" + refreshToken;
-
-            ProcessBuilder pb = new ProcessBuilder(cmdArray);
-            Process proc = pb.start();
-            InputStream inputStream = proc.getInputStream();
-
-            BufferedInputStream bis = new BufferedInputStream(inputStream);
-            ByteArrayOutputStream buf = new ByteArrayOutputStream();
-
-            for (int result = bis.read(); result != -1; result = bis.read()) {
-                buf.write((byte) result);
-            }
-
-            String jsonString = buf.toString(StandardCharsets.UTF_8.name());
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(jsonString);
-
-            return json.at("/access_token").asText();
-        } catch (Exception e) {
-            System.err.println(e);
-
-            return "";
-        }
-    }
-
     @Test
     public void testSelectionShor15PlanQK() {
         AnalysisJob job = analysisJobRepository.save(new AnalysisJob());
 
         String refreshToken = System.getenv("refresh-token");
-        String bearerToken = getBearerTokenFromRefreshToken(refreshToken);
-        System.out.println(bearerToken);
-        nisqAnalyzerControlService.performSelection(job, shorPlanQKAlgorithmUuid, composeShorInputParameters(15), "Bearer " + bearerToken);
+        nisqAnalyzerControlService.performSelection(job, shorPlanQKAlgorithmUuid, composeShorInputParameters(15), refreshToken);
 
         assertContainsImpl(job, "shor15-qiskit-PlanQK");
 

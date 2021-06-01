@@ -163,7 +163,7 @@ public class RootController {
 
         try {
             new Thread(() -> {
-                nisqAnalyzerService.performSelection(job, params.getAlgorithmId(), params.getParameters(), params.getBearerToken());
+                nisqAnalyzerService.performSelection(job, params.getAlgorithmId(), params.getParameters(), params.getRefreshToken());
             }).start();
         } catch (UnsatisfiedLinkError e) {
             LOG.error(
