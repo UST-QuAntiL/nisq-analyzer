@@ -152,7 +152,7 @@ public class NisqAnalyzerControlService {
         // execute implementation
         new Thread(() -> selectedSdkConnector
                 .executeQuantumAlgorithmImplementation(implementation, qpu.get(), inputParameters, executionResult,
-                        executionResultRepository, "Bearer " + bearerToken)).start();
+                        executionResultRepository, bearerToken)).start();
 
         return executionResult;
     }
@@ -337,7 +337,7 @@ public class NisqAnalyzerControlService {
 
                     // analyze the quantum circuit by utilizing the capabilities of the suited plugin and retrieve important circuit properties
                     CircuitInformation circuitInformation =
-                            selectedSdkConnector.getCircuitProperties(executableImpl, qpu.getProvider(), qpu.getName(), execInputParameters, "Bearer " + bearerToken);
+                            selectedSdkConnector.getCircuitProperties(executableImpl, qpu.getProvider(), qpu.getName(), execInputParameters, bearerToken);
 
                     // if something unexpected happened
                     if (Objects.isNull(circuitInformation)) {
