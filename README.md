@@ -68,9 +68,12 @@ For using the selection mechanism use
     ...
     "SELECTION-PARAM-N": "YOUR-VALUE-N",
     "token": "YOUR-IBMQ-TOKEN"
-  }
+  },
+  "refreshToken": "YOUR-PLANQK-REFRESH-TOKEN"
 }
 ```
+
+The `refreshToken` is only needed when you want to analyze implementations that are hosted on the PlanQK platform.
 
 Get analysis results via `GET /nisq-analyzer/results/algorithm/{algoId}`.  
 Start the execution of an implementation and its analysis result via `POST /nisq-analyzer/results/{resId}/execute`.  

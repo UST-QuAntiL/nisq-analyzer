@@ -14,9 +14,10 @@ To edit the run configuration navigate to **Run>Edit Configurations** and select
 The following changes are required:
 ![checkstyle](graphics/doc3.png)
 
-- set an environment variable for the IBMQ token
+- set an environment variable for the IBMQ token and the PlanQK refresh token
   ```
   token = ***THISISMYIBMQTOKEN*****
+  refresh-token = ***THISISMYPLANQKREFRESHTOKEN***
   ```
 
 ![checkstyle](graphics/doc4.png)
