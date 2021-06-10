@@ -109,7 +109,6 @@ public class QpuSelectionResultController {
             description = "Retrieve a single QPU selection job")
     @GetMapping("/" + Constants.JOBS + "/{resId}")
     @Transactional
-    // TODO: maybe add circuitName as attribute
     public HttpEntity<QpuSelectionJobDto> getQpuSelectionJob(@PathVariable UUID resId) {
         LOG.debug("Get to retrieve QPU selection job with id: {}.", resId);
 

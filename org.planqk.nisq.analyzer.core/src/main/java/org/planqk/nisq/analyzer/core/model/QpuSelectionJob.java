@@ -45,6 +45,8 @@ public class QpuSelectionJob extends HasId {
 
     private OffsetDateTime time;
 
+    private String circuitName;
+
     @OneToMany(cascade = CascadeType.PERSIST)
     private List<QpuSelectionResult> jobResults = new ArrayList<>();
 }

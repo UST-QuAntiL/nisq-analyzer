@@ -195,6 +195,13 @@ public class RootController {
         // create object for the QPU selection job and call asynchronously to update the job
         QpuSelectionJob job = new QpuSelectionJob();
         job.setTime(OffsetDateTime.now());
+
+        if (circuitName == null) {
+            job.setCircuitName("temp");
+        } else {
+            job.setCircuitName(circuitName);
+        }
+
         qpuSelectionJobRepository.save(job);
         new Thread(() -> {
             nisqAnalyzerService
@@ -223,6 +230,13 @@ public class RootController {
         // create object for the QPU selection job and call asynchronously to update the job
         QpuSelectionJob job = new QpuSelectionJob();
         job.setTime(OffsetDateTime.now());
+
+        if (params.getCircuitName() == null) {
+            job.setCircuitName("temp");
+        } else {
+            job.setCircuitName(params.getCircuitName());
+        }
+
         qpuSelectionJobRepository.save(job);
         new Thread(() -> {
             nisqAnalyzerService
