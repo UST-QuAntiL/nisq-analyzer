@@ -69,7 +69,6 @@ public class QpuSelectionResultController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve all QPU selection results")
     @GetMapping("/")
-    // TODO: add time attribute
     public HttpEntity<QpuSelectionResultListDto> getQpuSelectionResults() {
         QpuSelectionResultListDto model = new QpuSelectionResultListDto();
         model.add(qpuSelectionResultRepository.findAll().stream().map(this::createDto).collect(Collectors.toList()));
@@ -111,7 +110,6 @@ public class QpuSelectionResultController {
     @GetMapping("/" + Constants.JOBS + "/{resId}")
     @Transactional
     // TODO: maybe add circuitName as attribute
-    // TODO: add time attribute
     public HttpEntity<QpuSelectionJobDto> getQpuSelectionJob(@PathVariable UUID resId) {
         LOG.debug("Get to retrieve QPU selection job with id: {}.", resId);
 

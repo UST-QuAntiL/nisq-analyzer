@@ -437,9 +437,14 @@ public class NisqAnalyzerControlService {
      * @param circuitCode       the file containing the circuit
      * @param tokens            a map with access tokens for the different quantum hardware providers
      * @param simulatorsAllowed <code>true</code> if also simulators should be included into the selection, <code>false</code> otherwise
+     * @param circuitName     user defined name to (partly) distinguish circuits
      */
     public void performQpuSelectionForCircuit(QpuSelectionJob job, List<String> allowedProviders, String circuitLanguage, File circuitCode,
-                                              Map<String,String> tokens, boolean simulatorsAllowed) {
+                                              Map<String,String> tokens, boolean simulatorsAllowed, String circuitName) {
+
+        if (circuitName == null) {
+            circuitName = "temp";
+        }
 
         // iterate over all providers listed in QProv for the QPU selection
         for (Provider provider : qProvService.getProviders()) {
@@ -476,7 +481,7 @@ public class NisqAnalyzerControlService {
 
                 // perform compiler selection for the given QPU and circuit
                 List<CompilationResult> compilationResults =
-                        selectCompiler(provider.getName(), qpu.getName(), circuitLanguage, circuitCode, "temp", compilersToUse, token);
+                        selectCompiler(provider.getName(), qpu.getName(), circuitLanguage, circuitCode, circuitName, compilersToUse, token);
                 LOG.debug("Retrieved {} compilation results!", compilationResults.size());
 
                 // add results to the database and the job

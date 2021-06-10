@@ -180,10 +180,10 @@ public class RootController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit passed in as file")
     @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    // TODO: add circuitName as optional attribute
     public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitFile(@RequestParam boolean simulatorsAllowed,
                                                                   @RequestParam List<String> allowedProviders, @RequestParam String circuitLanguage,
-                                                                  @RequestParam Map<String,String> tokens, @RequestParam("circuit") MultipartFile circuitCode) {
+                                                                  @RequestParam Map<String,String> tokens, @RequestParam("circuit") MultipartFile circuitCode,
+                                                                  @RequestParam(required = false) String circuitName) {
         LOG.debug("Post to select QPU for given quantum circuit with language: {}", circuitLanguage);
 
         // get temp file for passed circuit code
@@ -199,7 +199,7 @@ public class RootController {
         new Thread(() -> {
             nisqAnalyzerService
                     .performQpuSelectionForCircuit(job, allowedProviders, circuitLanguage, circuitFile,
-                            tokens, simulatorsAllowed);
+                            tokens, simulatorsAllowed, circuitName);
         }).start();
 
         // send back QPU selection job to track the progress
@@ -211,7 +211,6 @@ public class RootController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit loaded from the given URL")
     @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    // TODO: add circuitName as optional attribute
     public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitUrl(@RequestBody QpuSelectionDto params) {
         LOG.debug("Post to select QPU for quantum circuit at URL '{}', with language '{}', and allowed providers '{}'!", params.getCircuitUrl(), params.getCircuitLanguage(), params.getAllowedProviders());
 
@@ -228,7 +227,7 @@ public class RootController {
         new Thread(() -> {
             nisqAnalyzerService
                     .performQpuSelectionForCircuit(job, params.getAllowedProviders(), params.getCircuitLanguage(), circuitFile,
-                            params.getTokens(), params.isSimulatorsAllowed());
+                            params.getTokens(), params.isSimulatorsAllowed(), params.getCircuitName());
         }).start();
 
         // send back QPU selection job to track the progress
