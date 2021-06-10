@@ -321,7 +321,7 @@ public class NisqAnalyzerControlService {
 
                     String bearerToken = "";
 
-                    if (!refreshToken.equals("")) {
+                    if (refreshToken != null && !refreshToken.equals("")) {
                         LOG.debug("Fetching new bearer token from the PlanQK platform with the refresh token.");
                         String[] newTokens = getBearerTokenFromRefreshToken(refreshToken);
 
