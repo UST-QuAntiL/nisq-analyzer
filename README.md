@@ -76,7 +76,13 @@ For using the selection mechanism use
 The `refreshToken` is only needed when you want to analyze implementations that are hosted on the PlanQK platform.
 
 Get analysis results via `GET /nisq-analyzer/results/algorithm/{algoId}`.  
-Start the execution of an implementation and its analysis result via `POST /nisq-analyzer/results/{resId}/execute`.  
+Start the execution of an implementation and its analysis result via `POST /nisq-analyzer/results/{resId}/execute`
+```
+{
+  "bearerToken": "YOUR-PLANQK-BEARER-TOKEN"
+}
+```
+The `bearerToken` is only needed when you want to execute implementations that are hosted on the PlanQK platform.
 Get execution results of an implementation via `POST /nisq-analyzer/implementations/{implId}/results/`.  
 
 ### Compiler Selection & Circuit Execution Mechanism of NISQ Analyzer  
