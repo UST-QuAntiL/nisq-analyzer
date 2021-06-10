@@ -37,4 +37,6 @@ public class CompilerSelectionDto {
     URL circuitUrl;
 
     String token;
+
+    String bearerToken;
 }

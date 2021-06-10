@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 
 import org.apache.commons.io.IOUtils;
@@ -56,11 +57,18 @@ public class Utils {
         }
     }
 
-    public static File getFileObjectFromUrl(URL url) {
+    public static File getFileObjectFromUrl(URL url, String bearerToken) {
         try {
             String[] fileNameParts = url.toString().split("/");
             String fileEnding = fileNameParts[fileNameParts.length - 1];
-            return Utils.inputStreamToFile(url.openStream(), fileEnding);
+
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+
+            if (url.getHost().equals("platform.planqk.de")) {
+                con.setRequestProperty("Authorization", "Bearer " + bearerToken);
+            }
+
+            return Utils.inputStreamToFile(con.getInputStream(), fileEnding);
         } catch (IOException e) {
             LOG.warn("Exception while loading file from URL: {}", e.getLocalizedMessage());
             return null;

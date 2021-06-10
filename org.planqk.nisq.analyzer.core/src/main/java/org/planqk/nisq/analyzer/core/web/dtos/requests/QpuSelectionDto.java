@@ -37,4 +37,6 @@ public class QpuSelectionDto {
     URL circuitUrl;
 
     Map<String,String> tokens;
+
+    String bearerToken;
 }

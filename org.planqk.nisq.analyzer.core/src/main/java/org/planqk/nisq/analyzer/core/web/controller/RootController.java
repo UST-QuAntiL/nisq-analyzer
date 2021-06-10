@@ -180,6 +180,7 @@ public class RootController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit passed in as file")
     @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    // TODO: add circuitName as optional attribute
     public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitFile(@RequestParam boolean simulatorsAllowed,
                                                                   @RequestParam List<String> allowedProviders, @RequestParam String circuitLanguage,
                                                                   @RequestParam Map<String,String> tokens, @RequestParam("circuit") MultipartFile circuitCode) {
@@ -208,11 +209,12 @@ public class RootController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit loaded from the given URL")
     @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    // TODO: add circuitName as optional attribute
     public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitUrl(@RequestBody QpuSelectionDto params) {
         LOG.debug("Post to select QPU for quantum circuit at URL '{}', with language '{}', and allowed providers '{}'!", params.getCircuitUrl(), params.getCircuitLanguage(), params.getAllowedProviders());
 
         // get file from passed URL
-        File circuitFile = Utils.getFileObjectFromUrl(params.getCircuitUrl());
+        File circuitFile = Utils.getFileObjectFromUrl(params.getCircuitUrl(), params.getBearerToken());
         if (Objects.isNull(circuitFile)) {
             return new ResponseEntity("Unable to load file from given URL", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -271,7 +273,7 @@ public class RootController {
         }
 
         // get file from passed URL
-        File circuitFile = Utils.getFileObjectFromUrl(compilerSelectionDto.getCircuitUrl());
+        File circuitFile = Utils.getFileObjectFromUrl(compilerSelectionDto.getCircuitUrl(), compilerSelectionDto.getBearerToken());
         if (Objects.isNull(circuitFile)) {
             return new ResponseEntity("Unable to load file from given URL", HttpStatus.INTERNAL_SERVER_ERROR);
         }
