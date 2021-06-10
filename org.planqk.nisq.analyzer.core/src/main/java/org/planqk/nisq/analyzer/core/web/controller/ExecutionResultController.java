@@ -140,6 +140,11 @@ public class ExecutionResultController {
                     .getCompilerAnalysisResult(executionResult.getCompilationResult().getId()))
                     .withRel(Constants.USED_COMPILATION_RESULT));
         }
+        if (Objects.nonNull(executionResult.getQpuSelectionResult())) {
+            dto.add(linkTo(methodOn(QpuSelectionResultController.class)
+                .getQpuSelectionResult(executionResult.getQpuSelectionResult().getId()))
+                .withRel(Constants.USED_QPU_SELECTION_RESULT));
+        }
         return dto;
     }
 }

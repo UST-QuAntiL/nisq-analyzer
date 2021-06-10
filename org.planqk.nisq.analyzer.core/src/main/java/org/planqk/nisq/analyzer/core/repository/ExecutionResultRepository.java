@@ -26,6 +26,7 @@ import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.planqk.nisq.analyzer.core.model.CompilationResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
+import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
@@ -40,4 +41,6 @@ public interface ExecutionResultRepository extends JpaRepository<ExecutionResult
     List<ExecutionResult> findByExecutedImplementation(Implementation implementation);
 
     List<ExecutionResult> findByCompilationResult(CompilationResult compilationResult);
+
+    List<ExecutionResult> findByQpuSelectionResult(QpuSelectionResult qpuSelectionResult);
 }

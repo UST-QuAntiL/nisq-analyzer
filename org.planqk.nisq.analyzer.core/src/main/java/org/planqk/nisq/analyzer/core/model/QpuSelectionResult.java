@@ -56,4 +56,6 @@ public class QpuSelectionResult extends HasId {
     private int analyzedDepth;
 
     private int analyzedWidth;
+
+    private String token;
 }

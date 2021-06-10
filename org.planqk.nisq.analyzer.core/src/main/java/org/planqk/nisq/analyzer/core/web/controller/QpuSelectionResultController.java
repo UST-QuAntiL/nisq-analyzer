@@ -22,16 +22,25 @@ package org.planqk.nisq.analyzer.core.web.controller;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
 import org.planqk.nisq.analyzer.core.Constants;
+import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
+import org.planqk.nisq.analyzer.core.model.CompilationResult;
+import org.planqk.nisq.analyzer.core.model.DataType;
+import org.planqk.nisq.analyzer.core.model.ExecutionResult;
+import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
+import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuSelectionJobDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuSelectionJobListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuSelectionResultDto;
@@ -44,6 +53,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -65,6 +75,10 @@ public class QpuSelectionResultController {
     private final QpuSelectionResultRepository qpuSelectionResultRepository;
 
     private final QpuSelectionJobRepository qpuSelectionJobRepository;
+
+    private final ExecutionResultRepository executionResultRepository;
+
+    private final NisqAnalyzerControlService controlService;
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve all QPU selection results")
@@ -121,9 +135,37 @@ public class QpuSelectionResultController {
         return new ResponseEntity<>(createJobDto(result.get()), HttpStatus.OK);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
+        @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute a compilation result")
+    @PostMapping("/{resId}/" + Constants.EXECUTION)
+    public HttpEntity<ExecutionResultDto> executeQpuSelectionResult(@PathVariable UUID resId) {
+        LOG.debug("Post to execute qpu-selection-result with id: {}", resId);
+
+        Optional<QpuSelectionResult> result = qpuSelectionResultRepository.findById(resId);
+        if (!result.isPresent()) {
+            LOG.error("Unable to retrieve qpu-selection-result with id {} from the repository.", resId);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        // get stored token for the execution
+        QpuSelectionResult qpuSelectionResult = result.get();
+        Map<String, ParameterValue> params = new HashMap<>();
+        params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, qpuSelectionResult.getToken()));
+
+        ExecutionResult executionResult = controlService.executeCompiledQpuSelectionCircuit(qpuSelectionResult, params);
+        ExecutionResultDto dto = ExecutionResultDto.Converter.convert(executionResult);
+        dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(executionResult.getId())).withSelfRel());
+        return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
+    }
+
     private QpuSelectionResultDto createDto(QpuSelectionResult result) {
         QpuSelectionResultDto dto = QpuSelectionResultDto.Converter.convert(result);
         dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionResult(result.getId())).withSelfRel());
+        dto.add(linkTo(methodOn(QpuSelectionResultController.class).executeQpuSelectionResult(result.getId())).withRel(Constants.EXECUTION));
+        for (ExecutionResult executionResult : executionResultRepository.findByQpuSelectionResult(result)) {
+            dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(executionResult.getId()))
+                .withRel(Constants.EXECUTION + "-" + executionResult.getId()));
+        }
         return dto;
     }
 
