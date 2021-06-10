@@ -482,7 +482,7 @@ public class NisqAnalyzerControlService {
                 // add results to the database and the job
                 for (CompilationResult result : compilationResults) {
                     QpuSelectionResult qpuSelectionResult = qpuSelectionResultRepository
-                            .save(new QpuSelectionResult(provider.getName(), qpu.getName(), qpu.getQueueSize(), result.getTranspiledCircuit(),
+                            .save(new QpuSelectionResult(provider.getName(), qpu.getName(), qpu.getQueueSize(), OffsetDateTime.now(), result.getTranspiledCircuit(),
                                     result.getTranspiledLanguage(), result.getCompiler(), result.getAnalyzedDepth(), result.getAnalyzedWidth()));
                     job.getJobResults().add(qpuSelectionResult);
                 }

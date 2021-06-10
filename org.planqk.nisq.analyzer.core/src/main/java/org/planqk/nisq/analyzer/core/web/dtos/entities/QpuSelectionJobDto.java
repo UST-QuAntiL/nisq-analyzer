@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -35,6 +36,10 @@ public class QpuSelectionJobDto extends QpuSelectionResultListDto {
 
     @Getter
     @Setter
+    private OffsetDateTime time;
+
+    @Getter
+    @Setter
     private boolean ready;
 
     public static final class Converter {
@@ -42,6 +47,7 @@ public class QpuSelectionJobDto extends QpuSelectionResultListDto {
         public static QpuSelectionJobDto convert(final QpuSelectionJob object) {
             QpuSelectionJobDto dto = new QpuSelectionJobDto();
             dto.setId(object.getId());
+            dto.setTime(object.getTime());
             dto.setReady(object.isReady());
             if (object.isReady()) {
                 dto.add(object.getJobResults().stream().map(QpuSelectionResultDto.Converter::convert).collect(Collectors.toList()));
