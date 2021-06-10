@@ -40,6 +40,10 @@ public class QpuSelectionJobDto extends QpuSelectionResultListDto {
 
     @Getter
     @Setter
+    private String circuitName;
+
+    @Getter
+    @Setter
     private boolean ready;
 
     public static final class Converter {
@@ -48,6 +52,7 @@ public class QpuSelectionJobDto extends QpuSelectionResultListDto {
             QpuSelectionJobDto dto = new QpuSelectionJobDto();
             dto.setId(object.getId());
             dto.setTime(object.getTime());
+            dto.setCircuitName(object.getCircuitName());
             dto.setReady(object.isReady());
             if (object.isReady()) {
                 dto.add(object.getJobResults().stream().map(QpuSelectionResultDto.Converter::convert).collect(Collectors.toList()));

@@ -46,6 +46,8 @@ public class QpuSelectionResult extends HasId {
 
     private OffsetDateTime time;
 
+    private String circuitName;
+
     @Lob
     private String transpiledCircuit;
 

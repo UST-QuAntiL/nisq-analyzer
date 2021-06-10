@@ -106,8 +106,6 @@ public class QpuSelectionResultController {
         return new ResponseEntity<>(createDto(result.get()), HttpStatus.OK);
     }
 
-    // TODO: /{resId}/execute, analog to compiler-selection-results/.../execute
-
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve all QPU selection jobs")
     @GetMapping("/" + Constants.JOBS)

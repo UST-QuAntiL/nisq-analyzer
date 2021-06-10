@@ -44,6 +44,8 @@ public class QpuSelectionResultDto extends RepresentationModel<QpuSelectionResul
 
     private OffsetDateTime time;
 
+    private String circuitName;
+
     String transpiledCircuit;
 
     String transpiledLanguage;
@@ -63,6 +65,7 @@ public class QpuSelectionResultDto extends RepresentationModel<QpuSelectionResul
             dto.setQpu(object.getQpu());
             dto.setQueueSize(object.getQueueSize());
             dto.setTime(object.getTime());
+            dto.setCircuitName(object.getCircuitName());
             dto.setTranspiledCircuit(object.getTranspiledCircuit());
             dto.setTranspiledLanguage(object.getTranspiledLanguage());
             dto.setCompiler(object.getUsedCompiler());
