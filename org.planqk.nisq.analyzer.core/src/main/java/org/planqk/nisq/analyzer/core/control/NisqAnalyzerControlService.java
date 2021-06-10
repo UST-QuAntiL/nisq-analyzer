@@ -378,6 +378,10 @@ public class NisqAnalyzerControlService {
         analysisJobRepository.save(job);
     }
 
+    public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
+        performSelection(job, algorithm, inputParameters, "");
+    }
+
     /**
      * Get the required parameters to select implementations for the given algorithm
      *
