@@ -19,21 +19,25 @@
 
 package org.planqk.nisq.analyzer.core.web;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 public class Utils {
@@ -93,35 +97,23 @@ public class Utils {
         }
 
         try {
-            String[] cmdArray = new String[13];
-            cmdArray[0] = "curl";
-            cmdArray[1] = "--location";
-            cmdArray[2] = "--request";
-            cmdArray[3] = "POST";
-            cmdArray[4] = "https://platform.planqk.de/auth/realms/planqk/protocol/openid-connect/token";
-            cmdArray[5] = "--header";
-            cmdArray[6] = "'Content-Type: application/x-www-form-urlencoded'";
-            cmdArray[7] = "--data-urlencode";
-            cmdArray[8] = "grant_type=refresh_token";
-            cmdArray[9] = "--data-urlencode";
-            cmdArray[10] = "client_id=vue-frontend";
-            cmdArray[11] = "--data-urlencode";
-            cmdArray[12] = "refresh_token=" + refreshToken;
+            String url = "https://platform.planqk.de/auth/realms/planqk/protocol/openid-connect/token";
 
-            ProcessBuilder pb = new ProcessBuilder(cmdArray);
-            Process proc = pb.start();
-            InputStream inputStream = proc.getInputStream();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-            BufferedInputStream bis = new BufferedInputStream(inputStream);
-            ByteArrayOutputStream buf = new ByteArrayOutputStream();
+            MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
+            map.add("grant_type", "refresh_token");
+            map.add("client_id", "vue-frontend");
+            map.add("refresh_token", refreshToken);
 
-            for (int result = bis.read(); result != -1; result = bis.read()) {
-                buf.write((byte) result);
-            }
+            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(map, headers);
 
-            String jsonString = buf.toString(StandardCharsets.UTF_8.name());
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.postForEntity( url, request , String.class );
+
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(jsonString);
+            JsonNode json = mapper.readTree(response.getBody());
 
             if (json.has("error")) {
                 LOG.error("Could not get new tokens. Received error message: " + json.at("/error_description").asText());
@@ -129,8 +121,8 @@ public class Utils {
             }
 
             return new String[] {
-                    json.at("/access_token").asText(),
-                    json.at("/refresh_token").asText()
+                json.at("/access_token").asText(),
+                json.at("/refresh_token").asText()
             };
         } catch (Exception e) {
             System.err.println(e);
