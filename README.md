@@ -76,14 +76,14 @@ For using the selection mechanism use
 The `refreshToken` is only needed when you want to analyze implementations that are hosted on the PlanQK platform.
 
 Get analysis results via `GET /nisq-analyzer/results/algorithm/{algoId}`.  
-Start the execution of an implementation and its analysis result via `POST /nisq-analyzer/results/{resId}/execute`
+Start the execution of an implementation and its analysis result via `POST /nisq-analyzer/analysis-results/{resId}/execute`
 ```
 {
-  "bearerToken": "YOUR-PLANQK-BEARER-TOKEN"
+  "refreshToken": "YOUR-PLANQK-REFRESH-TOKEN"
 }
 ```
-The `bearerToken` is only needed when you want to execute implementations that are hosted on the PlanQK platform.
-Get execution results of an implementation via `POST /nisq-analyzer/implementations/{implId}/results/`.  
+**Note**: The `refreshToken` is only needed when you want to execute implementations that are hosted on the PlanQK platform.
+Get execution results of an implementation via `POST /nisq-analyzer/execution-results/`.  
 
 ### Compiler Selection & Circuit Execution Mechanism of NISQ Analyzer  
 
@@ -98,9 +98,11 @@ For using the compiler selection mechanism use
   "token": "YOUR-IBMQ-TOKEN",
   "circuitLanguage": "LANGUAGE-OF-CIRCUIT",
   "circuitName": "NAME-OF-CIRCUIT",
-  "circuitUrl: "URL-OF-RAW-CIRCUIT"
+  "circuitUrl": "URL-OF-RAW-CIRCUIT",
+  "refreshToken": "YOUR-PLANQK-REFRESH-TOKEN"
 }
 ```
+**Note**: The `refreshToken` is only needed when you want to execute implementations that are hosted on the PlanQK platform.
 **Note**: Instead of the URL, also a file can be uploaded containing the quantum circuit.  
 Get compiler analysis results via `GET /nisq-analyzer/compiler-results/jobs/{resId}`.  
 Start the execution of a certain compiled circuit via `POST /nisq-analyzer/compiler-results/{resId}/execute`.  
@@ -116,15 +118,19 @@ For using the QPU and compiler selection mechanism use
   "allowedProviders": ["NAME-OF-QUANTUM-CLOUD-OFFERING", "NAME-OF-QUANTUM-CLOUD-OFFERING-2"],
   "tokens": {"NAME-OF-QUANTUM-CLOUD-OFFERING": "TOKEN-FOR-QUANTUM-CLOUD-OFFERING"},
   "circuitLanguage": "LANGUAGE-OF-CIRCUIT",
-  "circuitUrl": "URL-OF-RAW-CIRCUIT"
+  "circuitUrl": "URL-OF-RAW-CIRCUIT",
+  "circuitName": "NAME-OF-CIRCUIT",
+  "refreshToken": "YOUR-PLANQK-REFRESH-TOKEN"
 }
 ```
+**Note**: The `refreshToken` is only needed when you want to execute implementations that are hosted on the PlanQK platform.
+**Note**: The `circuitName` is optional.
+**Note**: Instead of the URL, also a file can be uploaded containing the quantum circuit.  
+**Note**: The `allowedProviders` field is optional, and if it is not set, all providers are included in the QPU & compiler selection.
 
-**Note**: Instead of the URL, also a file can be uploaded containing the quantum circuit.
-
-**Note2**: The `allowedProviders` field is optional, and if it is not set, all providers are included in the QPU & compiler selection.
-
-Get analysis results via `GET /nisq-analyzer/qpu-selection-results/jobs/{resId}`.
+Get analysis results via `GET /nisq-analyzer/qpu-selection-results/jobs/{resId}`.  
+Start the execution of a certain compiled circuit via `POST /nisq-analyzer/qpu-selection-results/{resId}/execute`.  
+Get execution result of the circuit via `POST /nisq-analyzer/execution-results/{resultId}`.
 
 ## Haftungsausschluss
 
