@@ -149,7 +149,7 @@ public class AnalysisResultController {
     @PostMapping("/{resId}/" + Constants.EXECUTION)
     public HttpEntity<ExecutionResultDto> executeAnalysisResult(
             @PathVariable UUID resId,
-            @RequestBody ExecuteAnalysisResultRequestDto request) {
+            @RequestBody(required = false) ExecuteAnalysisResultRequestDto request) {
         LOG.debug("Post to execute analysis result with id: {}", resId);
 
         Optional<AnalysisResult> analysisResultOptional = analysisResultRepository.findById(resId);
@@ -166,8 +166,13 @@ public class AnalysisResultController {
             // Retrieve the type of the parameter from the algorithm definition
             Map<String, ParameterValue> typedParams =
                     ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), analysisResult.getInputParameters());
+            String bearerToken = "";
 
-            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(analysisResult, typedParams, request.getBearerToken());
+            if (request != null && request.getBearerToken() != null) {
+                bearerToken = request.getBearerToken();
+            }
+
+            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(analysisResult, typedParams, bearerToken);
 
             ExecutionResultDto dto = ExecutionResultDto.Converter.convert(result);
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(result.getId())).withSelfRel());
