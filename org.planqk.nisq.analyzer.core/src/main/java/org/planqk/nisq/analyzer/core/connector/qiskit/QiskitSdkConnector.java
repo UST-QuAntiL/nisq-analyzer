@@ -52,6 +52,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import static org.planqk.nisq.analyzer.core.web.Utils.getBearerTokenFromRefreshToken;
+
 /**
  * Sdk connector which passes execution and analysis requests to a connected Qiskit service.
  */
@@ -80,8 +82,9 @@ public class QiskitSdkConnector implements SdkConnector {
 
     @Override
     public void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters,
-                                                      ExecutionResult executionResult, ExecutionResultRepository resultRepository, String bearerToken) {
+                                                      ExecutionResult executionResult, ExecutionResultRepository resultRepository, String refreshToken) {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
+        String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
         QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters, bearerToken);
         executeQuantumCircuit(request, executionResult, resultRepository);
     }
@@ -142,8 +145,9 @@ public class QiskitSdkConnector implements SdkConnector {
 
     @Override
     public CircuitInformation getCircuitProperties(Implementation implementation, String providerName, String qpuName,
-                                                   Map<String, ParameterValue> parameters, String bearerToken) {
+                                                   Map<String, ParameterValue> parameters, String refreshToken) {
         LOG.debug("Analysing quantum algorithm implementation with Qiskit Sdk connector plugin!");
+        String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
         QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, parameters, bearerToken);
         return executeCircuitPropertiesRequest(request);
     }

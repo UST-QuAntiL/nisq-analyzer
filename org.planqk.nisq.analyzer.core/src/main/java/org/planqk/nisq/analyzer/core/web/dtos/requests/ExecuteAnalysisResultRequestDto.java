@@ -24,5 +24,5 @@ import lombok.Data;
 @Data
 public class ExecuteAnalysisResultRequestDto {
 
-    String bearerToken;
+    String refreshToken;
 }

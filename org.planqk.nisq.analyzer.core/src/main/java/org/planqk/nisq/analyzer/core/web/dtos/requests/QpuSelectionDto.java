@@ -38,7 +38,7 @@ public class QpuSelectionDto {
 
     Map<String,String> tokens;
 
-    String bearerToken;
+    String refreshToken;
 
     String circuitName;
 }

@@ -166,13 +166,13 @@ public class AnalysisResultController {
             // Retrieve the type of the parameter from the algorithm definition
             Map<String, ParameterValue> typedParams =
                     ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), analysisResult.getInputParameters());
-            String bearerToken = "";
+            String refreshToken = "";
 
-            if (request != null && request.getBearerToken() != null) {
-                bearerToken = request.getBearerToken();
+            if (request != null && request.getRefreshToken() != null) {
+                refreshToken = request.getRefreshToken();
             }
 
-            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(analysisResult, typedParams, bearerToken);
+            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(analysisResult, typedParams, refreshToken);
 
             ExecutionResultDto dto = ExecutionResultDto.Converter.convert(result);
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(result.getId())).withSelfRel());

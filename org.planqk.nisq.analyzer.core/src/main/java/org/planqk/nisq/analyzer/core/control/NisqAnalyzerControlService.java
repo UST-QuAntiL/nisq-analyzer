@@ -19,11 +19,8 @@
 
 package org.planqk.nisq.analyzer.core.control;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -38,8 +35,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
@@ -123,7 +118,7 @@ public class NisqAnalyzerControlService {
      * @return the ExecutionResult to track the current status and store the result
      * @throws RuntimeException is thrown in case the execution of the algorithm implementation fails
      */
-    public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result, Map<String, ParameterValue> inputParameters, String bearerToken)
+    public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result, Map<String, ParameterValue> inputParameters, String refreshToken)
             throws RuntimeException {
         final Implementation implementation = result.getImplementation();
         LOG.debug("Executing quantum algorithm implementation with Id: {} and name: {}", implementation.getId(), implementation.getName());
@@ -152,7 +147,7 @@ public class NisqAnalyzerControlService {
         // execute implementation
         new Thread(() -> selectedSdkConnector
                 .executeQuantumAlgorithmImplementation(implementation, qpu.get(), inputParameters, executionResult,
-                        executionResultRepository, bearerToken)).start();
+                        executionResultRepository, refreshToken)).start();
 
         return executionResult;
     }
@@ -221,54 +216,6 @@ public class NisqAnalyzerControlService {
                 executionResult, executionResultRepository)).start();
 
         return executionResult;
-    }
-
-    private static String[] getBearerTokenFromRefreshToken(String refreshToken) {
-        try {
-            String[] cmdArray = new String[13];
-            cmdArray[0] = "curl";
-            cmdArray[1] = "--location";
-            cmdArray[2] = "--request";
-            cmdArray[3] = "POST";
-            cmdArray[4] = "https://platform.planqk.de/auth/realms/planqk/protocol/openid-connect/token";
-            cmdArray[5] = "--header";
-            cmdArray[6] = "'Content-Type: application/x-www-form-urlencoded'";
-            cmdArray[7] = "--data-urlencode";
-            cmdArray[8] = "grant_type=refresh_token";
-            cmdArray[9] = "--data-urlencode";
-            cmdArray[10] = "client_id=vue-frontend";
-            cmdArray[11] = "--data-urlencode";
-            cmdArray[12] = "refresh_token=" + refreshToken;
-
-            ProcessBuilder pb = new ProcessBuilder(cmdArray);
-            Process proc = pb.start();
-            InputStream inputStream = proc.getInputStream();
-
-            BufferedInputStream bis = new BufferedInputStream(inputStream);
-            ByteArrayOutputStream buf = new ByteArrayOutputStream();
-
-            for (int result = bis.read(); result != -1; result = bis.read()) {
-                buf.write((byte) result);
-            }
-
-            String jsonString = buf.toString(StandardCharsets.UTF_8.name());
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode json = mapper.readTree(jsonString);
-
-            if (json.has("error")) {
-                LOG.error("Could not get new tokens. Received error message: " + json.at("/error_description").asText());
-                return new String[0];
-            }
-
-            return new String[] {
-                    json.at("/access_token").asText(),
-                    json.at("/refresh_token").asText()
-            };
-        } catch (Exception e) {
-            System.err.println(e);
-
-            return new String[0];
-        }
     }
 
     /**
@@ -352,25 +299,11 @@ public class NisqAnalyzerControlService {
                         continue;
                     }
 
-                    String bearerToken = "";
-
-                    if (refreshToken != null && !refreshToken.equals("")) {
-                        LOG.debug("Fetching new bearer token from the PlanQK platform with the refresh token.");
-                        String[] newTokens = getBearerTokenFromRefreshToken(refreshToken);
-
-                        if (newTokens.length == 0) {
-                            LOG.error("Could not fetch new bearer token from the PlanQK platform with the refresh token");
-                        } else {
-                            bearerToken = newTokens[0];
-                            refreshToken = newTokens[1];
-                        }
-                    }
-
                     LOG.debug("Checking if QPU {} is suitable for implementation {}.", qpu.getName(), executableImpl.getName());
 
                     // analyze the quantum circuit by utilizing the capabilities of the suited plugin and retrieve important circuit properties
                     CircuitInformation circuitInformation =
-                            selectedSdkConnector.getCircuitProperties(executableImpl, qpu.getProvider(), qpu.getName(), execInputParameters, bearerToken);
+                            selectedSdkConnector.getCircuitProperties(executableImpl, qpu.getProvider(), qpu.getName(), execInputParameters, refreshToken);
 
                     // if something unexpected happened
                     if (Objects.isNull(circuitInformation)) {

@@ -38,5 +38,5 @@ public class CompilerSelectionDto {
 
     String token;
 
-    String bearerToken;
+    String refreshToken;
 }

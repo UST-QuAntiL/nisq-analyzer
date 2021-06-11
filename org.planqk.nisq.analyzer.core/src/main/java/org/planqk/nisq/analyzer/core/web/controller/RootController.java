@@ -222,7 +222,7 @@ public class RootController {
         LOG.debug("Post to select QPU for quantum circuit at URL '{}', with language '{}', and allowed providers '{}'!", params.getCircuitUrl(), params.getCircuitLanguage(), params.getAllowedProviders());
 
         // get file from passed URL
-        File circuitFile = Utils.getFileObjectFromUrl(params.getCircuitUrl(), params.getBearerToken());
+        File circuitFile = Utils.getFileObjectFromUrl(params.getCircuitUrl(), params.getRefreshToken());
         if (Objects.isNull(circuitFile)) {
             return new ResponseEntity("Unable to load file from given URL", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -290,7 +290,7 @@ public class RootController {
         }
 
         // get file from passed URL
-        File circuitFile = Utils.getFileObjectFromUrl(compilerSelectionDto.getCircuitUrl(), compilerSelectionDto.getBearerToken());
+        File circuitFile = Utils.getFileObjectFromUrl(compilerSelectionDto.getCircuitUrl(), compilerSelectionDto.getRefreshToken());
         if (Objects.isNull(circuitFile)) {
             return new ResponseEntity("Unable to load file from given URL", HttpStatus.INTERNAL_SERVER_ERROR);
         }
