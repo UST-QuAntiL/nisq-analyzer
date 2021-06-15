@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -408,6 +409,10 @@ public class NisqAnalyzerControlService {
     public void performQpuSelectionForCircuit(QpuSelectionJob job, List<String> allowedProviders, String circuitLanguage, File circuitCode,
                                               Map<String,String> tokens, boolean simulatorsAllowed, String circuitName) {
 
+        // make name of providers case-insensitive
+        TreeMap<String, String> caseInsensitiveTokens = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        caseInsensitiveTokens.putAll(tokens);
+
         if (circuitName == null) {
             circuitName = "temp";
         }
@@ -436,7 +441,7 @@ public class NisqAnalyzerControlService {
                     continue;
                 }
 
-                String token = tokens.get(provider.getName());
+                String token = caseInsensitiveTokens.get(provider.getName());
                 if (Objects.isNull(token)) {
                     LOG.debug("No suited access token for this provider available. Skipping!");
                     continue;
