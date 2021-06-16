@@ -19,8 +19,6 @@
 
 package org.planqk.nisq.analyzer.core.web.controller;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -35,19 +33,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
-import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
-import org.planqk.nisq.analyzer.core.model.ParameterValue;
-import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
 import org.planqk.nisq.analyzer.core.repository.SdkRepository;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ImplementationListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ParameterListDto;
-import org.planqk.nisq.analyzer.core.web.dtos.requests.ExecutionRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
