@@ -6,6 +6,8 @@ services:
       POSTGRES_PASSWORD: nisq
       POSTGRES_USER: nisq
       POSTGRES_DB: nisq
+    ports:
+      - "5060:5432"
   nisq-analyzer:
     image: planqk/nisq-analyzer
     environment:
@@ -15,10 +17,10 @@ services:
       POSTGRES_PASSWORD: nisq
       POSTGRES_DB: nisq
       NISQ_HOSTNAME: qiskit-service
-      NISQ_PORT: 5000
+      NISQ_PORT: 5013
       NISQ_VERSION: v1.0
     ports:
-      - '8081:8080'
+      - '5010:5010'
     networks:
       - default
 networks:
