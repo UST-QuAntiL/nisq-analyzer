@@ -6,13 +6,14 @@ services:
       POSTGRES_PASSWORD: nisq
       POSTGRES_USER: nisq
       POSTGRES_DB: nisq
+    command: -p 5060
     ports:
-      - "5060:5432"
+      - "5060:5060"
   nisq-analyzer:
     image: planqk/nisq-analyzer
     environment:
       POSTGRES_HOSTNAME: db
-      POSTGRES_PORT: 5432
+      POSTGRES_PORT: 5060
       POSTGRES_USER: nisq
       POSTGRES_PASSWORD: nisq
       POSTGRES_DB: nisq
