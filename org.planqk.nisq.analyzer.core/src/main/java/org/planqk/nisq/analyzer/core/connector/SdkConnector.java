@@ -43,9 +43,10 @@ public interface SdkConnector {
      * @param qpu            the QPU to execute the implementation on
      * @param parameters     the input parameters for the quantum algorithm execution
      * @param resultService  the object to update the current state of the long running task and to add the results after completion
+     * @param refreshToken   a valid refresh token from the PlanQK platform, only needs to be specified if the implementation is hosted on the PlanQK platform
      */
     void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters,
-                                               ExecutionResult executionResult, ExecutionResultRepository resultService);
+                                               ExecutionResult executionResult, ExecutionResultRepository resultService, String refreshToken);
 
     /**
      * Execute the given transpiled quantum circuit.
@@ -73,7 +74,7 @@ public interface SdkConnector {
      * @return the object containing all analysed properties of the quantum circuit
      */
     CircuitInformation getCircuitProperties(Implementation implementation, String providerName, String qpuName,
-                                            Map<String, ParameterValue> parameters);
+                                            Map<String, ParameterValue> parameters, String refreshToken);
 
     /**
      * Analyse the given circuit after compiling it for the given QPU and with the given input parameters.

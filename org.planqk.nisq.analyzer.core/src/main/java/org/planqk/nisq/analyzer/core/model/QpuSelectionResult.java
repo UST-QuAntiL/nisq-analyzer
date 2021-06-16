@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
+import java.time.OffsetDateTime;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 
@@ -43,6 +44,10 @@ public class QpuSelectionResult extends HasId {
 
     private int queueSize;
 
+    private OffsetDateTime time;
+
+    private String circuitName;
+
     @Lob
     private String transpiledCircuit;
 
@@ -53,4 +58,6 @@ public class QpuSelectionResult extends HasId {
     private int analyzedDepth;
 
     private int analyzedWidth;
+
+    private String token;
 }

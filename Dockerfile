@@ -10,13 +10,13 @@ ARG DOCKERIZE_VERSION=v0.3.0
 ARG TOMCAT_VERSION=9.0.8
 
 ENV POSTGRES_HOSTNAME localhost
-ENV POSTGRES_PORT 5432
+ENV POSTGRES_PORT 5060
 ENV POSTGRES_USER nisq
 ENV POSTGRES_PASSWORD nisq
 ENV POSTGRES_DB nisq
 
 ENV NISQ_HOSTNAME: localhost
-ENV NISQ_PORT: 5000
+ENV NISQ_PORT: 5013
 ENV NISQ_VERSION: v1.0
 
 RUN apt-get -qq update && apt-get install -qqy software-properties-common openjdk-8-jdk wget
@@ -26,7 +26,8 @@ RUN mkdir /usr/local/tomcat
 RUN wget --quiet --no-cookies https://archive.apache.org/dist/tomcat/tomcat-9/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz -O /tmp/tomcat.tgz && \
 tar xzvf /tmp/tomcat.tgz -C /opt && \
 mv /opt/apache-tomcat-${TOMCAT_VERSION} /opt/tomcat && \
-rm /tmp/tomcat.tgz
+rm /tmp/tomcat.tgz && \
+sed -i 's/port="8080"/port="5010"/g' /opt/tomcat/conf/server.xml
 ENV CATALINA_HOME /opt/tomcat
 ENV PATH $PATH:$CATALINA_HOME/bin
 
@@ -51,7 +52,7 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
 RUN rm -rf ${CATALINA_HOME}/webapps/*
 COPY --from=builder /build/nisq-analyzer ${CATALINA_HOME}/webapps/nisq-analyzer
 
-EXPOSE 8080
+EXPOSE 5010
 
 # configure application with template and docker environment variables
 ADD .docker/application.properties.tpl ${CATALINA_HOME}/webapps/application.properties.tpl

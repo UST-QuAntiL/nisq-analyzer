@@ -163,7 +163,7 @@ public class RootController {
 
         try {
             new Thread(() -> {
-                nisqAnalyzerService.performSelection(job, params.getAlgorithmId(), params.getParameters());
+                nisqAnalyzerService.performSelection(job, params.getAlgorithmId(), params.getParameters(), params.getRefreshToken());
             }).start();
         } catch (UnsatisfiedLinkError e) {
             LOG.error(
@@ -182,7 +182,8 @@ public class RootController {
     @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitFile(@RequestParam boolean simulatorsAllowed,
                                                                   @RequestParam List<String> allowedProviders, @RequestParam String circuitLanguage,
-                                                                  @RequestParam Map<String,String> tokens, @RequestParam("circuit") MultipartFile circuitCode) {
+                                                                  @RequestParam Map<String,String> tokens, @RequestParam("circuit") MultipartFile circuitCode,
+                                                                  @RequestParam(required = false) String circuitName) {
         LOG.debug("Post to select QPU for given quantum circuit with language: {}", circuitLanguage);
 
         // get temp file for passed circuit code
@@ -192,11 +193,20 @@ public class RootController {
         }
 
         // create object for the QPU selection job and call asynchronously to update the job
-        QpuSelectionJob job = qpuSelectionJobRepository.save(new QpuSelectionJob());
+        QpuSelectionJob job = new QpuSelectionJob();
+        job.setTime(OffsetDateTime.now());
+
+        if (circuitName == null) {
+            job.setCircuitName("temp");
+        } else {
+            job.setCircuitName(circuitName);
+        }
+
+        qpuSelectionJobRepository.save(job);
         new Thread(() -> {
             nisqAnalyzerService
                     .performQpuSelectionForCircuit(job, allowedProviders, circuitLanguage, circuitFile,
-                            tokens, simulatorsAllowed);
+                            tokens, simulatorsAllowed, circuitName);
         }).start();
 
         // send back QPU selection job to track the progress
@@ -212,17 +222,26 @@ public class RootController {
         LOG.debug("Post to select QPU for quantum circuit at URL '{}', with language '{}', and allowed providers '{}'!", params.getCircuitUrl(), params.getCircuitLanguage(), params.getAllowedProviders());
 
         // get file from passed URL
-        File circuitFile = Utils.getFileObjectFromUrl(params.getCircuitUrl());
+        File circuitFile = Utils.getFileObjectFromUrl(params.getCircuitUrl(), params.getRefreshToken());
         if (Objects.isNull(circuitFile)) {
             return new ResponseEntity("Unable to load file from given URL", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         // create object for the QPU selection job and call asynchronously to update the job
-        QpuSelectionJob job = qpuSelectionJobRepository.save(new QpuSelectionJob());
+        QpuSelectionJob job = new QpuSelectionJob();
+        job.setTime(OffsetDateTime.now());
+
+        if (params.getCircuitName() == null) {
+            job.setCircuitName("temp");
+        } else {
+            job.setCircuitName(params.getCircuitName());
+        }
+
+        qpuSelectionJobRepository.save(job);
         new Thread(() -> {
             nisqAnalyzerService
                     .performQpuSelectionForCircuit(job, params.getAllowedProviders(), params.getCircuitLanguage(), circuitFile,
-                            params.getTokens(), params.isSimulatorsAllowed());
+                            params.getTokens(), params.isSimulatorsAllowed(), params.getCircuitName());
         }).start();
 
         // send back QPU selection job to track the progress
@@ -271,7 +290,7 @@ public class RootController {
         }
 
         // get file from passed URL
-        File circuitFile = Utils.getFileObjectFromUrl(compilerSelectionDto.getCircuitUrl());
+        File circuitFile = Utils.getFileObjectFromUrl(compilerSelectionDto.getCircuitUrl(), compilerSelectionDto.getRefreshToken());
         if (Objects.isNull(circuitFile)) {
             return new ResponseEntity("Unable to load file from given URL", HttpStatus.INTERNAL_SERVER_ERROR);
         }

@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -118,7 +119,7 @@ public class NisqAnalyzerControlService {
      * @return the ExecutionResult to track the current status and store the result
      * @throws RuntimeException is thrown in case the execution of the algorithm implementation fails
      */
-    public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result, Map<String, ParameterValue> inputParameters)
+    public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result, Map<String, ParameterValue> inputParameters, String refreshToken)
             throws RuntimeException {
         final Implementation implementation = result.getImplementation();
         LOG.debug("Executing quantum algorithm implementation with Id: {} and name: {}", implementation.getId(), implementation.getName());
@@ -142,12 +143,12 @@ public class NisqAnalyzerControlService {
         // create a object to store the execution results
         ExecutionResult executionResult =
                 executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
-                        "Passing execution to executor plugin.", result, null, null, implementation));
+                        "Passing execution to executor plugin.", result, null, null, null, implementation));
 
         // execute implementation
         new Thread(() -> selectedSdkConnector
                 .executeQuantumAlgorithmImplementation(implementation, qpu.get(), inputParameters, executionResult,
-                        executionResultRepository)).start();
+                        executionResultRepository, refreshToken)).start();
 
         return executionResult;
     }
@@ -173,7 +174,7 @@ public class NisqAnalyzerControlService {
         // create a object to store the execution results
         ExecutionResult executionResult =
                 executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
-                        "Passing execution to executor plugin.", null, result,
+                        "Passing execution to executor plugin.", null, result, null,
                         null, null));
 
         // execute implementation
@@ -181,6 +182,39 @@ public class NisqAnalyzerControlService {
                 .executeTranspiledQuantumCircuit(result.getTranspiledCircuit(), result.getTranspiledLanguage(), result.getProvider(), result.getQpu(),
                         inputParameters,
                         executionResult, executionResultRepository)).start();
+
+        return executionResult;
+    }
+
+    /**
+     * Execute the compiled circuit from the given qpu-selection-result
+     *
+     * @param result          the compilation result to execute the circuit for
+     * @param inputParameters the input parameters for the execution
+     * @return the ExecutionResult to track the current status and store the result
+     */
+    public ExecutionResult executeCompiledQpuSelectionCircuit(QpuSelectionResult result, Map<String, ParameterValue> inputParameters) {
+
+        // get suited Sdk connector plugin
+        SdkConnector selectedSdkConnector = connectorList.stream()
+            .filter(executor -> executor.supportedSdks().contains(result.getUsedCompiler()))
+            .findFirst().orElse(null);
+        if (Objects.isNull(selectedSdkConnector)) {
+            LOG.error("Unable to find connector plugin with name {}.", result.getUsedCompiler());
+            throw new RuntimeException("Unable to find connector plugin with name " + result.getUsedCompiler());
+        }
+
+        // create a object to store the execution results
+        ExecutionResult executionResult =
+            executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
+                "Passing execution to executor plugin.", null, null, result,
+                null, null));
+
+        // execute implementation
+        new Thread(() -> selectedSdkConnector
+            .executeTranspiledQuantumCircuit(result.getTranspiledCircuit(), result.getTranspiledLanguage(), result.getProvider(), result.getQpu(),
+                inputParameters,
+                executionResult, executionResultRepository)).start();
 
         return executionResult;
     }
@@ -194,7 +228,7 @@ public class NisqAnalyzerControlService {
      * @throws UnsatisfiedLinkError Is thrown if the jpl driver is not on the java class path
      */
 
-    public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
+    public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters, String refreshToken) throws UnsatisfiedLinkError {
         LOG.debug("Performing implementation and QPU selection for algorithm with Id: {}", algorithm);
 
         // check all implementation if they can handle the given set of input parameters
@@ -270,7 +304,7 @@ public class NisqAnalyzerControlService {
 
                     // analyze the quantum circuit by utilizing the capabilities of the suited plugin and retrieve important circuit properties
                     CircuitInformation circuitInformation =
-                            selectedSdkConnector.getCircuitProperties(executableImpl, qpu.getProvider(), qpu.getName(), execInputParameters);
+                            selectedSdkConnector.getCircuitProperties(executableImpl, qpu.getProvider(), qpu.getName(), execInputParameters, refreshToken);
 
                     // if something unexpected happened
                     if (Objects.isNull(circuitInformation)) {
@@ -309,6 +343,10 @@ public class NisqAnalyzerControlService {
 
         job.setReady(true);
         analysisJobRepository.save(job);
+    }
+
+    public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
+        performSelection(job, algorithm, inputParameters, "");
     }
 
     /**
@@ -366,9 +404,18 @@ public class NisqAnalyzerControlService {
      * @param circuitCode       the file containing the circuit
      * @param tokens            a map with access tokens for the different quantum hardware providers
      * @param simulatorsAllowed <code>true</code> if also simulators should be included into the selection, <code>false</code> otherwise
+     * @param circuitName     user defined name to (partly) distinguish circuits
      */
     public void performQpuSelectionForCircuit(QpuSelectionJob job, List<String> allowedProviders, String circuitLanguage, File circuitCode,
-                                              Map<String,String> tokens, boolean simulatorsAllowed) {
+                                              Map<String,String> tokens, boolean simulatorsAllowed, String circuitName) {
+
+        // make name of providers case-insensitive
+        TreeMap<String, String> caseInsensitiveTokens = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        caseInsensitiveTokens.putAll(tokens);
+
+        if (circuitName == null) {
+            circuitName = "temp";
+        }
 
         // iterate over all providers listed in QProv for the QPU selection
         for (Provider provider : qProvService.getProviders()) {
@@ -394,7 +441,7 @@ public class NisqAnalyzerControlService {
                     continue;
                 }
 
-                String token = tokens.get(provider.getName());
+                String token = caseInsensitiveTokens.get(provider.getName());
                 if (Objects.isNull(token)) {
                     LOG.debug("No suited access token for this provider available. Skipping!");
                     continue;
@@ -405,14 +452,14 @@ public class NisqAnalyzerControlService {
 
                 // perform compiler selection for the given QPU and circuit
                 List<CompilationResult> compilationResults =
-                        selectCompiler(provider.getName(), qpu.getName(), circuitLanguage, circuitCode, "temp", compilersToUse, token);
+                        selectCompiler(provider.getName(), qpu.getName(), circuitLanguage, circuitCode, circuitName, compilersToUse, token);
                 LOG.debug("Retrieved {} compilation results!", compilationResults.size());
 
                 // add results to the database and the job
                 for (CompilationResult result : compilationResults) {
                     QpuSelectionResult qpuSelectionResult = qpuSelectionResultRepository
-                            .save(new QpuSelectionResult(provider.getName(), qpu.getName(), qpu.getQueueSize(), result.getTranspiledCircuit(),
-                                    result.getTranspiledLanguage(), result.getCompiler(), result.getAnalyzedDepth(), result.getAnalyzedWidth()));
+                            .save(new QpuSelectionResult(provider.getName(), qpu.getName(), qpu.getQueueSize(), OffsetDateTime.now(), result.getCircuitName(), result.getTranspiledCircuit(),
+                                    result.getTranspiledLanguage(), result.getCompiler(), result.getAnalyzedDepth(), result.getAnalyzedWidth(), result.getToken()));
                     job.getJobResults().add(qpuSelectionResult);
                 }
             }

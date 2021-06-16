@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
@@ -41,6 +42,10 @@ import lombok.NoArgsConstructor;
 public class QpuSelectionJob extends HasId {
 
     private boolean ready;
+
+    private OffsetDateTime time;
+
+    private String circuitName;
 
     @OneToMany(cascade = CascadeType.PERSIST)
     private List<QpuSelectionResult> jobResults = new ArrayList<>();

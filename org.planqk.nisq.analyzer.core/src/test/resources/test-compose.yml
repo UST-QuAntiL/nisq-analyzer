@@ -15,26 +15,26 @@ services:
       NISQ_DB: nisq
       QPROV_DB: qprov
     ports:
-      - '5432:5432'
+      - '5060:5060'
     networks:
       - default
   qprov:
     image: planqk/qprov:latest
     environment:
       POSTGRES_HOSTNAME: db
-      POSTGRES_PORT: 5432
+      POSTGRES_PORT: 5060
       POSTGRES_USER: qprov
       POSTGRES_PASSWORD: qprov
       POSTGRES_DB: qprov
     ports:
-      - "8084:8080"
+      - "5020:5020"
     networks:
       - default
   qprov-collector-ibm:
     image: planqk/qprov-collector:latest
     environment:
       POSTGRES_HOSTNAME: db
-      POSTGRES_PORT: 5432
+      POSTGRES_PORT: 5060
       POSTGRES_USER: qprov
       POSTGRES_PASSWORD: qprov
       POSTGRES_DB: qprov
@@ -44,9 +44,9 @@ services:
       QPROV_IBMQ_AUTO_COLLECT_INTERVAL: 60
       QPROV_IBMQ_AUTO_COLLECT_INTERVAL_CIRCUITS: 180
       QISKIT_SERVICE_HOSTNAME: qiskit-service
-      QISKIT_SERVICE_PORT: 5000
+      QISKIT_SERVICE_PORT: 5013
     ports:
-      - "8085:8080"
+      - "5021:5021"
     networks:
       - default
 
@@ -55,7 +55,7 @@ services:
     image: planqk/qiskit-service:latest
     command: sh /app/startup.sh
     ports:
-      - "5003:5000"
+      - "5013:5013"
     environment:
       - REDIS_URL=redis://redis
       - DATABASE_URL=sqlite:////data/app.db
@@ -79,14 +79,14 @@ services:
     image: planqk/forest-service:latest
     command: sh /app/startup.sh
     ports:
-      - "5002:5000"
+      - "5014:5014"
     environment:
       - REDIS_URL=redis://redis
       - DATABASE_URL=sqlite:////data/app.db
       - QVM_HOSTNAME=rigetti-qvm
-      - QVM_PORT=5666
+      - QVM_PORT=5016
       - QUILC_HOSTNAME=rigetti-quilc
-      - QUILC_PORT=5667
+      - QUILC_PORT=5017
     volumes:
       - exec_data:/data
     networks:
@@ -99,9 +99,9 @@ services:
       - REDIS_URL=redis://redis
       - DATABASE_URL=sqlite:////data/app.db
       - QVM_HOSTNAME=rigetti-qvm
-      - QVM_PORT=5666
+      - QVM_PORT=5016
       - QUILC_HOSTNAME=rigetti-quilc
-      - QUILC_PORT=5667
+      - QUILC_PORT=5017
     volumes:
       - exec_data:/data
     depends_on:
@@ -113,12 +113,12 @@ services:
     image: planqk/pytket-service:latest
     command: sh /app/startup.sh
     ports:
-      - "5001:5000"
+      - "5015:5015"
     environment:
       - REDIS_URL=redis://redis
       - DATABASE_URL=sqlite:////data/app.db
       - QVM_HOSTNAME=rigetti-qvm
-      - QVM_PORT=5666
+      - QVM_PORT=5016
     volumes:
       - exec_data:/data
     networks:
@@ -131,7 +131,7 @@ services:
       - REDIS_URL=redis://redis
       - DATABASE_URL=sqlite:////data/app.db
       - QVM_HOSTNAME=rigetti-qvm
-      - QVM_PORT=5666
+      - QVM_PORT=5016
     volumes:
       - exec_data:/data
     depends_on:
@@ -142,24 +142,25 @@ services:
   rigetti-qvm:
     image: rigetti/qvm
     ports:
-      - "5666:5666"
-    command: -S -p 5666
+      - "5016:5016"
+    command: -S -p 5016
     networks:
       - default
 
   rigetti-quilc:
     image: rigetti/quilc
     ports:
-      - "5667:5667"
-    command: -S -p 5667
+      - "5017:5017"
+    command: -S -p 5017
     networks:
       - default
 
   # redis server for qiskit/forest/pytket service
   redis:
     image: redis:latest
+    command: --port 5040
     ports:
-      - "6379:6379"
+      - "5040:5040"
     networks:
       - default
 

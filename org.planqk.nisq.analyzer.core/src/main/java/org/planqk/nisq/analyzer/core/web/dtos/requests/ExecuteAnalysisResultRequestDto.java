@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2021 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,18 +19,10 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.requests;
 
-import java.util.UUID;
+import lombok.Data;
 
-import lombok.Getter;
-import lombok.Setter;
+@Data
+public class ExecuteAnalysisResultRequestDto {
 
-public class SelectionRequestDto extends ParameterKeyValueDto {
-
-    @Getter
-    @Setter
-    private UUID algorithmId;
-
-    @Getter
-    @Setter
-    private String refreshToken;
+    String refreshToken;
 }

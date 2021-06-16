@@ -56,6 +56,11 @@ public class ExecutionResult extends HasId {
 
     @Getter
     @Setter
+    @ManyToOne
+    private QpuSelectionResult qpuSelectionResult;
+
+    @Getter
+    @Setter
     @Column(columnDefinition="text")
     private String result;
 

@@ -25,6 +25,7 @@ import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisJobDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisJobListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.requests.ExecuteAnalysisResultRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -145,7 +147,9 @@ public class AnalysisResultController {
     @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute an analysis configuration")
     @PostMapping("/{resId}/" + Constants.EXECUTION)
-    public HttpEntity<ExecutionResultDto> executeAnalysisResult(@PathVariable UUID resId) {
+    public HttpEntity<ExecutionResultDto> executeAnalysisResult(
+            @PathVariable UUID resId,
+            @RequestBody(required = false) ExecuteAnalysisResultRequestDto request) {
         LOG.debug("Post to execute analysis result with id: {}", resId);
 
         Optional<AnalysisResult> analysisResultOptional = analysisResultRepository.findById(resId);
@@ -162,8 +166,13 @@ public class AnalysisResultController {
             // Retrieve the type of the parameter from the algorithm definition
             Map<String, ParameterValue> typedParams =
                     ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), analysisResult.getInputParameters());
+            String refreshToken = "";
 
-            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(analysisResult, typedParams);
+            if (request != null && request.getRefreshToken() != null) {
+                refreshToken = request.getRefreshToken();
+            }
+
+            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(analysisResult, typedParams, refreshToken);
 
             ExecutionResultDto dto = ExecutionResultDto.Converter.convert(result);
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(result.getId())).withSelfRel());

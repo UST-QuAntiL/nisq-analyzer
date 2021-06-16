@@ -77,12 +77,19 @@ public class PyTketRequest {
     @JsonProperty("input-params")
     private Map<String, ParameterValue> input_params;
 
-    public PyTketRequest(URL impl_url, String impl_language, String qpu_name, String provider, Map<String, ParameterValue> input_params) {
+    @Getter
+    @Setter
+    @JsonProperty(value = "bearer-token")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String bearerToken;
+
+    public PyTketRequest(URL impl_url, String impl_language, String qpu_name, String provider, Map<String, ParameterValue> input_params, String bearerToken) {
         this.impl_url = impl_url;
         this.impl_language = impl_language;
         this.qpu_name = qpu_name;
         this.provider = provider;
         this.input_params = input_params;
+        this.bearerToken = bearerToken;
     }
 
     public PyTketRequest(String impl_data, Map<String, ParameterValue> input_params, String impl_language, String qpu_name, String provider) {

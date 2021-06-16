@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
@@ -41,6 +42,10 @@ public class QpuSelectionResultDto extends RepresentationModel<QpuSelectionResul
 
     int queueSize;
 
+    private OffsetDateTime time;
+
+    private String circuitName;
+
     String transpiledCircuit;
 
     String transpiledLanguage;
@@ -59,6 +64,8 @@ public class QpuSelectionResultDto extends RepresentationModel<QpuSelectionResul
             dto.setProvider(object.getProvider());
             dto.setQpu(object.getQpu());
             dto.setQueueSize(object.getQueueSize());
+            dto.setTime(object.getTime());
+            dto.setCircuitName(object.getCircuitName());
             dto.setTranspiledCircuit(object.getTranspiledCircuit());
             dto.setTranspiledLanguage(object.getTranspiledLanguage());
             dto.setCompiler(object.getUsedCompiler());

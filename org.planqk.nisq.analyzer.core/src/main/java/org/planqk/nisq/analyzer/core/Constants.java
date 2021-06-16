@@ -46,6 +46,7 @@ public class Constants {
     public static final String EXECUTED_ALGORITHM_LINK = "executed-algorithm";
     public static final String USED_ANALYSIS_RESULT = "analysis-result";
     public static final String USED_COMPILATION_RESULT = "compilation-result";
+    public static final String USED_QPU_SELECTION_RESULT = "qpu-selection-result";
 
     // circuit languages
     public static final String OPENQASM = "openqasm";
