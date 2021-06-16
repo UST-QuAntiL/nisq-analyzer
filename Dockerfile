@@ -26,7 +26,8 @@ RUN mkdir /usr/local/tomcat
 RUN wget --quiet --no-cookies https://archive.apache.org/dist/tomcat/tomcat-9/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz -O /tmp/tomcat.tgz && \
 tar xzvf /tmp/tomcat.tgz -C /opt && \
 mv /opt/apache-tomcat-${TOMCAT_VERSION} /opt/tomcat && \
-rm /tmp/tomcat.tgz
+rm /tmp/tomcat.tgz && \
+sed -i 's/port="8080"/port="5010"/g' /opt/tomcat/conf/server.xml
 ENV CATALINA_HOME /opt/tomcat
 ENV PATH $PATH:$CATALINA_HOME/bin
 
