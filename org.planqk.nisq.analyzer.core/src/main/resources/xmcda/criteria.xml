@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmc:XMCDA xmlns:xmc="http://www.decision-deck.org/2012/XMCDA-2.2.1"
+		   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		   xsi:schemaLocation="http://www.decision-deck.org/2012/XMCDA-2.2.1
+	http://www.decision-deck.org/xmcda/_downloads/XMCDA-2.2.1.xsd">
+	<criteria>
+		<criterion id="c01" name="width">
+			<active>true</active>
+		</criterion>
+		<criterion id="c02" name="depth">
+			<active>true</active>
+		</criterion>
+		<criterion id="c03" name="number-of-gates">
+			<active>true</active>
+		</criterion>
+		<criterion id="c04" name="number-of-multi-qubit-gates">
+			<active>true</active>
+		</criterion>
+		<criterion id="c05" name="Quantum-Volume">
+			<active>true</active>
+		</criterion>
+		<criterion id="c06" name="avg-CNOT-error">
+			<active>true</active>
+		</criterion>
+		<criterion id="c07" name="avg-readout-error">
+			<active>true</active>
+		</criterion>
+		<criterion id="c08" name="avg-T1">
+			<active>true</active>
+		</criterion>
+	</criteria>
+</xmc:XMCDA>
