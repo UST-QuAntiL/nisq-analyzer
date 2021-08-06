@@ -26,6 +26,11 @@
             <artifactId>commons-io</artifactId>
             <version>2.7</version>
         </dependency>
+        <dependency>
+            <groupId>org.decision-deck</groupId>
+            <artifactId>xmcda</artifactId>
+            <version>0.9</version>
+        </dependency>
     </dependencies>
 
     <build>
