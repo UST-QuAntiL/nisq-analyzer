@@ -40,4 +40,22 @@ public class Criterion extends org.xmcda.v2.Criterion {
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     @Column(name = "id", updatable = false, nullable = false)
     private UUID uuid;
+
+    public static Criterion fromXMCDA(org.xmcda.v2.Criterion xmcdaCriterion) {
+        Criterion criterion = new Criterion();
+        criterion.setId(xmcdaCriterion.getId());
+        criterion.setDescription(xmcdaCriterion.getDescription());
+        criterion.setName(xmcdaCriterion.getName());
+        criterion.setMcdaConcept(xmcdaCriterion.getMcdaConcept());
+        return criterion;
+    }
+
+    public static org.xmcda.v2.Criterion toXMCDA(Criterion criterion) {
+        org.xmcda.v2.Criterion xmcdaCriterion = new org.xmcda.v2.Criterion();
+        xmcdaCriterion.setId(criterion.getId());
+        xmcdaCriterion.setDescription(criterion.getDescription());
+        xmcdaCriterion.setName(criterion.getName());
+        xmcdaCriterion.setMcdaConcept(criterion.getMcdaConcept());
+        return xmcdaCriterion;
+    }
 }
