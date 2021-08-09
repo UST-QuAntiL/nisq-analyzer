@@ -50,10 +50,14 @@ public class CriterionInitializer {
 
     final private CriterionValueRepository criterionValueRepository;
 
+    final private List<McdaMethod> mcdaMethods;
+
     public CriterionInitializer(CriterionRepository criterionRepository,
-                                CriterionValueRepository criterionValueRepository) {
+                                CriterionValueRepository criterionValueRepository,
+                                List<McdaMethod> mcdaMethods) {
         this.criterionRepository = criterionRepository;
         this.criterionValueRepository = criterionValueRepository;
+        this.mcdaMethods = mcdaMethods;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -63,7 +67,9 @@ public class CriterionInitializer {
             LOG.debug("Initializing databases for prioritization with definitions from resource folder!");
 
             initializeCriterion();
-            initializeWeightsForCriterion();
+            for (McdaMethod mcdaMethod : mcdaMethods) {
+                initializeWeightsForCriterion(mcdaMethod.getName());
+            }
 
             LOG.info("Successfully initialized database with definitions from resource folder!");
         } catch (IOException | SAXException | JAXBException e) {
@@ -104,16 +110,18 @@ public class CriterionInitializer {
 
     /**
      * Initialize the weights for the different criterion using the default values provided by weights.xml if not already defined in the database
+     *
+     * @param methodName the name of the MCDA method to load the initial weights for
      */
-    private void initializeWeightsForCriterion() throws JAXBException, IOException, SAXException {
-        LOG.debug("Initializing criterion values database for prioritization from local weights.xml file!");
+    private void initializeWeightsForCriterion(String methodName) throws JAXBException, IOException, SAXException {
+        LOG.debug("Initializing criterion values database for prioritization from local initial-weights-{}.xml file!", methodName);
 
-        // retrieve the JAXB elements from the weights.xml file
-        List<JAXBElement<?>> jaxbContents = getJaxbContentsFromXmcdaFile("weights.xml");
+        // retrieve the JAXB elements from the xml file
+        List<JAXBElement<?>> jaxbContents = getJaxbContentsFromXmcdaFile("initial-weights-" + methodName + ".xml");
 
         // only one element is allowed to be in the file
         if (jaxbContents.size() != 1) {
-            LOG.error("weights.xml must contain exactly one element under the xmcda tag and contains: {}", jaxbContents.size());
+            LOG.error("initial-weights-{}.xml must contain exactly one element under the xmcda tag and contains: {}", methodName, jaxbContents.size());
             return;
         }
 
@@ -132,14 +140,15 @@ public class CriterionInitializer {
 
             // check if corresponding value is already defined
             Criterion criterion = criterionList.get(0);
-            if (!criterion.getCriterionValues().isEmpty()) {
-                LOG.warn("Criterion with ID '{}' has already a criterion value defined. Skipping to avoid overriding user changes!", criterion.getId());
+            if (criterion.getCriterionValues().stream().anyMatch(value -> value.getMcdaMethod().equals(methodName))) {
+                LOG.warn("Criterion with ID '{}' has already a criterion value defined for MCDA method {}. Skipping to avoid overriding user changes!", criterion.getId(), methodName);
                 continue;
             }
 
             // add criterion value to criteria and update repository
             CriterionValue internalCriterionValue = CriterionValue.fromXMCDA(criterionValue);
             internalCriterionValue.setCriterion(criterion);
+            internalCriterionValue.setMcdaMethod(methodName);
             internalCriterionValue = criterionValueRepository.save(internalCriterionValue);
             criterion.getCriterionValues().add(internalCriterionValue);
             criterionRepository.save(criterion);

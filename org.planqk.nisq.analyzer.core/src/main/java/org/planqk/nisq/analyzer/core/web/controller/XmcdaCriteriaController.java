@@ -24,10 +24,15 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.Constants;
+import org.planqk.nisq.analyzer.core.model.xmcda.Criterion;
+import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
 import org.planqk.nisq.analyzer.core.repository.xmcda.CriterionValueRepository;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaCriterionDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaCriterionListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaMethodDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaMethodListDto;
 import org.slf4j.Logger;
@@ -68,7 +73,7 @@ public class XmcdaCriteriaController {
 
         // add all supported methods and corresponding links
         for (McdaMethod mcdaMethod : mcdaMethods) {
-            model.add(createPrioritizationMethodDto(mcdaMethod));
+            model.add(createMcdaMethodDto(mcdaMethod));
             model.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationMethod(mcdaMethod.getName())).withRel(mcdaMethod.getName()));
         }
 
@@ -85,18 +90,51 @@ public class XmcdaCriteriaController {
         Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
 
         if (!optional.isPresent()) {
-            LOG.error("Prioritization method with name {} not supported.", methodName);
+            LOG.error("MCDA method with name {} not supported.", methodName);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(createPrioritizationMethodDto(optional.get()), HttpStatus.OK);
+        return new ResponseEntity<>(createMcdaMethodDto(optional.get()), HttpStatus.OK);
     }
 
-    private McdaMethodDto createPrioritizationMethodDto(McdaMethod method) {
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve a single prioritization method")
+    @GetMapping("/{methodName}/" + Constants.CRITERIA)
+    public HttpEntity<McdaCriterionListDto> getCriterionForMethod(@PathVariable String methodName) {
+        LOG.debug("Retrieving criteria for MCDA method with name: {}", methodName);
+        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
+
+        if (!optional.isPresent()) {
+            LOG.error("MCDA method with name {} not supported.", methodName);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        // get dtos for all criterion defined for this MCDA method
+        List<McdaCriterionDto> mcdaCriterionDtos = criterionValueRepository.findAll().stream()
+                .filter(criterionValue -> criterionValue.getMcdaMethod().equals(methodName))
+                .map(CriterionValue::getCriterion)
+                .distinct()
+                .map(this::createMcdaCriterionDto)
+                .collect(Collectors.toList());
+
+        McdaCriterionListDto mcdaCriterionListDto = new McdaCriterionListDto();
+        mcdaCriterionListDto.add(mcdaCriterionDtos);
+        mcdaCriterionListDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getCriterionForMethod(methodName)).withSelfRel());
+        return new ResponseEntity<>(mcdaCriterionListDto, HttpStatus.OK);
+    }
+
+    private McdaMethodDto createMcdaMethodDto(McdaMethod method) {
         McdaMethodDto dto = new McdaMethodDto();
         dto.setName(method.getName());
         dto.setDescription(method.getDescription());
         dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationMethod(method.getName())).withSelfRel());
+        dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getCriterionForMethod(method.getName())).withRel(Constants.CRITERIA));
+        return dto;
+    }
+
+    private McdaCriterionDto createMcdaCriterionDto(Criterion criterion) {
+        McdaCriterionDto dto = new McdaCriterionDto();
+        // TODO: add data and links
         return dto;
     }
 }

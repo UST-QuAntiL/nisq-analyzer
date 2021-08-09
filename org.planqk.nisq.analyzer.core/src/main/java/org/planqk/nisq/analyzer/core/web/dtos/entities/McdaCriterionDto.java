@@ -17,24 +17,11 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.promethee;
+package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
-import org.springframework.stereotype.Service;
+import org.springframework.hateoas.RepresentationModel;
 
-/**
- * Service implementing the Promethee method to prioritize analysis results of the NISQ Analyzer.
- */
-@Service
-public class PrometheeMethod implements McdaMethod {
+public class McdaCriterionDto extends RepresentationModel<McdaCriterionDto> {
 
-    @Override
-    public String getName() {
-        return "promethee";
-    }
-
-    @Override
-    public String getDescription() {
-        return "TODO";
-    }
+    // TODO: add data about criterion
 }

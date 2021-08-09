@@ -47,6 +47,10 @@ public class CriterionValue extends org.xmcda.v2.CriterionValue {
     @ManyToOne
     private Criterion criterion;
 
+    @Getter
+    @Setter
+    private String mcdaMethod;
+
     public static CriterionValue fromXMCDA(org.xmcda.v2.CriterionValue xmcdaCriterionValue) {
         CriterionValue criterionValue = new CriterionValue();
         criterionValue.setId(xmcdaCriterionValue.getId());
