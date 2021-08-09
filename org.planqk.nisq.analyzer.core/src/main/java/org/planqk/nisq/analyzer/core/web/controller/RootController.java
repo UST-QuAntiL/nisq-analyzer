@@ -111,6 +111,7 @@ public class RootController {
                         .withRel(Constants.COMPILER_SELECTION));
         responseEntity.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisResults()).withRel(Constants.COMPILER_RESULTS));
         responseEntity.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResults(null)).withRel(Constants.EXECUTION_RESULTS));
+        responseEntity.add(linkTo(methodOn(XmcdaCriteriaController.class).getSupportedPrioritizationMethods()).withRel(Constants.CRITERIA));
 
         return new ResponseEntity<>(responseEntity, HttpStatus.OK);
     }
