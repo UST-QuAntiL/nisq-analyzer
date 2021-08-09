@@ -37,6 +37,7 @@ public class Constants {
     public static final String QPU_SELECTION_RESULTS = "qpu-selection-results";
     public static final String EXECUTION_RESULTS = "execution-results";
     public static final String JOBS = "jobs";
+    public static final String MCDA_METHODS = "mcda-methods";
     public static final String CRITERIA = "criteria";
 
     // link names

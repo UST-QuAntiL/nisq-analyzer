@@ -19,14 +19,23 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.hateoas.RepresentationModel;
 
-import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-@AllArgsConstructor
-public class PrioritizationMethodDto extends RepresentationModel<PrioritizationMethodDto> {
+public class McdaMethodListDto extends RepresentationModel<McdaMethodListDto> {
 
-    String name;
+    @Getter
+    private final List<McdaMethodDto> mcdaMethodList = new ArrayList<>();
 
-    String description;
+    public void add(final List<McdaMethodDto> methods) {
+        this.mcdaMethodList.addAll(methods);
+    }
+
+    public void add(final McdaMethodDto method) {
+        this.mcdaMethodList.add(method);
+    }
 }
