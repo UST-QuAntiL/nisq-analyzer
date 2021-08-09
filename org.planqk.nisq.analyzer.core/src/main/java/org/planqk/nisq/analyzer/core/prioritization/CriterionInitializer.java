@@ -132,7 +132,7 @@ public class CriterionInitializer {
 
             // check if corresponding value is already defined
             Criterion criterion = criterionList.get(0);
-            if (criterion.getCriterionValues().isEmpty()) {
+            if (!criterion.getCriterionValues().isEmpty()) {
                 LOG.warn("Criterion with ID '{}' has already a criterion value defined. Skipping to avoid overriding user changes!", criterion.getId());
                 continue;
             }
@@ -142,7 +142,7 @@ public class CriterionInitializer {
             internalCriterionValue.setCriterion(criterion);
             internalCriterionValue = criterionValueRepository.save(internalCriterionValue);
             criterion.getCriterionValues().add(internalCriterionValue);
-            criterionRepository.save(Criterion.fromXMCDA(criterion));
+            criterionRepository.save(criterion);
         }
         LOG.debug("Found {} criterion values in the repository after initialization!", criterionValueRepository.findAll().size());
     }
