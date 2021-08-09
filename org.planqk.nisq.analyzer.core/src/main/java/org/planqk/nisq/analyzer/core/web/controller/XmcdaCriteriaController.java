@@ -22,10 +22,16 @@ package org.planqk.nisq.analyzer.core.web.controller;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-import javax.transaction.Transactional;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.Constants;
+import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.PrioritizationMethodDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.PrioritizationMethodListDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -46,13 +53,36 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/" + Constants.CRITERIA)
 public class XmcdaCriteriaController {
 
-    @Operation(responses = {@ApiResponse(responseCode = "200")}, description = "Get")
+    private final static Logger LOG = LoggerFactory.getLogger(XmcdaCriteriaController.class);
+
+    final private List<McdaMethod> mcdaMethods;
+
+    @Operation(responses = {@ApiResponse(responseCode = "200")}, description = "Get all supported prioritization methods")
     @GetMapping("/")
-    @Transactional
     public HttpEntity<PrioritizationMethodListDto> getSupportedPrioritizationMethods() {
         PrioritizationMethodListDto model = new PrioritizationMethodListDto();
-        //model.add(analysisJobRepository.findAll().stream().map(this::createAnalysisJobDto).collect(Collectors.toList())); // TODO: add methods
+        model.add(mcdaMethods.stream().map(this::createPrioritizationMethodDto).collect(Collectors.toList()));
         model.add(linkTo(methodOn(XmcdaCriteriaController.class).getSupportedPrioritizationMethods()).withSelfRel());
         return new ResponseEntity<>(model, HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve a single prioritization method")
+    @GetMapping("/{methodName}")
+    private HttpEntity<PrioritizationMethodDto> getPrioritizationMethod(String methodName) {
+        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
+
+        if (!optional.isPresent()) {
+            LOG.error("Prioritization method with name {} not supported.", methodName);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(createPrioritizationMethodDto(optional.get()), HttpStatus.OK);
+    }
+
+    private PrioritizationMethodDto createPrioritizationMethodDto(McdaMethod method) {
+        PrioritizationMethodDto dto = new PrioritizationMethodDto(method.getName(), method.getDescription());
+        dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationMethod(method.getName())).withSelfRel());
+        return dto;
     }
 }

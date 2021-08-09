@@ -17,16 +17,24 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.web.dtos.entities;
+package org.planqk.nisq.analyzer.core.prioritization;
 
-import org.springframework.hateoas.RepresentationModel;
+/**
+ * Interface for the implementation of a MCDA method.
+ */
+public interface McdaMethod {
 
-import lombok.AllArgsConstructor;
+    /**
+     * Returns the unique name of the implemented MCDA method
+     *
+     * @return the name of the MCDA method
+     */
+    String getName();
 
-@AllArgsConstructor
-public class PrioritizationMethodDto extends RepresentationModel<PrioritizationMethodDto> {
-
-    String name;
-
-    String description;
+    /**
+     * Returns the textual description of the implemented MCDA method
+     *
+     * @return the textual description of the MCDA method
+     */
+    String getDescription();
 }
