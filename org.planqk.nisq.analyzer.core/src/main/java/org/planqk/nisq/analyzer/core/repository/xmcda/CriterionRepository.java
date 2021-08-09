@@ -17,7 +17,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.repository;
+package org.planqk.nisq.analyzer.core.repository.xmcda;
 
 import java.util.List;
 import java.util.UUID;

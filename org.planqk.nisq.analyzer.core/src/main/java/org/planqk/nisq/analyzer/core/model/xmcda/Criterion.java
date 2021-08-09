@@ -19,11 +19,15 @@
 
 package org.planqk.nisq.analyzer.core.model.xmcda;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 import org.hibernate.annotations.GenericGenerator;
 
@@ -45,6 +49,10 @@ public class Criterion extends org.xmcda.v2.Criterion {
     @Setter
     private String id;
 
+    @Getter
+    @OneToMany(cascade = CascadeType.PERSIST)
+    private List<CriterionValue> criterionValues = new ArrayList<>();
+
     public static Criterion fromXMCDA(org.xmcda.v2.Criterion xmcdaCriterion) {
         Criterion criterion = new Criterion();
         criterion.setId(xmcdaCriterion.getId());
@@ -52,6 +60,8 @@ public class Criterion extends org.xmcda.v2.Criterion {
         criterion.setName(xmcdaCriterion.getName());
         criterion.setMcdaConcept(xmcdaCriterion.getMcdaConcept());
         return criterion;
+
+        // TODO: handle activeOrScaleOrCriterionFunction
     }
 
     public static org.xmcda.v2.Criterion toXMCDA(Criterion criterion) {
@@ -61,5 +71,7 @@ public class Criterion extends org.xmcda.v2.Criterion {
         xmcdaCriterion.setName(criterion.getName());
         xmcdaCriterion.setMcdaConcept(criterion.getMcdaConcept());
         return xmcdaCriterion;
+
+        // TODO: handle activeOrScaleOrCriterionFunction
     }
 }
