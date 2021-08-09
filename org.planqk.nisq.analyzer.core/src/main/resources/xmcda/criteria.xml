@@ -6,27 +6,67 @@
 	<criteria>
 		<criterion id="c01" name="width">
 			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>min</preferenceDirection>
+				</quantitative>
+			</scale>
 		</criterion>
 		<criterion id="c02" name="depth">
 			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>min</preferenceDirection>
+				</quantitative>
+			</scale>
 		</criterion>
 		<criterion id="c03" name="number-of-gates">
 			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>min</preferenceDirection>
+				</quantitative>
+			</scale>
 		</criterion>
 		<criterion id="c04" name="number-of-multi-qubit-gates">
 			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>min</preferenceDirection>
+				</quantitative>
+			</scale>
 		</criterion>
 		<criterion id="c05" name="Quantum-Volume">
 			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>max</preferenceDirection>
+				</quantitative>
+			</scale>
 		</criterion>
 		<criterion id="c06" name="avg-CNOT-error">
 			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>min</preferenceDirection>
+				</quantitative>
+			</scale>
 		</criterion>
 		<criterion id="c07" name="avg-readout-error">
 			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>min</preferenceDirection>
+				</quantitative>
+			</scale>
 		</criterion>
 		<criterion id="c08" name="avg-T1">
 			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>max</preferenceDirection>
+				</quantitative>
+			</scale>
 		</criterion>
 	</criteria>
 </xmc:XMCDA>
