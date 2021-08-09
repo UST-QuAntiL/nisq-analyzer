@@ -51,7 +51,7 @@ public class Criterion extends org.xmcda.v2.Criterion {
 
     @Getter
     @OneToMany(cascade = CascadeType.PERSIST)
-    private List<CriterionValue> criterionValues = new ArrayList<>();
+    private final List<CriterionValue> criterionValues = new ArrayList<>();
 
     public static Criterion fromXMCDA(org.xmcda.v2.Criterion xmcdaCriterion) {
         Criterion criterion = new Criterion();
@@ -59,9 +59,8 @@ public class Criterion extends org.xmcda.v2.Criterion {
         criterion.setDescription(xmcdaCriterion.getDescription());
         criterion.setName(xmcdaCriterion.getName());
         criterion.setMcdaConcept(xmcdaCriterion.getMcdaConcept());
+        criterion.getActiveOrScaleOrCriterionFunction().addAll(xmcdaCriterion.getActiveOrScaleOrCriterionFunction());
         return criterion;
-
-        // TODO: handle activeOrScaleOrCriterionFunction
     }
 
     public static org.xmcda.v2.Criterion toXMCDA(Criterion criterion) {
@@ -70,8 +69,7 @@ public class Criterion extends org.xmcda.v2.Criterion {
         xmcdaCriterion.setDescription(criterion.getDescription());
         xmcdaCriterion.setName(criterion.getName());
         xmcdaCriterion.setMcdaConcept(criterion.getMcdaConcept());
+        xmcdaCriterion.getActiveOrScaleOrCriterionFunction().addAll(criterion.getActiveOrScaleOrCriterionFunction());
         return xmcdaCriterion;
-
-        // TODO: handle activeOrScaleOrCriterionFunction
     }
 }

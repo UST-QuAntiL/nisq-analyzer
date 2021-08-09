@@ -56,9 +56,8 @@ public class CriterionValue extends org.xmcda.v2.CriterionValue {
         criterionValue.setCriterionID(xmcdaCriterionValue.getCriterionID());
         criterionValue.setCriteriaSet(xmcdaCriterionValue.getCriteriaSet());
         criterionValue.setCriteriaSetID(xmcdaCriterionValue.getCriteriaSetID());
+        criterionValue.getValueOrValues().addAll(xmcdaCriterionValue.getValueOrValues());
         return criterionValue;
-
-        // TODO: handle valueOrValues
     }
 
     public static org.xmcda.v2.CriterionValue toXMCDA(CriterionValue criterionValue) {
@@ -70,8 +69,7 @@ public class CriterionValue extends org.xmcda.v2.CriterionValue {
         xmcdaCriterionValue.setCriterionID(criterionValue.getCriterionID());
         xmcdaCriterionValue.setCriteriaSet(criterionValue.getCriteriaSet());
         xmcdaCriterionValue.setCriteriaSetID(criterionValue.getCriteriaSetID());
+        xmcdaCriterionValue.getValueOrValues().addAll(criterionValue.getValueOrValues());
         return xmcdaCriterionValue;
-
-        // TODO: handle valueOrValues
     }
 }
