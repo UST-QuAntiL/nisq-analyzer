@@ -85,8 +85,7 @@ public class CriterionInitializer {
 
             LOG.info("Successfully initialized database with definitions from resource folder!");
         } catch (IOException | SAXException | JAXBException e) {
-            LOG.error("Error while ");
-            e.printStackTrace();
+            LOG.error("Error while initializing database from local XML files: {}", e.getLocalizedMessage());
         }
     }
 }
