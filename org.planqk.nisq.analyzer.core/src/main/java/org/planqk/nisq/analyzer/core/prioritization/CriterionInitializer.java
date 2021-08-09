@@ -54,6 +54,8 @@ public class CriterionInitializer {
     public void initializeDbFromXmcdaXML() {
 
         try {
+            LOG.debug("Initializing criterion database for prioritization from local criteria.xml file!");
+
             // read the file containing the criteria definition
             File criteriaFile = ResourceUtils.getFile("classpath:xmcda/criteria.xml");
             XMCDA xmcda = XMCDAParser.readXMCDA(criteriaFile);
@@ -72,6 +74,11 @@ public class CriterionInitializer {
 
             LOG.info("Found {} criterion in resource file!", criteria.getCriterion().size());
             for (org.xmcda.v2.Criterion criterion : criteria.getCriterion()) {
+                if (!criterionRepository.findById(criterion.getId()).isEmpty()) {
+                    LOG.warn("Found criterion with the id '{}' in database and criteria.xml. Skipping to avoid overriding user changes!", criterion.getId());
+                    continue;
+                }
+
                 criterionRepository.save(Criterion.fromXMCDA(criterion));
             }
             LOG.info("Found {} criterion in the repository after initialization!", criterionRepository.findAll().size());

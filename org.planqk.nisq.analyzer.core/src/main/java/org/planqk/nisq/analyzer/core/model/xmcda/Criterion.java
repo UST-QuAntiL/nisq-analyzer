@@ -38,8 +38,12 @@ public class Criterion extends org.xmcda.v2.Criterion {
     @Setter
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "id", updatable = false, nullable = false)
+    @Column(name = "uuid", updatable = false, nullable = false)
     private UUID uuid;
+
+    @Getter
+    @Setter
+    private String id;
 
     public static Criterion fromXMCDA(org.xmcda.v2.Criterion xmcdaCriterion) {
         Criterion criterion = new Criterion();
