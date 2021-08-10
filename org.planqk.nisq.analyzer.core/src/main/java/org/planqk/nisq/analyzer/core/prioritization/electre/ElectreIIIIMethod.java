@@ -17,20 +17,20 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.promethee;
+package org.planqk.nisq.analyzer.core.prioritization.electre;
 
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
 import org.springframework.stereotype.Service;
 
 /**
- * Service implementing the Promethee I method to prioritize analysis results of the NISQ Analyzer.
+ * Service implementing the Electre III method to prioritize analysis results of the NISQ Analyzer.
  */
 @Service
-public class PrometheeIMethod implements McdaMethod {
+public class ElectreIIIIMethod implements McdaMethod {
 
     @Override
     public String getName() {
-        return "promethee-I";
+        return "electre-III";
     }
 
     @Override
