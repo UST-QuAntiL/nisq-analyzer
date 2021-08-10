@@ -27,10 +27,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.Constants;
-import org.planqk.nisq.analyzer.core.model.xmcda.Criterion;
-import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
-import org.planqk.nisq.analyzer.core.repository.xmcda.CriterionValueRepository;
+import org.planqk.nisq.analyzer.core.repository.xmcda.XmcdaRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaCriterionDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaCriterionListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaMethodDto;
@@ -45,6 +43,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.xmcda.v2.Criterion;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -63,7 +62,7 @@ public class XmcdaCriteriaController {
 
     final private List<McdaMethod> mcdaMethods;
 
-    final private CriterionValueRepository criterionValueRepository;
+    final private XmcdaRepository xmcdaRepository;
 
     @Operation(responses = {@ApiResponse(responseCode = "200")}, description = "Get all supported prioritization methods")
     @GetMapping("/")
@@ -110,10 +109,7 @@ public class XmcdaCriteriaController {
         }
 
         // get dtos for all criterion defined for this MCDA method
-        List<McdaCriterionDto> mcdaCriterionDtos = criterionValueRepository.findAll().stream()
-                .filter(criterionValue -> criterionValue.getMcdaMethod().equals(methodName))
-                .map(CriterionValue::getCriterion)
-                .distinct()
+        List<McdaCriterionDto> mcdaCriterionDtos = xmcdaRepository.findByMcdaMethod(methodName).stream()
                 .map(this::createMcdaCriterionDto)
                 .collect(Collectors.toList());
 
@@ -134,6 +130,18 @@ public class XmcdaCriteriaController {
 
     private McdaCriterionDto createMcdaCriterionDto(Criterion criterion) {
         McdaCriterionDto dto = new McdaCriterionDto();
+        dto.setMcdaConcept(criterion.getMcdaConcept());
+        dto.setId(criterion.getId());
+        dto.setName(criterion.getName());
+        dto.setDescription(criterion.getDescription());
+
+        // check if criterion is set to active and return false otherwise
+        dto.setActive(
+                criterion.getActiveOrScaleOrCriterionFunction().stream()
+                        .filter(object -> object instanceof Boolean)
+                        .map(object -> (Boolean) object)
+                        .findFirst().orElse(false));
+
         // TODO: add data and links
         return dto;
     }

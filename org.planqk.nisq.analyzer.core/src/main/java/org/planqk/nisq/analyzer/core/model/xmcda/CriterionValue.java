@@ -19,61 +19,24 @@
 
 package org.planqk.nisq.analyzer.core.model.xmcda;
 
-import java.util.UUID;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-
-import org.hibernate.annotations.GenericGenerator;
-
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity
 public class CriterionValue extends org.xmcda.v2.CriterionValue {
-
-    @Id
-    @Getter
-    @Setter
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "uuid", updatable = false, nullable = false)
-    private UUID uuid;
-
-    @Getter
-    @Setter
-    @ManyToOne
-    private Criterion criterion;
 
     @Getter
     @Setter
     private String mcdaMethod;
 
-    public static CriterionValue fromXMCDA(org.xmcda.v2.CriterionValue xmcdaCriterionValue) {
+    public static CriterionValue fromXMCDA(org.xmcda.v2.CriterionValue xmcdaCriterion) {
         CriterionValue criterionValue = new CriterionValue();
-        criterionValue.setId(xmcdaCriterionValue.getId());
-        criterionValue.setDescription(xmcdaCriterionValue.getDescription());
-        criterionValue.setName(xmcdaCriterionValue.getName());
-        criterionValue.setMcdaConcept(xmcdaCriterionValue.getMcdaConcept());
-        criterionValue.setCriterionID(xmcdaCriterionValue.getCriterionID());
-        criterionValue.setCriteriaSet(xmcdaCriterionValue.getCriteriaSet());
-        criterionValue.setCriteriaSetID(xmcdaCriterionValue.getCriteriaSetID());
-        criterionValue.getValueOrValues().addAll(xmcdaCriterionValue.getValueOrValues());
+        criterionValue.setCriterionID(xmcdaCriterion.getCriterionID());
+        criterionValue.setCriteriaSet(xmcdaCriterion.getCriteriaSet());
+        criterionValue.setCriteriaSetID(xmcdaCriterion.getCriteriaSetID());
+        criterionValue.setDescription(xmcdaCriterion.getDescription());
+        criterionValue.setId(xmcdaCriterion.getId());
+        criterionValue.setName(xmcdaCriterion.getName());
+        criterionValue.getValueOrValues().addAll(xmcdaCriterion.getValueOrValues());
         return criterionValue;
-    }
-
-    public static org.xmcda.v2.CriterionValue toXMCDA(CriterionValue criterionValue) {
-        org.xmcda.v2.CriterionValue xmcdaCriterionValue = new org.xmcda.v2.CriterionValue();
-        xmcdaCriterionValue.setId(criterionValue.getId());
-        xmcdaCriterionValue.setDescription(criterionValue.getDescription());
-        xmcdaCriterionValue.setName(criterionValue.getName());
-        xmcdaCriterionValue.setMcdaConcept(criterionValue.getMcdaConcept());
-        xmcdaCriterionValue.setCriterionID(criterionValue.getCriterionID());
-        xmcdaCriterionValue.setCriteriaSet(criterionValue.getCriteriaSet());
-        xmcdaCriterionValue.setCriteriaSetID(criterionValue.getCriteriaSetID());
-        xmcdaCriterionValue.getValueOrValues().addAll(criterionValue.getValueOrValues());
-        return xmcdaCriterionValue;
     }
 }

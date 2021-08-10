@@ -20,8 +20,30 @@
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
 import org.springframework.hateoas.RepresentationModel;
+import org.xmcda.v2.Description;
+
+import lombok.Getter;
+import lombok.Setter;
 
 public class McdaCriterionDto extends RepresentationModel<McdaCriterionDto> {
 
-    // TODO: add data about criterion
+    @Getter
+    @Setter
+    private String id;
+
+    @Getter
+    @Setter
+    private String name;
+
+    @Getter
+    @Setter
+    private String mcdaConcept;
+
+    @Getter
+    @Setter
+    private Boolean active;
+
+    @Getter
+    @Setter
+    private Description description;
 }
