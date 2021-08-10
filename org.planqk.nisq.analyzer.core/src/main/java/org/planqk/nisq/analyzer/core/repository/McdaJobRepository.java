@@ -19,6 +19,8 @@
 
 package org.planqk.nisq.analyzer.core.repository;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.model.McdaJob;
@@ -27,4 +29,8 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 @RepositoryRestResource(exported = false)
 public interface McdaJobRepository extends JpaRepository<McdaJob, UUID> {
+
+    List<McdaJob> findByMethod(String method);
+
+    Optional<McdaJob> findById(UUID id);
 }

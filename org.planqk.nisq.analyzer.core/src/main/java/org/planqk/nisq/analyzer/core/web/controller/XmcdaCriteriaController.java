@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.Constants;
@@ -209,12 +208,10 @@ public class XmcdaCriteriaController {
 
         // get all related jobs
         List<EntityModel<McdaJob>> jobs = new ArrayList<>();
-        for (McdaJob mcdaJob : mcdaJobRepository.findAll()) {
-            if (!mcdaJob.getMethod().equals(methodName)) {
-                EntityModel<McdaJob> mcdaJobDto = new EntityModel<>(mcdaJob);
-                mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, mcdaJob.getJobId())).withSelfRel());
-                jobs.add(mcdaJobDto);
-            }
+        for (McdaJob mcdaJob : mcdaJobRepository.findByMethod(methodName)) {
+            EntityModel<McdaJob> mcdaJobDto = new EntityModel<>(mcdaJob);
+            mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, mcdaJob.getJobId())).withSelfRel());
+            jobs.add(mcdaJobDto);
         }
 
         CollectionModel<EntityModel<McdaJob>> dto = new CollectionModel<>(jobs);
@@ -226,8 +223,30 @@ public class XmcdaCriteriaController {
             description = "Retrieve all MCDA jobs for the given method")
     @GetMapping("/{methodName}/" + Constants.JOBS + "/{jobId}")
     public HttpEntity<EntityModel<McdaJob>> getPrioritizationJob(@PathVariable String methodName, @PathVariable UUID jobId) {
-        // TODO
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        // check if method is supported
+        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
+        if (!optional.isPresent()) {
+            LOG.error("MCDA method with name {} not supported.", methodName);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        // search for job
+        Optional<McdaJob> jobOptional = mcdaJobRepository.findById(jobId);
+        if (!jobOptional.isPresent()) {
+            LOG.error("Job with ID {} not found.", jobId);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        McdaJob job = jobOptional.get();
+        if (!job.getMethod().equals(methodName)) {
+            LOG.error("Job with ID {} does not belong to method: {}", jobId, methodName);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        EntityModel<McdaJob> mcdaJobDto = new EntityModel<>(job);
+        mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, job.getJobId())).withSelfRel());
+        return new ResponseEntity<>(mcdaJobDto, HttpStatus.OK);
     }
 
     private McdaMethodDto createMcdaMethodDto(McdaMethod method) {
