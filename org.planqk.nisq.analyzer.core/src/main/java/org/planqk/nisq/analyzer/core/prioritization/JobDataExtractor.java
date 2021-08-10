@@ -17,36 +17,27 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.electre;
+package org.planqk.nisq.analyzer.core.prioritization;
 
-import org.planqk.nisq.analyzer.core.model.McdaJob;
-import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
- * Service implementing the Electre III method to prioritize analysis results of the NISQ Analyzer.
+ * Utility to retrieve data of a NISQ Analyzer job, i.e., Analysis Job, Compilation Job, or QPU Selection Job
  */
 @Service
-public class ElectreIIIIMethod implements McdaMethod {
+public class JobDataExtractor {
 
-    private final static Logger LOG = LoggerFactory.getLogger(ElectreIIIIMethod.class);
+    private final static Logger LOG = LoggerFactory.getLogger(JobDataExtractor.class);
 
-    @Override
-    public String getName() {
-        return "electre-III";
-    }
+    public JobInformation getJobInformationFromUuid(UUID jobId) {
+        LOG.debug("Retrieving job information about job with ID: {}", jobId);
 
-    @Override
-    public String getDescription() {
-        return "TODO";
-    }
+        //TODO: retrieve data
 
-    @Override
-    public void executeMcdaMethod(McdaJob mcdaJob) {
-        LOG.debug("Starting Electre III MCDA method to prioritize job with ID: {}", mcdaJob.getJobId());
-
-        // TODO
+        return null;
     }
 }

@@ -271,6 +271,7 @@ public class XmcdaCriteriaController {
         mcdaJob.setMethod(methodName);
         mcdaJob.setReady(false);
         mcdaJob.setJobId(jobId);
+        mcdaJob.setState("initialized");
         mcdaJob = mcdaJobRepository.save(mcdaJob);
         mcdaMethod.executeMcdaMethod(mcdaJob);
 

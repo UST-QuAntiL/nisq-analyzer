@@ -17,33 +17,12 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
-
-import java.util.UUID;
-import javax.persistence.Entity;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+package org.planqk.nisq.analyzer.core.prioritization;
 
 /**
- * Object to represent a MCDA method job running the prioritization for a certain analysis of compilation job
+ * Wrapper containing all information about a job required for running MCDA methods to ease handling the different kinds of jobs
  */
-@EqualsAndHashCode(callSuper = true)
-@Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class McdaJob extends HasId {
+public class JobInformation {
 
-    private String method;
-
-    private boolean ready;
-
-    private String state;
-
-    private UUID jobId;
-
-    // TODO
+    // TODO: add required data for running MCDA methods
 }

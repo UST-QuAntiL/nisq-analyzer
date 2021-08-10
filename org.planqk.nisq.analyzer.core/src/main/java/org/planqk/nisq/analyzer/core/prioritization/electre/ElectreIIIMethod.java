@@ -17,7 +17,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.promethee;
+package org.planqk.nisq.analyzer.core.prioritization.electre;
 
 import java.util.Objects;
 
@@ -33,13 +33,13 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Service implementing the Promethee I method to prioritize analysis results of the NISQ Analyzer.
+ * Service implementing the Electre III method to prioritize analysis results of the NISQ Analyzer.
  */
 @Service
 @RequiredArgsConstructor
-public class PrometheeIMethod implements McdaMethod {
+public class ElectreIIIMethod implements McdaMethod {
 
-    private final static Logger LOG = LoggerFactory.getLogger(PrometheeIMethod.class);
+    private final static Logger LOG = LoggerFactory.getLogger(ElectreIIIMethod.class);
 
     private final JobDataExtractor jobDataExtractor;
 
@@ -47,7 +47,7 @@ public class PrometheeIMethod implements McdaMethod {
 
     @Override
     public String getName() {
-        return "promethee-I";
+        return "electre-III";
     }
 
     @Override
@@ -57,7 +57,7 @@ public class PrometheeIMethod implements McdaMethod {
 
     @Override
     public void executeMcdaMethod(McdaJob mcdaJob) {
-        LOG.debug("Starting Promethee I MCDA method to prioritize job with ID: {}", mcdaJob.getJobId());
+        LOG.debug("Starting Electre III MCDA method to prioritize job with ID: {}", mcdaJob.getJobId());
         JobInformation jobInformation = jobDataExtractor.getJobInformationFromUuid(mcdaJob.getJobId());
 
         // abort if job can not be found and therefore no information available
@@ -69,6 +69,6 @@ public class PrometheeIMethod implements McdaMethod {
             return;
         }
 
-        // TODO: perform Promethee
+        // TODO: perform Electre
     }
 }
