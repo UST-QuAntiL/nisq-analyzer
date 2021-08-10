@@ -52,6 +52,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.xmcda.v2.Criterion;
 import org.xmcda.v2.Scale;
@@ -254,7 +255,7 @@ public class XmcdaCriteriaController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Run the MCDA method on the NISQ Analyzer job passed as parameter")
     @PostMapping(value = "/{methodName}/" + Constants.MCDA_PRIORITIZE)
-    public HttpEntity<EntityModel<McdaJob>> selectQpuForCircuitUrl(@PathVariable String methodName, @RequestBody UUID jobId) {
+    public HttpEntity<EntityModel<McdaJob>> selectQpuForCircuitUrl(@PathVariable String methodName, @RequestParam UUID jobId) {
         LOG.debug("Creating new job to run prioritization with MCDA method {} and NISQ Analyzer job with ID: {}", methodName, jobId);
 
         // check if method is supported
@@ -270,11 +271,12 @@ public class XmcdaCriteriaController {
         mcdaJob.setMethod(methodName);
         mcdaJob.setReady(false);
         mcdaJob.setJobId(jobId);
+        mcdaJob = mcdaJobRepository.save(mcdaJob);
         mcdaMethod.executeMcdaMethod(mcdaJob);
 
         // return dto with link to poll for updates
         EntityModel<McdaJob> mcdaJobDto = new EntityModel<>(mcdaJob);
-        mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, mcdaJob.getJobId())).withSelfRel());
+        mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, mcdaJob.getId())).withSelfRel());
         return new ResponseEntity<>(mcdaJobDto, HttpStatus.OK);
     }
 
