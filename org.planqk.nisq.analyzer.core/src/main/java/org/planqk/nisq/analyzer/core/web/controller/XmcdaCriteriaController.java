@@ -32,11 +32,11 @@ import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
 import org.planqk.nisq.analyzer.core.repository.xmcda.XmcdaRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaCriterionDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaCriterionListDto;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaCriterionValueDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaMethodDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaMethodListDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -144,9 +144,9 @@ public class XmcdaCriteriaController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
             description = "Retrieve the criterion value for a MCDA method")
     @GetMapping("/{methodName}/" + Constants.CRITERIA + "/{criterionId}/" + Constants.CRITERIA_VALUE)
-    public HttpEntity<McdaCriterionValueDto> getCriterionValue(@PathVariable String methodName, @PathVariable String criterionId) {
+    public HttpEntity<EntityModel<CriterionValue>> getCriterionValue(@PathVariable String methodName, @PathVariable String criterionId) {
 
-        Optional<McdaCriterionValueDto> mcdaCriterionValueDto =
+        Optional<EntityModel<CriterionValue>> mcdaCriterionValueDto =
                 xmcdaRepository.findByCriterionIdAndMethod(criterionId, methodName)
                         .map(criterionValue -> createMcdaCriterionValueDto(criterionValue, methodName));
 
@@ -192,9 +192,8 @@ public class XmcdaCriteriaController {
         return dto;
     }
 
-    private McdaCriterionValueDto createMcdaCriterionValueDto(CriterionValue criterionValue, String methodName) {
-        McdaCriterionValueDto dto = new McdaCriterionValueDto();
-        // TODO
+    private EntityModel<CriterionValue> createMcdaCriterionValueDto(CriterionValue criterionValue, String methodName) {
+        EntityModel<CriterionValue> dto = new EntityModel<>(criterionValue);
         dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getCriterionValue(methodName, criterionValue.getCriterionID())).withSelfRel());
         return dto;
     }
