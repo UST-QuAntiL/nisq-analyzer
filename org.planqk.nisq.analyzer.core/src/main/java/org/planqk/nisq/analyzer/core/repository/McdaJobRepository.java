@@ -17,32 +17,14 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.electre;
+package org.planqk.nisq.analyzer.core.repository;
 
 import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.model.McdaJob;
-import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
-import org.springframework.stereotype.Service;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-/**
- * Service implementing the Electre III method to prioritize analysis results of the NISQ Analyzer.
- */
-@Service
-public class ElectreIIIIMethod implements McdaMethod {
-
-    @Override
-    public String getName() {
-        return "electre-III";
-    }
-
-    @Override
-    public String getDescription() {
-        return "TODO";
-    }
-
-    @Override
-    public void executeMcdaMethod(McdaJob mcdaJob, UUID jobId) {
-        // TODO
-    }
+@RepositoryRestResource(exported = false)
+public interface McdaJobRepository extends JpaRepository<McdaJob, UUID> {
 }

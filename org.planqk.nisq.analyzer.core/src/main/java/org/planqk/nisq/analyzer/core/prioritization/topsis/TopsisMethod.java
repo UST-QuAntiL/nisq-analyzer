@@ -21,7 +21,7 @@ package org.planqk.nisq.analyzer.core.prioritization.topsis;
 
 import java.util.UUID;
 
-import org.planqk.nisq.analyzer.core.prioritization.JobTypes;
+import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
 import org.springframework.stereotype.Service;
 
@@ -42,8 +42,7 @@ public class TopsisMethod implements McdaMethod {
     }
 
     @Override
-    public UUID executeMcdaMethod(UUID jobId, JobTypes jobType) {
+    public void executeMcdaMethod(McdaJob mcdaJob, UUID jobId) {
         // TODO
-        return null;
     }
 }

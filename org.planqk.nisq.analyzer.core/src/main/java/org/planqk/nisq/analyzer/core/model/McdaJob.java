@@ -17,12 +17,31 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization;
+package org.planqk.nisq.analyzer.core.model;
+
+import java.util.UUID;
+import javax.persistence.Entity;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
- * Enum for the different types of jobs for which the prioritization can be requested to allow retrieving the job from the corresponding repository
- * FIXME: remove this after unifying the jobs with one parent class containing all required data for prioritization
+ * Object to represent a MCDA method job running the prioritization for a certain analysis of compilation job
  */
-public enum JobTypes {
-    ANALYSIS, COMPILATION
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class McdaJob extends HasId {
+
+    private String method;
+
+    private boolean ready;
+
+    private UUID jobId;
+
+    // TODO
 }
