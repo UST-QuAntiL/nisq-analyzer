@@ -19,25 +19,79 @@
 
 package org.planqk.nisq.analyzer.core.prioritization;
 
+import java.util.Optional;
 import java.util.UUID;
 
+import org.planqk.nisq.analyzer.core.model.AnalysisJob;
+import org.planqk.nisq.analyzer.core.model.CompilationJob;
+import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
+import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
+import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
+import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Utility to retrieve data of a NISQ Analyzer job, i.e., Analysis Job, Compilation Job, or QPU Selection Job
  */
 @Service
+@RequiredArgsConstructor
 public class JobDataExtractor {
 
     private final static Logger LOG = LoggerFactory.getLogger(JobDataExtractor.class);
 
+    private final QpuSelectionJobRepository qpuSelectionJobRepository;
+
+    private final AnalysisJobRepository analysisJobRepository;
+
+    private final CompilationJobRepository compilationJobRepository;
+
+    /**
+     * Get the required information to run MCDA methods from different kinds of NISQ Analyzer jobs
+     *
+     * @param jobId the ID of the job to retrieve the information from
+     * @return the retrieved job information
+     */
     public JobInformation getJobInformationFromUuid(UUID jobId) {
         LOG.debug("Retrieving job information about job with ID: {}", jobId);
 
-        //TODO: retrieve data
+        Optional<QpuSelectionJob> qpuSelectionJobOptional = qpuSelectionJobRepository.findById(jobId);
+        if (qpuSelectionJobOptional.isPresent()) {
+            LOG.debug("Retrieving information from QPU selection job!");
+            return getFromQpuSelection(qpuSelectionJobOptional.get());
+        }
 
+        Optional<AnalysisJob> analysisJobOptional = analysisJobRepository.findById(jobId);
+        if (analysisJobOptional.isPresent()) {
+            LOG.debug("Retrieving information from analysis job!");
+            return getFromAnalysis(analysisJobOptional.get());
+        }
+
+        Optional<CompilationJob> compilationJobOptional = compilationJobRepository.findById(jobId);
+        if (compilationJobOptional.isPresent()) {
+            LOG.debug("Retrieving information from compilation job!");
+            return getFromCompilation(compilationJobOptional.get());
+        }
+
+        LOG.error("Unable to find QPU selection, analysis, or compilation job for ID: {}", jobId);
+        return null;
+    }
+
+    private JobInformation getFromQpuSelection(QpuSelectionJob qpuSelectionJob) {
+        // TODO
+        return null;
+    }
+
+    private JobInformation getFromAnalysis(AnalysisJob analysisJob) {
+        // TODO
+        return null;
+    }
+
+    private JobInformation getFromCompilation(CompilationJob compilationJob) {
+        // TODO
         return null;
     }
 }
