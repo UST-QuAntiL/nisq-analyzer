@@ -43,10 +43,9 @@ public interface McdaMethod {
     String getDescription();
 
     /**
-     * Execute the MCDA method to prioritize the results of the given job
+     * Execute the MCDA method to prioritize the results of the given NISQ Analyzer job
      *
-     * @param mcdaJob the job to use to add the results of the MCDA method execution
-     * @param jobId the ID of the job to prioritize
+     * @param mcdaJob the job to use to add the results of the MCDA method execution and containing all required parameters
      */
-    void executeMcdaMethod(McdaJob mcdaJob, UUID jobId);
+    void executeMcdaMethod(McdaJob mcdaJob);
 }

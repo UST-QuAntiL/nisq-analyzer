@@ -48,6 +48,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -223,6 +224,7 @@ public class XmcdaCriteriaController {
             description = "Retrieve all MCDA jobs for the given method")
     @GetMapping("/{methodName}/" + Constants.JOBS + "/{jobId}")
     public HttpEntity<EntityModel<McdaJob>> getPrioritizationJob(@PathVariable String methodName, @PathVariable UUID jobId) {
+        LOG.debug("Retrieving MCDA jobs with ID: {}", jobId);
 
         // check if method is supported
         Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
@@ -246,6 +248,33 @@ public class XmcdaCriteriaController {
 
         EntityModel<McdaJob> mcdaJobDto = new EntityModel<>(job);
         mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, job.getJobId())).withSelfRel());
+        return new ResponseEntity<>(mcdaJobDto, HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
+            @ApiResponse(responseCode = "500", content = @Content)}, description = "Run the MCDA method on the NISQ Analyzer job passed as parameter")
+    @PostMapping(value = "/{methodName}/" + Constants.MCDA_PRIORITIZE)
+    public HttpEntity<EntityModel<McdaJob>> selectQpuForCircuitUrl(@PathVariable String methodName, @RequestBody UUID jobId) {
+        LOG.debug("Creating new job to run prioritization with MCDA method {} and NISQ Analyzer job with ID: {}", methodName, jobId);
+
+        // check if method is supported
+        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
+        if (!optional.isPresent()) {
+            LOG.error("MCDA method with name {} not supported.", methodName);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        McdaMethod mcdaMethod = optional.get();
+
+        // create job object and pass to corresponding MCDA plugin
+        McdaJob mcdaJob = new McdaJob();
+        mcdaJob.setMethod(methodName);
+        mcdaJob.setReady(false);
+        mcdaJob.setJobId(jobId);
+        mcdaMethod.executeMcdaMethod(mcdaJob);
+
+        // return dto with link to poll for updates
+        EntityModel<McdaJob> mcdaJobDto = new EntityModel<>(mcdaJob);
+        mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, mcdaJob.getJobId())).withSelfRel());
         return new ResponseEntity<>(mcdaJobDto, HttpStatus.OK);
     }
 

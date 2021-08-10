@@ -19,10 +19,10 @@
 
 package org.planqk.nisq.analyzer.core.prioritization.electre;
 
-import java.util.UUID;
-
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,6 +30,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class ElectreIIIIMethod implements McdaMethod {
+
+    private final static Logger LOG = LoggerFactory.getLogger(ElectreIIIIMethod.class);
 
     @Override
     public String getName() {
@@ -42,7 +44,9 @@ public class ElectreIIIIMethod implements McdaMethod {
     }
 
     @Override
-    public void executeMcdaMethod(McdaJob mcdaJob, UUID jobId) {
+    public void executeMcdaMethod(McdaJob mcdaJob) {
+        LOG.debug("Starting Electre III MCDA method to prioritize job with ID: {}", mcdaJob.getJobId());
+
         // TODO
     }
 }
