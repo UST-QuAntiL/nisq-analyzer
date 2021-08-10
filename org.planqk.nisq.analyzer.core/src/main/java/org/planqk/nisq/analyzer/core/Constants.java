@@ -39,6 +39,7 @@ public class Constants {
     public static final String JOBS = "jobs";
     public static final String MCDA_METHODS = "mcda-methods";
     public static final String CRITERIA = "criteria";
+    public static final String CRITERIA_VALUE = "value";
 
     // link names
     public static final String USED_SDK = "used-sdk";

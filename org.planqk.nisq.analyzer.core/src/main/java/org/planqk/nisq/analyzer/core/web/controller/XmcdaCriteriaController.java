@@ -27,10 +27,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.Constants;
+import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
 import org.planqk.nisq.analyzer.core.repository.xmcda.XmcdaRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaCriterionDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaCriterionListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaCriterionValueDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaMethodDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaMethodListDto;
 import org.slf4j.Logger;
@@ -139,6 +141,23 @@ public class XmcdaCriteriaController {
         return new ResponseEntity<>(mcdaCriterionDto.get(), HttpStatus.OK);
     }
 
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve the criterion value for a MCDA method")
+    @GetMapping("/{methodName}/" + Constants.CRITERIA + "/{criterionId}/" + Constants.CRITERIA_VALUE)
+    public HttpEntity<McdaCriterionValueDto> getCriterionValue(@PathVariable String methodName, @PathVariable String criterionId) {
+
+        Optional<McdaCriterionValueDto> mcdaCriterionValueDto =
+                xmcdaRepository.findByCriterionIdAndMethod(criterionId, methodName)
+                        .map(criterionValue -> createMcdaCriterionValueDto(criterionValue, methodName));
+
+        if (!mcdaCriterionValueDto.isPresent()) {
+            LOG.error("Unable to find criterion value for criterion with id {} and MCDA method: {}", criterionId, methodName);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(mcdaCriterionValueDto.get(), HttpStatus.OK);
+    }
+
     private McdaMethodDto createMcdaMethodDto(McdaMethod method) {
         McdaMethodDto dto = new McdaMethodDto();
         dto.setName(method.getName());
@@ -169,8 +188,14 @@ public class XmcdaCriteriaController {
                 .findFirst().orElse(null));
 
         dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getCriterion(methodName, criterion.getId())).withSelfRel());
+        dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getCriterionValue(methodName, criterion.getId())).withRel(Constants.CRITERIA_VALUE));
+        return dto;
+    }
 
-        // TODO: add links
+    private McdaCriterionValueDto createMcdaCriterionValueDto(CriterionValue criterionValue, String methodName) {
+        McdaCriterionValueDto dto = new McdaCriterionValueDto();
+        // TODO
+        dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getCriterionValue(methodName, criterionValue.getCriterionID())).withSelfRel());
         return dto;
     }
 }
