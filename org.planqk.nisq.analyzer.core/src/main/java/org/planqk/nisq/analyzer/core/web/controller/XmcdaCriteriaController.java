@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.xmcda.v2.Criterion;
+import org.xmcda.v2.Scale;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -110,13 +111,32 @@ public class XmcdaCriteriaController {
 
         // get dtos for all criterion defined for this MCDA method
         List<McdaCriterionDto> mcdaCriterionDtos = xmcdaRepository.findByMcdaMethod(methodName).stream()
-                .map(this::createMcdaCriterionDto)
+                .map(criterion -> createMcdaCriterionDto(criterion, methodName))
                 .collect(Collectors.toList());
 
         McdaCriterionListDto mcdaCriterionListDto = new McdaCriterionListDto();
         mcdaCriterionListDto.add(mcdaCriterionDtos);
         mcdaCriterionListDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getCriterionForMethod(methodName)).withSelfRel());
         return new ResponseEntity<>(mcdaCriterionListDto, HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve a single criterion for a MCDA method")
+    @GetMapping("/{methodName}/" + Constants.CRITERIA + "/{criterionId}")
+    public HttpEntity<McdaCriterionDto> getCriterion(@PathVariable String methodName, @PathVariable String criterionId) {
+
+        // get dtos for all criterion defined for this MCDA method
+        Optional<McdaCriterionDto> mcdaCriterionDto = xmcdaRepository.findByMcdaMethod(methodName).stream()
+                .filter(criterion -> criterion.getId().equals(criterionId))
+                .map(criterion -> createMcdaCriterionDto(criterion, methodName))
+                .findFirst();
+
+        if (!mcdaCriterionDto.isPresent()) {
+            LOG.error("Unable to find criterion with id {} for MCDA method: {}", criterionId, methodName);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(mcdaCriterionDto.get(), HttpStatus.OK);
     }
 
     private McdaMethodDto createMcdaMethodDto(McdaMethod method) {
@@ -128,7 +148,7 @@ public class XmcdaCriteriaController {
         return dto;
     }
 
-    private McdaCriterionDto createMcdaCriterionDto(Criterion criterion) {
+    private McdaCriterionDto createMcdaCriterionDto(Criterion criterion, String methodName) {
         McdaCriterionDto dto = new McdaCriterionDto();
         dto.setMcdaConcept(criterion.getMcdaConcept());
         dto.setId(criterion.getId());
@@ -142,7 +162,15 @@ public class XmcdaCriteriaController {
                         .map(object -> (Boolean) object)
                         .findFirst().orElse(false));
 
-        // TODO: add data and links
+        // find scale child object to retrieve required information
+        dto.setScale(criterion.getActiveOrScaleOrCriterionFunction().stream()
+                .filter(object -> object instanceof Scale)
+                .map(object -> (Scale) object)
+                .findFirst().orElse(null));
+
+        dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getCriterion(methodName, criterion.getId())).withSelfRel());
+
+        // TODO: add links
         return dto;
     }
 }

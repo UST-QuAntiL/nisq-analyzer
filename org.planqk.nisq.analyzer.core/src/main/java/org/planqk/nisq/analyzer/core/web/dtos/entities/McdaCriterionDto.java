@@ -21,6 +21,7 @@ package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
 import org.springframework.hateoas.RepresentationModel;
 import org.xmcda.v2.Description;
+import org.xmcda.v2.Scale;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -46,4 +47,8 @@ public class McdaCriterionDto extends RepresentationModel<McdaCriterionDto> {
     @Getter
     @Setter
     private Description description;
+
+    @Getter
+    @Setter
+    private Scale scale;
 }
