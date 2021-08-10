@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.transaction.Transactional;
 import javax.xml.bind.JAXBException;
 
 import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
@@ -96,5 +97,18 @@ public class XmcdaRepositoryImplementation implements XmcdaRepository {
                 .filter(criterionValue -> criterionValue.getCriterionID().equals(criterionId))
                 .filter(criterionValue -> criterionValue.getMcdaMethod().equals(mcdaMethod))
                 .findFirst();
+    }
+
+    @Transactional
+    @Override
+    public void updateCriterionValue(CriterionValue criterionValue) {
+        Optional<CriterionValue> oldValue = findByCriterionIdAndMethod(criterionValue.getCriterionID(), criterionValue.getMcdaMethod());
+        if (!oldValue.isPresent()) {
+            LOG.error("Unable to find criterion value for criterion ID {} and MCDA method {}. Skipping update!", criterionValue.getCriterionID(), criterionValue.getMcdaMethod());
+            return;
+        }
+
+        criterionValueList.remove(oldValue.get());
+        criterionValueList.add(criterionValue);
     }
 }

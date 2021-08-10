@@ -61,4 +61,11 @@ public interface XmcdaRepository {
      * @return the optional containing the criterion value or an empty optional if no criterion value can be found
      */
     Optional<CriterionValue> findByCriterionIdAndMethod(String criterionId, String mcdaMethod);
+
+    /**
+     * Update the stored criterion value object
+     *
+     * @param criterionValue the object containing the updated data
+     */
+    void updateCriterionValue(CriterionValue criterionValue);
 }

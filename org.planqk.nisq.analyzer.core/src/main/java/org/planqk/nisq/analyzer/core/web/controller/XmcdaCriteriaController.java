@@ -43,6 +43,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.xmcda.v2.Criterion;
@@ -156,6 +158,32 @@ public class XmcdaCriteriaController {
         }
 
         return new ResponseEntity<>(mcdaCriterionValueDto.get(), HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400"),
+            @ApiResponse(responseCode = "404", content = @Content)},
+            description = "Retrieve the criterion value for a MCDA method")
+    @PutMapping("/{methodName}/" + Constants.CRITERIA + "/{criterionId}/" + Constants.CRITERIA_VALUE)
+    public HttpEntity<EntityModel<CriterionValue>> updateCriterionValue(@PathVariable String methodName, @PathVariable String criterionId,
+                                                                        @RequestBody CriterionValue criterionValue) {
+
+        // find existing entity that should be updated
+        Optional<EntityModel<CriterionValue>> mcdaCriterionValueDto =
+                xmcdaRepository.findByCriterionIdAndMethod(criterionId, methodName)
+                        .map(value -> createMcdaCriterionValueDto(criterionValue, methodName));
+
+        if (!mcdaCriterionValueDto.isPresent()) {
+            LOG.error("Unable to find criterion value for criterion with id {} and MCDA method: {}", criterionId, methodName);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        if (!criterionValue.getCriterionID().equals(criterionId) || !criterionValue.getMcdaMethod().equals(methodName)) {
+            LOG.error("Updated criterion value must specify correct criterion id and MCDA method name!");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        xmcdaRepository.updateCriterionValue(criterionValue);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     private McdaMethodDto createMcdaMethodDto(McdaMethod method) {
