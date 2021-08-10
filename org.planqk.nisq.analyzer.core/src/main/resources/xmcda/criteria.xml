@@ -5,66 +5,114 @@
 	http://www.decision-deck.org/xmcda/_downloads/XMCDA-2.2.1.xsd">
 	<criteria>
 		<criterion id="c01" name="width">
+			<description>
+				<title>Width</title>
+				<comment>Number of qubits required by the circuit. Should be minimal.</comment>
+			</description>
 			<active>true</active>
 			<scale>
 				<quantitative>
 					<preferenceDirection>min</preferenceDirection>
+					<minimum><real>0</real></minimum>
+					<maximum><real>9999</real></maximum>
 				</quantitative>
 			</scale>
 		</criterion>
 		<criterion id="c02" name="depth">
+			<description>
+				<title>Depth</title>
+				<comment>Longest path of gates in the circuit. Should be minimal.</comment>
+			</description>
 			<active>true</active>
 			<scale>
 				<quantitative>
 					<preferenceDirection>min</preferenceDirection>
+					<minimum><real>0</real></minimum>
+					<maximum><real>9999</real></maximum>
 				</quantitative>
 			</scale>
 		</criterion>
 		<criterion id="c03" name="number-of-gates">
+			<description>
+				<title>Number of gates</title>
+				<comment>Number of gates used in the circuit. Should be minimal.</comment>
+			</description>
 			<active>true</active>
 			<scale>
 				<quantitative>
 					<preferenceDirection>min</preferenceDirection>
+					<minimum><real>0</real></minimum>
+					<maximum><real>9999</real></maximum>
 				</quantitative>
 			</scale>
 		</criterion>
 		<criterion id="c04" name="number-of-multi-qubit-gates">
+			<description>
+				<title>Number of multi-qubit-gates</title>
+				<comment>Number mulit-qubit-gates used in the circuit. Should be minimal.</comment>
+			</description>
 			<active>true</active>
 			<scale>
 				<quantitative>
 					<preferenceDirection>min</preferenceDirection>
+					<minimum><real>0</real></minimum>
+					<maximum><real>9999</real></maximum>
 				</quantitative>
 			</scale>
 		</criterion>
 		<criterion id="c05" name="Quantum-Volume">
+			<description>
+				<title>Quantum Volume</title>
+				<comment>Quantum Volume of the quantum computer. Should be maximal.</comment>
+			</description>
 			<active>true</active>
 			<scale>
 				<quantitative>
 					<preferenceDirection>max</preferenceDirection>
+					<minimum><real>0</real></minimum>
+					<maximum><real>9999</real></maximum>
 				</quantitative>
 			</scale>
 		</criterion>
 		<criterion id="c06" name="avg-CNOT-error">
+			<description>
+				<title>Average CNOT error</title>
+				<comment>Average CNOT error of the quantum computer. Should be minimal.</comment>
+			</description>
 			<active>true</active>
 			<scale>
 				<quantitative>
 					<preferenceDirection>min</preferenceDirection>
+					<minimum><real>0</real></minimum>
+					<maximum><real>9999</real></maximum>
 				</quantitative>
 			</scale>
 		</criterion>
 		<criterion id="c07" name="avg-readout-error">
+			<description>
+				<title>Average readout error</title>
+				<comment>Average readout error of the quantum computer. Should be minimal.</comment>
+			</description>
 			<active>true</active>
 			<scale>
 				<quantitative>
 					<preferenceDirection>min</preferenceDirection>
+					<minimum><real>0</real></minimum>
+					<maximum><real>9999</real></maximum>
 				</quantitative>
 			</scale>
 		</criterion>
 		<criterion id="c08" name="avg-T1">
+			<description>
+				<title>Average T1</title>
+				<comment>Average T1 time of the quantum computer. Should be maximal.</comment>
+			</description>
 			<active>true</active>
 			<scale>
 				<quantitative>
 					<preferenceDirection>max</preferenceDirection>
+					<minimum><real>0</real></minimum>
+					<maximum><real>9999</real></maximum>
 				</quantitative>
 			</scale>
 		</criterion>
