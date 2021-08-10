@@ -26,11 +26,11 @@ import org.springframework.stereotype.Service;
  * Service implementing the Promethee method to prioritize analysis results of the NISQ Analyzer.
  */
 @Service
-public class PrometheeMethod implements McdaMethod {
+public class PrometheeIMethod implements McdaMethod {
 
     @Override
     public String getName() {
-        return "promethee";
+        return "promethee-I";
     }
 
     @Override
