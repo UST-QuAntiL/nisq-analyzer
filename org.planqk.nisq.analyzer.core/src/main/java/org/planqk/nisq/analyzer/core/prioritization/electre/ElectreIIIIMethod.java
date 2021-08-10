@@ -19,6 +19,9 @@
 
 package org.planqk.nisq.analyzer.core.prioritization.electre;
 
+import java.util.UUID;
+
+import org.planqk.nisq.analyzer.core.prioritization.JobTypes;
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
 import org.springframework.stereotype.Service;
 
@@ -36,5 +39,11 @@ public class ElectreIIIIMethod implements McdaMethod {
     @Override
     public String getDescription() {
         return "TODO";
+    }
+
+    @Override
+    public UUID executeMcdaMethod(UUID jobId, JobTypes jobType) {
+        // TODO
+        return null;
     }
 }

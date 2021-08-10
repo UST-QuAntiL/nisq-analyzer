@@ -17,33 +17,12 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.topsis;
-
-import java.util.UUID;
-
-import org.planqk.nisq.analyzer.core.prioritization.JobTypes;
-import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
-import org.springframework.stereotype.Service;
+package org.planqk.nisq.analyzer.core.prioritization;
 
 /**
- * Service implementing the TOPSIS method to prioritize analysis results of the NISQ Analyzer.
+ * Enum for the different types of jobs for which the prioritization can be requested to allow retrieving the job from the corresponding repository
+ * FIXME: remove this after unifying the jobs with one parent class containing all required data for prioritization
  */
-@Service
-public class TopsisMethod implements McdaMethod {
-
-    @Override
-    public String getName() {
-        return "topsis";
-    }
-
-    @Override
-    public String getDescription() {
-        return "TODO";
-    }
-
-    @Override
-    public UUID executeMcdaMethod(UUID jobId, JobTypes jobType) {
-        // TODO
-        return null;
-    }
+public enum JobTypes {
+    ANALYSIS, COMPILATION
 }

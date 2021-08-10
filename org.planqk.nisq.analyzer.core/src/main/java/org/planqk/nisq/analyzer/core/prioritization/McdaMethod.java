@@ -19,6 +19,8 @@
 
 package org.planqk.nisq.analyzer.core.prioritization;
 
+import java.util.UUID;
+
 /**
  * Interface for the implementation of a MCDA method.
  */
@@ -37,4 +39,13 @@ public interface McdaMethod {
      * @return the textual description of the MCDA method
      */
     String getDescription();
+
+    /**
+     * Execute the MCDA method to prioritize the results of the given job
+     *
+     * @param jobId the ID of the job to prioritize
+     * @param jobType the type of the job to enable retriving it from the corresponding repository
+     * @return the UUID of the prioritization job to poll
+     */
+    UUID executeMcdaMethod(UUID jobId, JobTypes jobType);
 }
