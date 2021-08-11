@@ -53,5 +53,4 @@ public class AnalysisJob extends HasId {
 
     @OneToMany(cascade = CascadeType.PERSIST)
     private List<AnalysisResult> jobResults = new ArrayList<>();
-
 }

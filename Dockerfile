@@ -19,6 +19,8 @@ ENV NISQ_HOSTNAME: localhost
 ENV NISQ_PORT: 5013
 ENV NISQ_VERSION: v1.0
 
+ENV MCDA_SERVICES_URL https://webservices.decision-deck.org/soap/
+
 RUN apt-get -qq update && apt-get install -qqy software-properties-common openjdk-8-jdk wget
 
 # setup tomcat
@@ -38,7 +40,7 @@ RUN swipl --version
 RUN echo "?- true.\n\
 	  ?- [library(prolog_pack)].\n\
           ?- set_setting(prolog_pack:server, 'https://www.swi-prolog.org/pack/').\n\
-	  ?- pack_install(regex, [interactive(false)]).\n\ 
+	  ?- pack_install(regex, [interactive(false)]).\n\
           ?- pack_info(regex).\n\
           ?- halt." > /tmp/prolog_setup.pl
 RUN swipl /tmp/prolog_setup.pl
