@@ -22,8 +22,15 @@ package org.planqk.nisq.analyzer.core.prioritization;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
+import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
+import org.planqk.nisq.analyzer.core.model.CompilationResult;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
@@ -32,6 +39,11 @@ import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.xmcda.parsers.xml.xmcda_v2.XMCDAParser;
+import org.xmcda.v2.Alternatives;
+import org.xmcda.v2.ObjectFactory;
+import org.xmcda.v2.PerformanceTable;
+import org.xmcda.v2.XMCDA;
 
 import lombok.RequiredArgsConstructor;
 
@@ -87,14 +99,16 @@ public class JobDataExtractor {
             return null;
         }
 
+        // retrieve required information for the alternatives and performances
+        Alternatives alternatives = new Alternatives();
+        PerformanceTable performances = new PerformanceTable();
         LOG.debug("QPU selection job contains {} results for the ranking!", qpuSelectionJob.getJobResults().size());
         for (QpuSelectionResult result : qpuSelectionJob.getJobResults()) {
-
+            // TODO
+            LOG.debug(String.valueOf(result));
         }
 
-
-        // TODO
-        return null;
+        return wrapMcdaInformation(alternatives, performances);
     }
 
     private McdaInformation getFromAnalysis(AnalysisJob analysisJob) {
@@ -103,8 +117,16 @@ public class JobDataExtractor {
             return null;
         }
 
-        // TODO
-        return null;
+        // retrieve required information for the alternatives and performances
+        Alternatives alternatives = new Alternatives();
+        PerformanceTable performances = new PerformanceTable();
+        LOG.debug("Analysis job contains {} results for the ranking!", analysisJob.getJobResults().size());
+        for (AnalysisResult result : analysisJob.getJobResults()) {
+            // TODO
+            LOG.debug(String.valueOf(result));
+        }
+
+        return wrapMcdaInformation(alternatives, performances);
     }
 
     private McdaInformation getFromCompilation(CompilationJob compilationJob) {
@@ -113,7 +135,38 @@ public class JobDataExtractor {
             return null;
         }
 
-        // TODO
-        return null;
+        // retrieve required information for the alternatives and performances
+        Alternatives alternatives = new Alternatives();
+        PerformanceTable performances = new PerformanceTable();
+        LOG.debug("Compilation job contains {} results for the ranking!", compilationJob.getJobResults().size());
+        for (CompilationResult result : compilationJob.getJobResults()) {
+            // TODO
+            LOG.debug(String.valueOf(result));
+        }
+
+        return wrapMcdaInformation(alternatives, performances);
+    }
+
+    /**
+     * Wrap the alternatives and performances in XMCDA and JAXB objects and return a corresponding McdaInformation object
+     *
+     * @param alternatives the alternatives retrieved from a NISQ Analyzer job
+     * @param performances the performances retrieved from a NISQ Analyzer job
+     * @return the McdaInformation object containing all required information to invoke the MCDA web services
+     */
+    private McdaInformation wrapMcdaInformation(Alternatives alternatives, PerformanceTable performances) {
+        ObjectFactory objectFactory = new ObjectFactory();
+
+        // create XMCDA wrapper containing the alternatives and performances required by the MCDA web services
+        XMCDA alternativesWrapper = objectFactory.createXMCDA();
+        alternativesWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters().add(objectFactory.createXMCDAAlternatives(alternatives));
+        XMCDA performancesWrapper = objectFactory.createXMCDA();
+        performancesWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters().add(objectFactory.createXMCDAPerformanceTable(performances));
+
+        // return all information to invoke the MCDA services
+        McdaInformation mcdaInformation = new McdaInformation();
+        mcdaInformation.setAlternatives(alternativesWrapper);
+        mcdaInformation.setPerformances(performancesWrapper);
+        return mcdaInformation;
     }
 }

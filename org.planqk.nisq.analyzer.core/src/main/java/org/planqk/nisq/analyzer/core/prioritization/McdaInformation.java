@@ -19,10 +19,23 @@
 
 package org.planqk.nisq.analyzer.core.prioritization;
 
+import org.xmcda.v2.XMCDA;
+
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Wrapper containing all information about a job required for running MCDA methods to ease handling the different kinds of jobs
  */
 public class McdaInformation {
+
+    @Getter
+    @Setter
+    XMCDA alternatives;
+
+    @Getter
+    @Setter
+    XMCDA performances;
 
     // TODO: add required data for running MCDA methods
 }
