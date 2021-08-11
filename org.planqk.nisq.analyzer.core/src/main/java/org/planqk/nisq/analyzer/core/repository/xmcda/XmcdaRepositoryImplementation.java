@@ -103,6 +103,11 @@ public class XmcdaRepositoryImplementation implements XmcdaRepository {
                 .findFirst();
     }
 
+    @Override
+    public List<CriterionValue> findValuesByMcdaMethod(String mcdaMethod) {
+        return criterionValueList.stream().filter(criterionValue -> criterionValue.getMcdaMethod().equals(mcdaMethod)).collect(Collectors.toList());
+    }
+
     @Transactional
     @Override
     public void updateCriterionValue(CriterionValue criterionValue) {

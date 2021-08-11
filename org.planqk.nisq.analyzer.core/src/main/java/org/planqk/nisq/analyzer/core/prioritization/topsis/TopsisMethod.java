@@ -61,7 +61,7 @@ public class TopsisMethod implements McdaMethod {
     @Override
     public void executeMcdaMethod(McdaJob mcdaJob) {
         LOG.debug("Starting TOPSIS MCDA method to prioritize job with ID: {}", mcdaJob.getJobId());
-        McdaInformation mcdaInformation = jobDataExtractor.getJobInformationFromUuid(mcdaJob.getJobId());
+        McdaInformation mcdaInformation = jobDataExtractor.getJobInformationFromUuid(mcdaJob.getJobId(), mcdaJob.getMethod());
 
         // abort if job can not be found and therefore no information available
         if (Objects.isNull(mcdaInformation)) {
@@ -77,6 +77,12 @@ public class TopsisMethod implements McdaMethod {
         String xmlString = sw.toString();
         LOG.debug(xmlString);
         JAXB.marshal(mcdaInformation.getPerformances(), sw);
+        xmlString = sw.toString();
+        LOG.debug(xmlString);
+        JAXB.marshal(mcdaInformation.getCriteria(), sw);
+        xmlString = sw.toString();
+        LOG.debug(xmlString);
+        JAXB.marshal(mcdaInformation.getWeights(), sw);
         xmlString = sw.toString();
         LOG.debug(xmlString);
 

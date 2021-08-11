@@ -38,6 +38,8 @@ import org.springframework.stereotype.Service;
 import org.xmcda.v2.Alternative;
 import org.xmcda.v2.AlternativeOnCriteriaPerformances;
 import org.xmcda.v2.Alternatives;
+import org.xmcda.v2.Criteria;
+import org.xmcda.v2.CriteriaValues;
 import org.xmcda.v2.Criterion;
 import org.xmcda.v2.ObjectFactory;
 import org.xmcda.v2.PerformanceTable;
@@ -65,35 +67,36 @@ public class JobDataExtractor {
     /**
      * Get the required information to run MCDA methods from different kinds of NISQ Analyzer jobs
      *
-     * @param jobId the ID of the job to retrieve the information from
+     * @param jobId      the ID of the job to retrieve the information from
+     * @param mcdaMethod the MCDA method to retrieve the data for
      * @return the retrieved job information
      */
-    public McdaInformation getJobInformationFromUuid(UUID jobId) {
+    public McdaInformation getJobInformationFromUuid(UUID jobId, String mcdaMethod) {
         LOG.debug("Retrieving job information about job with ID: {}", jobId);
 
         Optional<QpuSelectionJob> qpuSelectionJobOptional = qpuSelectionJobRepository.findById(jobId);
         if (qpuSelectionJobOptional.isPresent()) {
             LOG.debug("Retrieving information from QPU selection job!");
-            return getFromQpuSelection(qpuSelectionJobOptional.get());
+            return getFromQpuSelection(qpuSelectionJobOptional.get(), mcdaMethod);
         }
 
         Optional<AnalysisJob> analysisJobOptional = analysisJobRepository.findById(jobId);
         if (analysisJobOptional.isPresent()) {
             LOG.debug("Retrieving information from analysis job!");
-            return getFromAnalysis(analysisJobOptional.get());
+            return getFromAnalysis(analysisJobOptional.get(), mcdaMethod);
         }
 
         Optional<CompilationJob> compilationJobOptional = compilationJobRepository.findById(jobId);
         if (compilationJobOptional.isPresent()) {
             LOG.debug("Retrieving information from compilation job!");
-            return getFromCompilation(compilationJobOptional.get());
+            return getFromCompilation(compilationJobOptional.get(), mcdaMethod);
         }
 
         LOG.error("Unable to find QPU selection, analysis, or compilation job for ID: {}", jobId);
         return null;
     }
 
-    private McdaInformation getFromQpuSelection(QpuSelectionJob qpuSelectionJob) {
+    private McdaInformation getFromQpuSelection(QpuSelectionJob qpuSelectionJob, String mcdaMethod) {
         if (!qpuSelectionJob.isReady()) {
             LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
             return null;
@@ -123,10 +126,10 @@ public class JobDataExtractor {
         LOG.debug("Retrieved job information contains {} alternatives and {} performances!", alternatives.getDescriptionOrAlternative().size(),
                 performances.getAlternativePerformances().size());
 
-        return wrapMcdaInformation(alternatives, performances);
+        return wrapMcdaInformation(alternatives, performances, mcdaMethod);
     }
 
-    private McdaInformation getFromAnalysis(AnalysisJob analysisJob) {
+    private McdaInformation getFromAnalysis(AnalysisJob analysisJob, String mcdaMethod) {
         if (!analysisJob.isReady()) {
             LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
             return null;
@@ -143,10 +146,10 @@ public class JobDataExtractor {
         LOG.debug("Retrieved job information contains {} alternatives and {} performances!", alternatives.getDescriptionOrAlternative().size(),
                 performances.getAlternativePerformances().size());
 
-        return wrapMcdaInformation(alternatives, performances);
+        return wrapMcdaInformation(alternatives, performances, mcdaMethod);
     }
 
-    private McdaInformation getFromCompilation(CompilationJob compilationJob) {
+    private McdaInformation getFromCompilation(CompilationJob compilationJob, String mcdaMethod) {
         if (!compilationJob.isReady()) {
             LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
             return null;
@@ -163,7 +166,7 @@ public class JobDataExtractor {
         LOG.debug("Retrieved job information contains {} alternatives and {} performances!", alternatives.getDescriptionOrAlternative().size(),
                 performances.getAlternativePerformances().size());
 
-        return wrapMcdaInformation(alternatives, performances);
+        return wrapMcdaInformation(alternatives, performances, mcdaMethod);
     }
 
     /**
@@ -173,8 +176,22 @@ public class JobDataExtractor {
      * @param performances the performances retrieved from a NISQ Analyzer job
      * @return the McdaInformation object containing all required information to invoke the MCDA web services
      */
-    private McdaInformation wrapMcdaInformation(Alternatives alternatives, PerformanceTable performances) {
+    private McdaInformation wrapMcdaInformation(Alternatives alternatives, PerformanceTable performances, String mcdaMethod) {
         ObjectFactory objectFactory = new ObjectFactory();
+
+        // create XMCDA wrapper and add criteria
+        Criteria criteria = new Criteria();
+        criteria.getCriterion().addAll(xmcdaRepository.findAll());
+        XMCDA criteriaWrapper = objectFactory.createXMCDA();
+        criteriaWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters().add(objectFactory.createXMCDACriteria(criteria));
+
+        // create XMCDA wrapper and add weights
+        CriteriaValues criteriaValues = new CriteriaValues();
+        criteriaValues.setMcdaConcept("Importance");
+        criteriaValues.setName("significance");
+        criteriaValues.getCriterionValue().addAll(xmcdaRepository.findValuesByMcdaMethod(mcdaMethod));
+        XMCDA weightsWrapper = objectFactory.createXMCDA();
+        weightsWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters().add(objectFactory.createXMCDACriteria(criteria));
 
         // create XMCDA wrapper containing the alternatives and performances required by the MCDA web services
         XMCDA alternativesWrapper = objectFactory.createXMCDA();
@@ -184,6 +201,8 @@ public class JobDataExtractor {
 
         // return all information to invoke the MCDA services
         McdaInformation mcdaInformation = new McdaInformation();
+        mcdaInformation.setCriteria(criteriaWrapper);
+        mcdaInformation.setWeights(weightsWrapper);
         mcdaInformation.setAlternatives(alternativesWrapper);
         mcdaInformation.setPerformances(performancesWrapper);
         return mcdaInformation;

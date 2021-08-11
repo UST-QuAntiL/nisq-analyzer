@@ -63,6 +63,14 @@ public interface XmcdaRepository {
     Optional<CriterionValue> findByCriterionIdAndMethod(String criterionId, String mcdaMethod);
 
     /**
+     * Return all criterion values for the given MCDA method
+     *
+     * @param mcdaMethod the name of the MCDA method
+     * @return the list of criterion values
+     */
+    List<CriterionValue> findValuesByMcdaMethod(String mcdaMethod);
+
+    /**
      * Update the stored criterion value object
      *
      * @param criterionValue the object containing the updated data

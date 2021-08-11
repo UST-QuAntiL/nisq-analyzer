@@ -31,11 +31,17 @@ public class McdaInformation {
 
     @Getter
     @Setter
+    XMCDA criteria;
+
+    @Getter
+    @Setter
+    XMCDA weights;
+
+    @Getter
+    @Setter
     XMCDA alternatives;
 
     @Getter
     @Setter
     XMCDA performances;
-
-    // TODO: add required data for running MCDA methods
 }
