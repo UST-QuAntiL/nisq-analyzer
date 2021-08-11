@@ -103,6 +103,7 @@ public class JobDataExtractor {
         }
 
         // retrieve required information for the alternatives and performances
+        ObjectFactory objectFactory = new ObjectFactory();
         Alternatives alternatives = new Alternatives();
         PerformanceTable performances = new PerformanceTable();
         LOG.debug("QPU selection job contains {} results for the ranking!", qpuSelectionJob.getJobResults().size());
@@ -191,7 +192,7 @@ public class JobDataExtractor {
         criteriaValues.setName("significance");
         criteriaValues.getCriterionValue().addAll(xmcdaRepository.findValuesByMcdaMethod(mcdaMethod));
         XMCDA weightsWrapper = objectFactory.createXMCDA();
-        weightsWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters().add(objectFactory.createXMCDACriteria(criteria));
+        weightsWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters().add(objectFactory.createXMCDACriteriaValues(criteriaValues));
 
         // create XMCDA wrapper containing the alternatives and performances required by the MCDA web services
         XMCDA alternativesWrapper = objectFactory.createXMCDA();
