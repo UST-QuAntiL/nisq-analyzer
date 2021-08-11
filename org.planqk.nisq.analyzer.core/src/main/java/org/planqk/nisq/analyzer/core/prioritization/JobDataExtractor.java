@@ -25,6 +25,7 @@ import java.util.UUID;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
+import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
@@ -55,7 +56,7 @@ public class JobDataExtractor {
      * @param jobId the ID of the job to retrieve the information from
      * @return the retrieved job information
      */
-    public JobInformation getJobInformationFromUuid(UUID jobId) {
+    public McdaInformation getJobInformationFromUuid(UUID jobId) {
         LOG.debug("Retrieving job information about job with ID: {}", jobId);
 
         Optional<QpuSelectionJob> qpuSelectionJobOptional = qpuSelectionJobRepository.findById(jobId);
@@ -80,17 +81,23 @@ public class JobDataExtractor {
         return null;
     }
 
-    private JobInformation getFromQpuSelection(QpuSelectionJob qpuSelectionJob) {
+    private McdaInformation getFromQpuSelection(QpuSelectionJob qpuSelectionJob) {
         if (!qpuSelectionJob.isReady()) {
             LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
             return null;
         }
 
+        LOG.debug("QPU selection job contains {} results for the ranking!", qpuSelectionJob.getJobResults().size());
+        for (QpuSelectionResult result : qpuSelectionJob.getJobResults()) {
+
+        }
+
+
         // TODO
         return null;
     }
 
-    private JobInformation getFromAnalysis(AnalysisJob analysisJob) {
+    private McdaInformation getFromAnalysis(AnalysisJob analysisJob) {
         if (!analysisJob.isReady()) {
             LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
             return null;
@@ -100,7 +107,7 @@ public class JobDataExtractor {
         return null;
     }
 
-    private JobInformation getFromCompilation(CompilationJob compilationJob) {
+    private McdaInformation getFromCompilation(CompilationJob compilationJob) {
         if (!compilationJob.isReady()) {
             LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
             return null;

@@ -23,7 +23,7 @@ import java.util.Objects;
 
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
-import org.planqk.nisq.analyzer.core.prioritization.JobInformation;
+import org.planqk.nisq.analyzer.core.prioritization.McdaInformation;
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.slf4j.Logger;
@@ -58,10 +58,10 @@ public class TopsisMethod implements McdaMethod {
     @Override
     public void executeMcdaMethod(McdaJob mcdaJob) {
         LOG.debug("Starting TOPSIS MCDA method to prioritize job with ID: {}", mcdaJob.getJobId());
-        JobInformation jobInformation = jobDataExtractor.getJobInformationFromUuid(mcdaJob.getJobId());
+        McdaInformation mcdaInformation = jobDataExtractor.getJobInformationFromUuid(mcdaJob.getJobId());
 
         // abort if job can not be found and therefore no information available
-        if (Objects.isNull(jobInformation)) {
+        if (Objects.isNull(mcdaInformation)) {
             LOG.error("Unable to retrieve information about job with ID: {}", mcdaJob.getJobId());
             mcdaJob.setState("failed");
             mcdaJob.setReady(true);

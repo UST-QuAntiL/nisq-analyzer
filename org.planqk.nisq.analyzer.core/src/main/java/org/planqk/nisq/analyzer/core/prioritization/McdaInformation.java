@@ -22,7 +22,7 @@ package org.planqk.nisq.analyzer.core.prioritization;
 /**
  * Wrapper containing all information about a job required for running MCDA methods to ease handling the different kinds of jobs
  */
-public class JobInformation {
+public class McdaInformation {
 
     // TODO: add required data for running MCDA methods
 }
