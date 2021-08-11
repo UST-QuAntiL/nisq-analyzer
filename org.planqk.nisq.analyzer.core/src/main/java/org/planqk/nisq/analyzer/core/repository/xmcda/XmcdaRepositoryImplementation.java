@@ -64,7 +64,6 @@ public class XmcdaRepositoryImplementation implements XmcdaRepository {
         try {
             criterionList.addAll(criterionInitializer.initializeCriterion());
             Resource[] resources = ResourcePatternUtils.getResourcePatternResolver(resourceLoader).getResources("classpath:xmcda/initial-weights-*");
-            LOG.debug(String.valueOf(resources.length));
             for (Resource mcdaMethod : resources) {
                 criterionValueList.addAll(criterionInitializer.initializeWeightsForCriterion(mcdaMethod.getFilename()));
             }

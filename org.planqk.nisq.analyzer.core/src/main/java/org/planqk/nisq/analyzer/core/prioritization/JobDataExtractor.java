@@ -21,6 +21,8 @@ package org.planqk.nisq.analyzer.core.prioritization;
 
 import java.util.Optional;
 import java.util.UUID;
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
@@ -103,18 +105,14 @@ public class JobDataExtractor {
         }
 
         // retrieve required information for the alternatives and performances
-        ObjectFactory objectFactory = new ObjectFactory();
         Alternatives alternatives = new Alternatives();
         PerformanceTable performances = new PerformanceTable();
         LOG.debug("QPU selection job contains {} results for the ranking!", qpuSelectionJob.getJobResults().size());
         for (QpuSelectionResult result : qpuSelectionJob.getJobResults()) {
 
             // add alternative representing the QPU selection result
-            Alternative alternative = new Alternative();
-            alternative.setId(result.getId().toString());
-            alternative.setName(result.getQpu() + "-" + result.getUsedCompiler() + "-" + result.getCircuitName());
-            // TODO: add required information
-            alternatives.getDescriptionOrAlternative().add(alternative);
+            String name = result.getQpu() + "-" + result.getUsedCompiler() + "-" + result.getCircuitName();
+            alternatives.getDescriptionOrAlternative().add(createAlternative(result.getId(), name));
 
             // add performances related to the QPU selection result
             AlternativeOnCriteriaPerformances alternativePerformances = new AlternativeOnCriteriaPerformances();
@@ -141,8 +139,18 @@ public class JobDataExtractor {
         PerformanceTable performances = new PerformanceTable();
         LOG.debug("Analysis job contains {} results for the ranking!", analysisJob.getJobResults().size());
         for (AnalysisResult result : analysisJob.getJobResults()) {
-            // TODO
-            LOG.debug(String.valueOf(result));
+
+            // add alternative representing the analysis result
+            String name = result.getQpu() + "-" + result.getCompiler() + "-" + result.getImplementation().getName();
+            alternatives.getDescriptionOrAlternative().add(createAlternative(result.getId(), name));
+
+            // add performances related to the analysis result
+            AlternativeOnCriteriaPerformances alternativePerformances = new AlternativeOnCriteriaPerformances();
+            alternativePerformances.setAlternativeID(result.getId().toString());
+            for (Criterion criterion : xmcdaRepository.findAll()) {
+                // TODO: performance for criterion and alternative
+            }
+            performances.getAlternativePerformances().add(alternativePerformances);
         }
         LOG.debug("Retrieved job information contains {} alternatives and {} performances!", alternatives.getDescriptionOrAlternative().size(),
                 performances.getAlternativePerformances().size());
@@ -161,8 +169,18 @@ public class JobDataExtractor {
         PerformanceTable performances = new PerformanceTable();
         LOG.debug("Compilation job contains {} results for the ranking!", compilationJob.getJobResults().size());
         for (CompilationResult result : compilationJob.getJobResults()) {
-            // TODO
-            LOG.debug(String.valueOf(result));
+
+            // add alternative representing the compilation result
+            String name = result.getQpu() + "-" + result.getCompiler() + "-" + result.getCircuitName();
+            alternatives.getDescriptionOrAlternative().add(createAlternative(result.getId(), name));
+
+            // add performances related to the compilation result
+            AlternativeOnCriteriaPerformances alternativePerformances = new AlternativeOnCriteriaPerformances();
+            alternativePerformances.setAlternativeID(result.getId().toString());
+            for (Criterion criterion : xmcdaRepository.findAll()) {
+                // TODO: performance for criterion and alternative
+            }
+            performances.getAlternativePerformances().add(alternativePerformances);
         }
         LOG.debug("Retrieved job information contains {} alternatives and {} performances!", alternatives.getDescriptionOrAlternative().size(),
                 performances.getAlternativePerformances().size());
@@ -207,5 +225,14 @@ public class JobDataExtractor {
         mcdaInformation.setAlternatives(alternativesWrapper);
         mcdaInformation.setPerformances(performancesWrapper);
         return mcdaInformation;
+    }
+
+    private Alternative createAlternative(UUID id, String name) {
+        Alternative alternative = new Alternative();
+        alternative.setId(id.toString());
+        alternative.setName(name);
+        alternative.getDescriptionOrTypeOrActive().add(new JAXBElement(new QName("", "active"), Boolean.class, true));
+        alternative.getDescriptionOrTypeOrActive().add(new JAXBElement(new QName("", "type"), String.class, "real"));
+        return alternative;
     }
 }
