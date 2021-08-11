@@ -66,17 +66,17 @@ public class CriterionInitializer {
     /**
      * Return the XMCDA criterion values from the initial-weights-{methodName}.xml file
      *
-     * @param methodName the name of the MCDA method to load the initial criterion values for
+     * @param methodFileName the name of the file to load the initial criterion values for a MCDA method
      */
-    public List<CriterionValue> initializeWeightsForCriterion(String methodName) throws JAXBException, IOException, SAXException {
-        LOG.debug("Initializing criterion values database for prioritization from local initial-weights-{}.xml file!", methodName);
+    public List<CriterionValue> initializeWeightsForCriterion(String methodFileName) throws JAXBException, IOException, SAXException {
+        LOG.debug("Initializing criterion values database for prioritization from local {} file!", methodFileName);
 
         // retrieve the JAXB elements from the xml file
-        List<JAXBElement<?>> jaxbContents = getJaxbContentsFromXmcdaFile("initial-weights-" + methodName + ".xml");
+        List<JAXBElement<?>> jaxbContents = getJaxbContentsFromXmcdaFile(methodFileName);
 
         // only one element is allowed to be in the file
         if (jaxbContents.size() != 1) {
-            LOG.error("initial-weights-{}.xml must contain exactly one element under the xmcda tag and contains: {}", methodName, jaxbContents.size());
+            LOG.error("{} must contain exactly one element under the xmcda tag and contains: {}", methodFileName, jaxbContents.size());
             return new ArrayList<>();
         }
 
@@ -89,7 +89,7 @@ public class CriterionInitializer {
 
             // add criterion value to criteria and update repository
             CriterionValue internalCriterionValue = CriterionValue.fromXMCDA(criterionValue);
-            internalCriterionValue.setMcdaMethod(methodName);
+            internalCriterionValue.setMcdaMethod(methodFileName.split("initial-weights-")[1].split("\\.")[0]);
             criterionValueList.add(internalCriterionValue);
         }
         return criterionValueList;

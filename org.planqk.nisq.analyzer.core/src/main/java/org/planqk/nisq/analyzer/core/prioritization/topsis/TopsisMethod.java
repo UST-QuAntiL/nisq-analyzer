@@ -19,7 +19,10 @@
 
 package org.planqk.nisq.analyzer.core.prioritization.topsis;
 
+import java.io.StringWriter;
 import java.util.Objects;
+
+import javax.xml.bind.JAXB;
 
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
@@ -68,6 +71,14 @@ public class TopsisMethod implements McdaMethod {
             mcdaJobRepository.save(mcdaJob);
             return;
         }
+
+        StringWriter sw = new StringWriter();
+        JAXB.marshal(mcdaInformation.getAlternatives(), sw);
+        String xmlString = sw.toString();
+        LOG.debug(xmlString);
+        JAXB.marshal(mcdaInformation.getPerformances(), sw);
+        xmlString = sw.toString();
+        LOG.debug(xmlString);
 
         // TODO: perform Topsis
     }

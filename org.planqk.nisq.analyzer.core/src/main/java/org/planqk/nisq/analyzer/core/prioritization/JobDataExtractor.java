@@ -31,11 +31,14 @@ import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
+import org.planqk.nisq.analyzer.core.repository.xmcda.XmcdaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.xmcda.v2.Alternative;
+import org.xmcda.v2.AlternativeOnCriteriaPerformances;
 import org.xmcda.v2.Alternatives;
+import org.xmcda.v2.Criterion;
 import org.xmcda.v2.ObjectFactory;
 import org.xmcda.v2.PerformanceTable;
 import org.xmcda.v2.XMCDA;
@@ -56,6 +59,8 @@ public class JobDataExtractor {
     private final AnalysisJobRepository analysisJobRepository;
 
     private final CompilationJobRepository compilationJobRepository;
+
+    private final XmcdaRepository xmcdaRepository;
 
     /**
      * Get the required information to run MCDA methods from different kinds of NISQ Analyzer jobs
@@ -99,11 +104,21 @@ public class JobDataExtractor {
         PerformanceTable performances = new PerformanceTable();
         LOG.debug("QPU selection job contains {} results for the ranking!", qpuSelectionJob.getJobResults().size());
         for (QpuSelectionResult result : qpuSelectionJob.getJobResults()) {
+
+            // add alternative representing the QPU selection result
             Alternative alternative = new Alternative();
-
+            alternative.setId(result.getId().toString());
+            alternative.setName(result.getQpu() + "-" + result.getUsedCompiler() + "-" + result.getCircuitName());
             // TODO: add required information
-
             alternatives.getDescriptionOrAlternative().add(alternative);
+
+            // add performances related to the QPU selection result
+            AlternativeOnCriteriaPerformances alternativePerformances = new AlternativeOnCriteriaPerformances();
+            alternativePerformances.setAlternativeID(result.getId().toString());
+            for (Criterion criterion : xmcdaRepository.findAll()) {
+                // TODO: performance for criterion and alternative
+            }
+            performances.getAlternativePerformances().add(alternativePerformances);
         }
         LOG.debug("Retrieved job information contains {} alternatives and {} performances!", alternatives.getDescriptionOrAlternative().size(),
                 performances.getAlternativePerformances().size());

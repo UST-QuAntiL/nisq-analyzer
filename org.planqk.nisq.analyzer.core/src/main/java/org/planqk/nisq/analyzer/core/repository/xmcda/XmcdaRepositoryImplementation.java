@@ -28,9 +28,11 @@ import javax.transaction.Transactional;
 import javax.xml.bind.JAXBException;
 
 import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
-import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.stereotype.Service;
 import org.xmcda.v2.Criterion;
 import org.xml.sax.SAXException;
@@ -45,15 +47,15 @@ public class XmcdaRepositoryImplementation implements XmcdaRepository {
 
     final private static Logger LOG = LoggerFactory.getLogger(XmcdaRepositoryImplementation.class);
 
-    final private List<McdaMethod> mcdaMethods;
+    final private ResourceLoader resourceLoader;
 
     final private List<Criterion> criterionList = new ArrayList<>();
 
     final private List<CriterionValue> criterionValueList = new ArrayList<>();
 
-    public XmcdaRepositoryImplementation(List<McdaMethod> mcdaMethods, CriterionInitializer criterionInitializer) {
-        this.mcdaMethods = mcdaMethods;
+    public XmcdaRepositoryImplementation(ResourceLoader resourceLoader, CriterionInitializer criterionInitializer) {
         initializeRepository(criterionInitializer);
+        this.resourceLoader = resourceLoader;
     }
 
     private void initializeRepository(CriterionInitializer criterionInitializer) {
@@ -61,9 +63,10 @@ public class XmcdaRepositoryImplementation implements XmcdaRepository {
 
         try {
             criterionList.addAll(criterionInitializer.initializeCriterion());
-
-            for (McdaMethod mcdaMethod : mcdaMethods) {
-                criterionValueList.addAll(criterionInitializer.initializeWeightsForCriterion(mcdaMethod.getName()));
+            Resource[] resources = ResourcePatternUtils.getResourcePatternResolver(resourceLoader).getResources("classpath:xmcda/initial-weights-*");
+            LOG.debug(String.valueOf(resources.length));
+            for (Resource mcdaMethod : resources) {
+                criterionValueList.addAll(criterionInitializer.initializeWeightsForCriterion(mcdaMethod.getFilename()));
             }
 
             LOG.info("Successfully initialized repository with definitions from resource folder!");
@@ -80,7 +83,8 @@ public class XmcdaRepositoryImplementation implements XmcdaRepository {
     @Override
     public List<Criterion> findByMcdaMethod(String mcdaMethod) {
         return criterionList.stream()
-                .filter(criterion -> criterionValueList.stream().anyMatch(criterionValue -> criterionValue.getMcdaMethod().equals(mcdaMethod) && criterionValue.getCriterionID().equals(criterion.getId())))
+                .filter(criterion -> criterionValueList.stream().anyMatch(criterionValue -> criterionValue.getMcdaMethod().equals(mcdaMethod) &&
+                        criterionValue.getCriterionID().equals(criterion.getId())))
                 .collect(Collectors.toList());
     }
 
@@ -104,7 +108,8 @@ public class XmcdaRepositoryImplementation implements XmcdaRepository {
     public void updateCriterionValue(CriterionValue criterionValue) {
         Optional<CriterionValue> oldValue = findByCriterionIdAndMethod(criterionValue.getCriterionID(), criterionValue.getMcdaMethod());
         if (!oldValue.isPresent()) {
-            LOG.error("Unable to find criterion value for criterion ID {} and MCDA method {}. Skipping update!", criterionValue.getCriterionID(), criterionValue.getMcdaMethod());
+            LOG.error("Unable to find criterion value for criterion ID {} and MCDA method {}. Skipping update!", criterionValue.getCriterionID(),
+                    criterionValue.getMcdaMethod());
             return;
         }
 
