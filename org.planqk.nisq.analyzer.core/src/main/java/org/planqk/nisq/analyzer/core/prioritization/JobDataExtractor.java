@@ -22,11 +22,6 @@ package org.planqk.nisq.analyzer.core.prioritization;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
@@ -39,7 +34,7 @@ import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.xmcda.parsers.xml.xmcda_v2.XMCDAParser;
+import org.xmcda.v2.Alternative;
 import org.xmcda.v2.Alternatives;
 import org.xmcda.v2.ObjectFactory;
 import org.xmcda.v2.PerformanceTable;
@@ -104,9 +99,14 @@ public class JobDataExtractor {
         PerformanceTable performances = new PerformanceTable();
         LOG.debug("QPU selection job contains {} results for the ranking!", qpuSelectionJob.getJobResults().size());
         for (QpuSelectionResult result : qpuSelectionJob.getJobResults()) {
-            // TODO
-            LOG.debug(String.valueOf(result));
+            Alternative alternative = new Alternative();
+
+            // TODO: add required information
+
+            alternatives.getDescriptionOrAlternative().add(alternative);
         }
+        LOG.debug("Retrieved job information contains {} alternatives and {} performances!", alternatives.getDescriptionOrAlternative().size(),
+                performances.getAlternativePerformances().size());
 
         return wrapMcdaInformation(alternatives, performances);
     }
@@ -125,6 +125,8 @@ public class JobDataExtractor {
             // TODO
             LOG.debug(String.valueOf(result));
         }
+        LOG.debug("Retrieved job information contains {} alternatives and {} performances!", alternatives.getDescriptionOrAlternative().size(),
+                performances.getAlternativePerformances().size());
 
         return wrapMcdaInformation(alternatives, performances);
     }
@@ -143,6 +145,8 @@ public class JobDataExtractor {
             // TODO
             LOG.debug(String.valueOf(result));
         }
+        LOG.debug("Retrieved job information contains {} alternatives and {} performances!", alternatives.getDescriptionOrAlternative().size(),
+                performances.getAlternativePerformances().size());
 
         return wrapMcdaInformation(alternatives, performances);
     }

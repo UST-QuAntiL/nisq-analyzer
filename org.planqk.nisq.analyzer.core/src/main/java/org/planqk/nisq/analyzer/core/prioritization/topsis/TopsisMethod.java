@@ -69,8 +69,6 @@ public class TopsisMethod implements McdaMethod {
             return;
         }
 
-        LOG.debug("Retrieved job information contains {} alternatives and {} performances!", mcdaInformation.getAlternatives(), mcdaInformation.getPerformances());
-
         // TODO: perform Topsis
     }
 }
