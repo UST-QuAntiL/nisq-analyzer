@@ -272,12 +272,17 @@ public class XmcdaCriteriaController {
         mcdaJob.setReady(false);
         mcdaJob.setJobId(jobId);
         mcdaJob.setState("initialized");
-        mcdaJob = mcdaJobRepository.save(mcdaJob);
-        mcdaMethod.executeMcdaMethod(mcdaJob);
+
+        // store object to generate UUID
+        McdaJob storedMcdaJob = mcdaJobRepository.save(mcdaJob);
+
+        new Thread(() -> {
+            mcdaMethod.executeMcdaMethod(storedMcdaJob);
+        }).start();
 
         // return dto with link to poll for updates
-        EntityModel<McdaJob> mcdaJobDto = new EntityModel<>(mcdaJob);
-        mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, mcdaJob.getId())).withSelfRel());
+        EntityModel<McdaJob> mcdaJobDto = new EntityModel<>(storedMcdaJob);
+        mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, storedMcdaJob.getId())).withSelfRel());
         return new ResponseEntity<>(mcdaJobDto, HttpStatus.OK);
     }
 
