@@ -81,16 +81,31 @@ public class JobDataExtractor {
     }
 
     private JobInformation getFromQpuSelection(QpuSelectionJob qpuSelectionJob) {
+        if (!qpuSelectionJob.isReady()) {
+            LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
+            return null;
+        }
+
         // TODO
         return null;
     }
 
     private JobInformation getFromAnalysis(AnalysisJob analysisJob) {
+        if (!analysisJob.isReady()) {
+            LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
+            return null;
+        }
+
         // TODO
         return null;
     }
 
     private JobInformation getFromCompilation(CompilationJob compilationJob) {
+        if (!compilationJob.isReady()) {
+            LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
+            return null;
+        }
+
         // TODO
         return null;
     }
