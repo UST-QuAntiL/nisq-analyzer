@@ -326,7 +326,8 @@ public class NisqAnalyzerControlService {
                         AnalysisResult result = analysisResultRepository.save(new AnalysisResult(
                                 algorithm, qpu.getName(), provider.getName(),
                                 selectedSdkConnector.getName(), executableImpl, inputParameters, OffsetDateTime.now(),
-                                circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth()));
+                                circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth(),
+                                circuitInformation.getCircuitNumberOfGates(), circuitInformation.getCircuitNumberOfMultiQubitGates()));
 
                         analysisResults.add(result);
                         job.setJobResults(analysisResults);
@@ -459,7 +460,8 @@ public class NisqAnalyzerControlService {
                 for (CompilationResult result : compilationResults) {
                     QpuSelectionResult qpuSelectionResult = qpuSelectionResultRepository
                             .save(new QpuSelectionResult(provider.getName(), qpu.getName(), qpu.getQueueSize(), OffsetDateTime.now(), result.getCircuitName(), result.getTranspiledCircuit(),
-                                    result.getTranspiledLanguage(), result.getCompiler(), result.getAnalyzedDepth(), result.getAnalyzedWidth(), result.getToken()));
+                                    result.getTranspiledLanguage(), result.getCompiler(), result.getAnalyzedDepth(), result.getAnalyzedWidth(),
+                                    result.getAnalyzedNumberOfGates(), result.getAnalyzedNumberOfMultiQubitGates(), result.getToken()));
                     job.getJobResults().add(qpuSelectionResult);
                 }
             }
@@ -578,7 +580,8 @@ public class NisqAnalyzerControlService {
 
                 // add resulting compiled circuit to result list
                 compilerAnalysisResults.add(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
-                        circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
+                        circuitInformation.getCircuitWidth(), circuitInformation.getCircuitNumberOfGates(),
+                        circuitInformation.getCircuitNumberOfMultiQubitGates(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
                         circuitInformation.getTranspiledLanguage(), token, OffsetDateTime.now()));
                 continue;
             }
@@ -586,7 +589,8 @@ public class NisqAnalyzerControlService {
             // check if QPU is simulator or can handle the depth in the current decoherence time
             if (qpu.isSimulator() || qpu.getT1() / qpu.getMaxGateTime() >= circuitInformation.getCircuitDepth()) {
                 compilerAnalysisResults.add(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
-                        circuitInformation.getCircuitWidth(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
+                        circuitInformation.getCircuitWidth(), circuitInformation.getCircuitNumberOfGates(),
+                        circuitInformation.getCircuitNumberOfMultiQubitGates(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
                         circuitInformation.getTranspiledLanguage(), token, OffsetDateTime.now()));
             } else {
                 LOG.debug("Skipping compilation result as depth ({}) is higher than estimated maximum depth!", circuitInformation.getCircuitDepth());

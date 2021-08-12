@@ -47,6 +47,16 @@ public class CircuitInformation {
 
     @Getter
     @Setter
+    @JsonProperty("number-of-gates")
+    private int circuitNumberOfGates = 0;
+
+    @Getter
+    @Setter
+    @JsonProperty("number-of-multi-qubit-gates")
+    private int circuitNumberOfMultiQubitGates = 0;
+
+    @Getter
+    @Setter
     @JsonAlias({"transpiled-qasm", "transpiled-quil"})
     private String transpiledCircuit;
 
