@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.prioritization;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.xml.bind.JAXBElement;
@@ -45,12 +46,15 @@ import org.xmcda.v2.CriteriaValues;
 import org.xmcda.v2.Criterion;
 import org.xmcda.v2.ObjectFactory;
 import org.xmcda.v2.PerformanceTable;
+import org.xmcda.v2.Value;
 import org.xmcda.v2.XMCDA;
 
 import lombok.RequiredArgsConstructor;
 
 /**
  * Utility to retrieve data of a NISQ Analyzer job, i.e., Analysis Job, Compilation Job, or QPU Selection Job
+ *
+ * FIXME: Unify different jobs/results to remove code duplicates
  */
 @Service
 @RequiredArgsConstructor
@@ -117,8 +121,19 @@ public class JobDataExtractor {
             // add performances related to the QPU selection result
             AlternativeOnCriteriaPerformances alternativePerformances = new AlternativeOnCriteriaPerformances();
             alternativePerformances.setAlternativeID(result.getId().toString());
+            List<AlternativeOnCriteriaPerformances.Performance> performanceList = alternativePerformances.getPerformance();
             for (Criterion criterion : xmcdaRepository.findAll()) {
-                // TODO: performance for criterion and alternative
+
+                if (CriteriaConstants.QPU_CRITERION.contains(criterion.getName())) {
+                    LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName());
+                    performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
+                } else if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName())) {
+                    LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
+                    performanceList.add(createPerformanceForQpuCriterion());
+                } else {
+                    LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
+                            criterion.getName());
+                }
             }
             performances.getAlternativePerformances().add(alternativePerformances);
         }
@@ -147,8 +162,19 @@ public class JobDataExtractor {
             // add performances related to the analysis result
             AlternativeOnCriteriaPerformances alternativePerformances = new AlternativeOnCriteriaPerformances();
             alternativePerformances.setAlternativeID(result.getId().toString());
+            List<AlternativeOnCriteriaPerformances.Performance> performanceList = alternativePerformances.getPerformance();
             for (Criterion criterion : xmcdaRepository.findAll()) {
-                // TODO: performance for criterion and alternative
+
+                if (CriteriaConstants.QPU_CRITERION.contains(criterion.getName())) {
+                    LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName());
+                    performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
+                } else if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName())) {
+                    LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
+                    performanceList.add(createPerformanceForQpuCriterion());
+                } else {
+                    LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
+                            criterion.getName());
+                }
             }
             performances.getAlternativePerformances().add(alternativePerformances);
         }
@@ -177,8 +203,19 @@ public class JobDataExtractor {
             // add performances related to the compilation result
             AlternativeOnCriteriaPerformances alternativePerformances = new AlternativeOnCriteriaPerformances();
             alternativePerformances.setAlternativeID(result.getId().toString());
+            List<AlternativeOnCriteriaPerformances.Performance> performanceList = alternativePerformances.getPerformance();
             for (Criterion criterion : xmcdaRepository.findAll()) {
-                // TODO: performance for criterion and alternative
+
+                if (CriteriaConstants.QPU_CRITERION.contains(criterion.getName())) {
+                    LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName());
+                    performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
+                } else if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName())) {
+                    LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
+                    performanceList.add(createPerformanceForQpuCriterion());
+                } else {
+                    LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
+                            criterion.getName());
+                }
             }
             performances.getAlternativePerformances().add(alternativePerformances);
         }
@@ -234,5 +271,76 @@ public class JobDataExtractor {
         alternative.getDescriptionOrTypeOrActive().add(new JAXBElement(new QName("", "active"), Boolean.class, true));
         alternative.getDescriptionOrTypeOrActive().add(new JAXBElement(new QName("", "type"), String.class, "real"));
         return alternative;
+    }
+
+    private AlternativeOnCriteriaPerformances.Performance createPerformanceForCircuitCriterion(QpuSelectionResult result, Criterion criterion) {
+        AlternativeOnCriteriaPerformances.Performance performance = new AlternativeOnCriteriaPerformances.Performance();
+        performance.setCriterionID(criterion.getId());
+        Value value = new Value();
+        switch (criterion.getName()) {
+            case CriteriaConstants.DEPTH:
+                value.setReal((double) result.getAnalyzedDepth());
+                break;
+            case CriteriaConstants.WIDTH:
+                value.setReal((double) result.getAnalyzedWidth());
+                break;
+            case CriteriaConstants.NUMBER_OF_GATES:
+                // TODO
+                break;
+            case CriteriaConstants.NUMBER_OF_MUTLI_QUBIT_GATES:
+                // TODO
+                break;
+        }
+        performance.setValue(value);
+        return performance;
+    }
+
+    private AlternativeOnCriteriaPerformances.Performance createPerformanceForCircuitCriterion(AnalysisResult result, Criterion criterion) {
+        AlternativeOnCriteriaPerformances.Performance performance = new AlternativeOnCriteriaPerformances.Performance();
+        performance.setCriterionID(criterion.getId());
+        Value value = new Value();
+        switch (criterion.getName()) {
+            case CriteriaConstants.DEPTH:
+                value.setReal((double) result.getAnalyzedDepth());
+                break;
+            case CriteriaConstants.WIDTH:
+                value.setReal((double) result.getAnalyzedWidth());
+                break;
+            case CriteriaConstants.NUMBER_OF_GATES:
+                // TODO
+                break;
+            case CriteriaConstants.NUMBER_OF_MUTLI_QUBIT_GATES:
+                // TODO
+                break;
+        }
+        performance.setValue(value);
+        return performance;
+    }
+
+    private AlternativeOnCriteriaPerformances.Performance createPerformanceForCircuitCriterion(CompilationResult result, Criterion criterion) {
+        AlternativeOnCriteriaPerformances.Performance performance = new AlternativeOnCriteriaPerformances.Performance();
+        performance.setCriterionID(criterion.getId());
+        Value value = new Value();
+        switch (criterion.getName()) {
+            case CriteriaConstants.DEPTH:
+                value.setReal((double) result.getAnalyzedDepth());
+                break;
+            case CriteriaConstants.WIDTH:
+                value.setReal((double) result.getAnalyzedWidth());
+                break;
+            case CriteriaConstants.NUMBER_OF_GATES:
+                // TODO
+                break;
+            case CriteriaConstants.NUMBER_OF_MUTLI_QUBIT_GATES:
+                // TODO
+                break;
+        }
+        performance.setValue(value);
+        return performance;
+    }
+
+    private AlternativeOnCriteriaPerformances.Performance createPerformanceForQpuCriterion() {
+        // TODO
+        return null;
     }
 }

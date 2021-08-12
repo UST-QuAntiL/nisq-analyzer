@@ -60,7 +60,7 @@
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c05" name="Quantum-Volume">
+		<criterion id="c05" name="quantum-volume">
 			<description>
 				<title>Quantum Volume</title>
 				<comment>Quantum Volume of the quantum computer. Should be maximal.</comment>
@@ -74,7 +74,7 @@
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c06" name="avg-CNOT-error">
+		<criterion id="c06" name="avg-cnot-error">
 			<description>
 				<title>Average CNOT error</title>
 				<comment>Average CNOT error of the quantum computer. Should be minimal.</comment>
@@ -102,7 +102,7 @@
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c08" name="avg-T1">
+		<criterion id="c08" name="avg-t1">
 			<description>
 				<title>Average T1</title>
 				<comment>Average T1 time of the quantum computer. Should be maximal.</comment>
