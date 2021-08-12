@@ -27,7 +27,7 @@ import java.util.List;
  */
 public class CriteriaConstants {
 
-    public static final String QUANTUM_COLUME = "quantum-volume";
+    public static final String QUANTUM_VOLUME = "quantum-volume";
 
     public static final String AVG_CNOT_ERROR = "avg-cnot-error";
 
@@ -35,7 +35,7 @@ public class CriteriaConstants {
 
     public static final String AVG_T1 = "avg-T1";
 
-    public static final List<String> QPU_CRITERION = Arrays.asList(QUANTUM_COLUME, AVG_CNOT_ERROR, AVG_READOUT_ERROR, AVG_T1);
+    public static final List<String> QPU_CRITERION = Arrays.asList(QUANTUM_VOLUME, AVG_CNOT_ERROR, AVG_READOUT_ERROR, AVG_T1);
 
     public static final String WIDTH = "width";
 

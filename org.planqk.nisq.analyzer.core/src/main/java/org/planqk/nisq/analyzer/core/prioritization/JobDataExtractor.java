@@ -129,7 +129,7 @@ public class JobDataExtractor {
                     performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
                 } else if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName())) {
                     LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
-                    performanceList.add(createPerformanceForQpuCriterion());
+                    performanceList.add(createPerformanceForQpuCriterion(criterion));
                 } else {
                     LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
                             criterion.getName());
@@ -170,7 +170,7 @@ public class JobDataExtractor {
                     performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
                 } else if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName())) {
                     LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
-                    performanceList.add(createPerformanceForQpuCriterion());
+                    performanceList.add(createPerformanceForQpuCriterion(criterion));
                 } else {
                     LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
                             criterion.getName());
@@ -211,7 +211,7 @@ public class JobDataExtractor {
                     performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
                 } else if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName())) {
                     LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
-                    performanceList.add(createPerformanceForQpuCriterion());
+                    performanceList.add(createPerformanceForQpuCriterion(criterion));
                 } else {
                     LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
                             criterion.getName());
@@ -345,8 +345,27 @@ public class JobDataExtractor {
         return performance;
     }
 
-    private AlternativeOnCriteriaPerformances.Performance createPerformanceForQpuCriterion() {
-        // TODO
-        return null;
+    private AlternativeOnCriteriaPerformances.Performance createPerformanceForQpuCriterion(Criterion criterion) {
+        AlternativeOnCriteriaPerformances.Performance performance = new AlternativeOnCriteriaPerformances.Performance();
+        performance.setCriterionID(criterion.getId());
+        Value value = new Value();
+        switch (criterion.getName()) {
+            case CriteriaConstants.QUANTUM_VOLUME:
+                // TODO
+                break;
+            case CriteriaConstants.AVG_CNOT_ERROR:
+                // TODO
+                break;
+            case CriteriaConstants.AVG_READOUT_ERROR:
+                // TODO
+                break;
+            case CriteriaConstants.AVG_T1:
+                // TODO
+                break;
+            default:
+                LOG.error("Criterion with name {} not supported!", criterion.getName());
+        }
+        performance.setValue(value);
+        return performance;
     }
 }
