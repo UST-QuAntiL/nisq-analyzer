@@ -29,8 +29,10 @@ import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.model.CompilationResult;
+import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
+import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
@@ -69,6 +71,8 @@ public class JobDataExtractor {
     private final CompilationJobRepository compilationJobRepository;
 
     private final XmcdaRepository xmcdaRepository;
+
+    private final QProvService qProvService;
 
     /**
      * Get the required information to run MCDA methods from different kinds of NISQ Analyzer jobs
@@ -114,6 +118,13 @@ public class JobDataExtractor {
         LOG.debug("QPU selection job contains {} results for the ranking!", qpuSelectionJob.getJobResults().size());
         for (QpuSelectionResult result : qpuSelectionJob.getJobResults()) {
 
+            // get QPU object containing required performances data
+            Optional<Qpu> qpuOptional = qProvService.getQpuByName(result.getQpu(), result.getProvider());
+            if (!qpuOptional.isPresent()) {
+                LOG.error("Unable to retrieve QPU with name {} at provider {}. Skipping result with ID: {}", result.getQpu(), result.getProvider(), result.getId());
+                continue;
+            }
+
             // add alternative representing the QPU selection result
             String name = result.getQpu() + "-" + result.getUsedCompiler() + "-" + result.getCircuitName();
             alternatives.getDescriptionOrAlternative().add(createAlternative(result.getId(), name));
@@ -129,7 +140,7 @@ public class JobDataExtractor {
                     performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
                 } else if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName())) {
                     LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
-                    performanceList.add(createPerformanceForQpuCriterion(criterion));
+                    performanceList.add(createPerformanceForQpuCriterion(qpuOptional.get(), criterion));
                 } else {
                     LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
                             criterion.getName());
@@ -155,6 +166,13 @@ public class JobDataExtractor {
         LOG.debug("Analysis job contains {} results for the ranking!", analysisJob.getJobResults().size());
         for (AnalysisResult result : analysisJob.getJobResults()) {
 
+            // get QPU object containing required performances data
+            Optional<Qpu> qpuOptional = qProvService.getQpuByName(result.getQpu(), result.getProvider());
+            if (!qpuOptional.isPresent()) {
+                LOG.error("Unable to retrieve QPU with name {} at provider {}. Skipping result with ID: {}", result.getQpu(), result.getProvider(), result.getId());
+                continue;
+            }
+
             // add alternative representing the analysis result
             String name = result.getQpu() + "-" + result.getCompiler() + "-" + result.getImplementation().getName();
             alternatives.getDescriptionOrAlternative().add(createAlternative(result.getId(), name));
@@ -170,7 +188,7 @@ public class JobDataExtractor {
                     performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
                 } else if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName())) {
                     LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
-                    performanceList.add(createPerformanceForQpuCriterion(criterion));
+                    performanceList.add(createPerformanceForQpuCriterion(qpuOptional.get(), criterion));
                 } else {
                     LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
                             criterion.getName());
@@ -196,6 +214,13 @@ public class JobDataExtractor {
         LOG.debug("Compilation job contains {} results for the ranking!", compilationJob.getJobResults().size());
         for (CompilationResult result : compilationJob.getJobResults()) {
 
+            // get QPU object containing required performances data
+            Optional<Qpu> qpuOptional = qProvService.getQpuByName(result.getQpu(), result.getProvider());
+            if (!qpuOptional.isPresent()) {
+                LOG.error("Unable to retrieve QPU with name {} at provider {}. Skipping result with ID: {}", result.getQpu(), result.getProvider(), result.getId());
+                continue;
+            }
+
             // add alternative representing the compilation result
             String name = result.getQpu() + "-" + result.getCompiler() + "-" + result.getCircuitName();
             alternatives.getDescriptionOrAlternative().add(createAlternative(result.getId(), name));
@@ -211,7 +236,7 @@ public class JobDataExtractor {
                     performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
                 } else if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName())) {
                     LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
-                    performanceList.add(createPerformanceForQpuCriterion(criterion));
+                    performanceList.add(createPerformanceForQpuCriterion(qpuOptional.get(), criterion));
                 } else {
                     LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
                             criterion.getName());
@@ -345,7 +370,7 @@ public class JobDataExtractor {
         return performance;
     }
 
-    private AlternativeOnCriteriaPerformances.Performance createPerformanceForQpuCriterion(Criterion criterion) {
+    private AlternativeOnCriteriaPerformances.Performance createPerformanceForQpuCriterion(Qpu qpu, Criterion criterion) {
         AlternativeOnCriteriaPerformances.Performance performance = new AlternativeOnCriteriaPerformances.Performance();
         performance.setCriterionID(criterion.getId());
         Value value = new Value();
@@ -360,7 +385,7 @@ public class JobDataExtractor {
                 // TODO
                 break;
             case CriteriaConstants.AVG_T1:
-                // TODO
+                value.setReal((double) qpu.getT1());
                 break;
             default:
                 LOG.error("Criterion with name {} not supported!", criterion.getName());
