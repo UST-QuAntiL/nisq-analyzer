@@ -22,16 +22,16 @@ package org.planqk.nisq.analyzer.core.prioritization;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
-import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import org.planqk.nisq.analyzer.core.model.CircuitResult;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.model.CompilationResult;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
-import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
 import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
@@ -55,8 +55,6 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Utility to retrieve data of a NISQ Analyzer job, i.e., Analysis Job, Compilation Job, or QPU Selection Job
- *
- * FIXME: Unify different jobs/results to remove code duplicates
  */
 @Service
 @RequiredArgsConstructor
@@ -86,146 +84,68 @@ public class JobDataExtractor {
 
         Optional<QpuSelectionJob> qpuSelectionJobOptional = qpuSelectionJobRepository.findById(jobId);
         if (qpuSelectionJobOptional.isPresent()) {
+            QpuSelectionJob job = qpuSelectionJobOptional.get();
+            if (!job.isReady()) {
+                LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
+                return null;
+            }
+
             LOG.debug("Retrieving information from QPU selection job!");
-            return getFromQpuSelection(qpuSelectionJobOptional.get(), mcdaMethod);
+            List<CircuitResult> results = job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
+            return getFromCircuitResults(results, mcdaMethod);
         }
 
         Optional<AnalysisJob> analysisJobOptional = analysisJobRepository.findById(jobId);
         if (analysisJobOptional.isPresent()) {
+            AnalysisJob job = analysisJobOptional.get();
+            if (!job.isReady()) {
+                LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
+                return null;
+            }
+
             LOG.debug("Retrieving information from analysis job!");
-            return getFromAnalysis(analysisJobOptional.get(), mcdaMethod);
+            List<CircuitResult> results = job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
+            return getFromCircuitResults(results, mcdaMethod);
         }
 
         Optional<CompilationJob> compilationJobOptional = compilationJobRepository.findById(jobId);
         if (compilationJobOptional.isPresent()) {
+            CompilationJob job = compilationJobOptional.get();
+            if (!job.isReady()) {
+                LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
+                return null;
+            }
+
             LOG.debug("Retrieving information from compilation job!");
-            return getFromCompilation(compilationJobOptional.get(), mcdaMethod);
+            List<CircuitResult> results = job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
+            return getFromCircuitResults(results, mcdaMethod);
         }
 
         LOG.error("Unable to find QPU selection, analysis, or compilation job for ID: {}", jobId);
         return null;
     }
 
-    private McdaInformation getFromQpuSelection(QpuSelectionJob qpuSelectionJob, String mcdaMethod) {
-        if (!qpuSelectionJob.isReady()) {
-            LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
-            return null;
-        }
+    private McdaInformation getFromCircuitResults(List<CircuitResult> circuitResults, String mcdaMethod) {
 
         // retrieve required information for the alternatives and performances
         Alternatives alternatives = new Alternatives();
         PerformanceTable performances = new PerformanceTable();
-        LOG.debug("QPU selection job contains {} results for the ranking!", qpuSelectionJob.getJobResults().size());
-        for (QpuSelectionResult result : qpuSelectionJob.getJobResults()) {
+        LOG.debug("Analysis job contains {} results for the ranking!", circuitResults.size());
+        for (CircuitResult result : circuitResults) {
 
             // get QPU object containing required performances data
             Optional<Qpu> qpuOptional = qProvService.getQpuByName(result.getQpu(), result.getProvider());
             if (!qpuOptional.isPresent()) {
-                LOG.error("Unable to retrieve QPU with name {} at provider {}. Skipping result with ID: {}", result.getQpu(), result.getProvider(), result.getId());
-                continue;
-            }
-
-            // add alternative representing the QPU selection result
-            String name = result.getQpu() + "-" + result.getUsedCompiler() + "-" + result.getCircuitName();
-            alternatives.getDescriptionOrAlternative().add(createAlternative(result.getId(), name));
-
-            // add performances related to the QPU selection result
-            AlternativeOnCriteriaPerformances alternativePerformances = new AlternativeOnCriteriaPerformances();
-            alternativePerformances.setAlternativeID(result.getId().toString());
-            List<AlternativeOnCriteriaPerformances.Performance> performanceList = alternativePerformances.getPerformance();
-            for (Criterion criterion : xmcdaRepository.findAll()) {
-
-                if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName().toLowerCase())) {
-                    LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName());
-                    performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
-                } else if (CriteriaConstants.QPU_CRITERION.contains(criterion.getName().toLowerCase())) {
-                    LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
-                    performanceList.add(createPerformanceForQpuCriterion(qpuOptional.get(), criterion));
-                } else {
-                    LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
-                            criterion.getName());
-                }
-            }
-            performances.getAlternativePerformances().add(alternativePerformances);
-        }
-        LOG.debug("Retrieved job information contains {} alternatives and {} performances!", alternatives.getDescriptionOrAlternative().size(),
-                performances.getAlternativePerformances().size());
-
-        return wrapMcdaInformation(alternatives, performances, mcdaMethod);
-    }
-
-    private McdaInformation getFromAnalysis(AnalysisJob analysisJob, String mcdaMethod) {
-        if (!analysisJob.isReady()) {
-            LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
-            return null;
-        }
-
-        // retrieve required information for the alternatives and performances
-        Alternatives alternatives = new Alternatives();
-        PerformanceTable performances = new PerformanceTable();
-        LOG.debug("Analysis job contains {} results for the ranking!", analysisJob.getJobResults().size());
-        for (AnalysisResult result : analysisJob.getJobResults()) {
-
-            // get QPU object containing required performances data
-            Optional<Qpu> qpuOptional = qProvService.getQpuByName(result.getQpu(), result.getProvider());
-            if (!qpuOptional.isPresent()) {
-                LOG.error("Unable to retrieve QPU with name {} at provider {}. Skipping result with ID: {}", result.getQpu(), result.getProvider(), result.getId());
+                LOG.error("Unable to retrieve QPU with name {} at provider {}. Skipping result with ID: {}", result.getQpu(), result.getProvider(),
+                        result.getId());
                 continue;
             }
 
             // add alternative representing the analysis result
-            String name = result.getQpu() + "-" + result.getCompiler() + "-" + result.getImplementation().getName();
-            alternatives.getDescriptionOrAlternative().add(createAlternative(result.getId(), name));
-
-            // add performances related to the analysis result
-            AlternativeOnCriteriaPerformances alternativePerformances = new AlternativeOnCriteriaPerformances();
-            alternativePerformances.setAlternativeID(result.getId().toString());
-            List<AlternativeOnCriteriaPerformances.Performance> performanceList = alternativePerformances.getPerformance();
-            for (Criterion criterion : xmcdaRepository.findAll()) {
-
-                if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName().toLowerCase())) {
-                    LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName());
-                    performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
-                } else if (CriteriaConstants.QPU_CRITERION.contains(criterion.getName().toLowerCase())) {
-                    LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
-                    performanceList.add(createPerformanceForQpuCriterion(qpuOptional.get(), criterion));
-                } else {
-                    LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
-                            criterion.getName());
-                }
-            }
-            performances.getAlternativePerformances().add(alternativePerformances);
-        }
-        LOG.debug("Retrieved job information contains {} alternatives and {} performances!", alternatives.getDescriptionOrAlternative().size(),
-                performances.getAlternativePerformances().size());
-
-        return wrapMcdaInformation(alternatives, performances, mcdaMethod);
-    }
-
-    private McdaInformation getFromCompilation(CompilationJob compilationJob, String mcdaMethod) {
-        if (!compilationJob.isReady()) {
-            LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
-            return null;
-        }
-
-        // retrieve required information for the alternatives and performances
-        Alternatives alternatives = new Alternatives();
-        PerformanceTable performances = new PerformanceTable();
-        LOG.debug("Compilation job contains {} results for the ranking!", compilationJob.getJobResults().size());
-        for (CompilationResult result : compilationJob.getJobResults()) {
-
-            // get QPU object containing required performances data
-            Optional<Qpu> qpuOptional = qProvService.getQpuByName(result.getQpu(), result.getProvider());
-            if (!qpuOptional.isPresent()) {
-                LOG.error("Unable to retrieve QPU with name {} at provider {}. Skipping result with ID: {}", result.getQpu(), result.getProvider(), result.getId());
-                continue;
-            }
-
-            // add alternative representing the compilation result
             String name = result.getQpu() + "-" + result.getCompiler() + "-" + result.getCircuitName();
             alternatives.getDescriptionOrAlternative().add(createAlternative(result.getId(), name));
 
-            // add performances related to the compilation result
+            // add performances related to the analysis result
             AlternativeOnCriteriaPerformances alternativePerformances = new AlternativeOnCriteriaPerformances();
             alternativePerformances.setAlternativeID(result.getId().toString());
             List<AlternativeOnCriteriaPerformances.Performance> performanceList = alternativePerformances.getPerformance();
@@ -298,55 +218,7 @@ public class JobDataExtractor {
         return alternative;
     }
 
-    private AlternativeOnCriteriaPerformances.Performance createPerformanceForCircuitCriterion(QpuSelectionResult result, Criterion criterion) {
-        AlternativeOnCriteriaPerformances.Performance performance = new AlternativeOnCriteriaPerformances.Performance();
-        performance.setCriterionID(criterion.getId());
-        Value value = new Value();
-        switch (criterion.getName().toLowerCase()) {
-            case CriteriaConstants.DEPTH:
-                value.setReal((double) result.getAnalyzedDepth());
-                break;
-            case CriteriaConstants.WIDTH:
-                value.setReal((double) result.getAnalyzedWidth());
-                break;
-            case CriteriaConstants.NUMBER_OF_GATES:
-                value.setReal((double) result.getAnalyzedNumberOfGates());
-                break;
-            case CriteriaConstants.NUMBER_OF_MUTLI_QUBIT_GATES:
-                value.setReal((double) result.getAnalyzedNumberOfMultiQubitGates());
-                break;
-            default:
-                LOG.error("Criterion with name {} not supported!", criterion.getName());
-        }
-        performance.setValue(value);
-        return performance;
-    }
-
-    private AlternativeOnCriteriaPerformances.Performance createPerformanceForCircuitCriterion(AnalysisResult result, Criterion criterion) {
-        AlternativeOnCriteriaPerformances.Performance performance = new AlternativeOnCriteriaPerformances.Performance();
-        performance.setCriterionID(criterion.getId());
-        Value value = new Value();
-        switch (criterion.getName().toLowerCase()) {
-            case CriteriaConstants.DEPTH:
-                value.setReal((double) result.getAnalyzedDepth());
-                break;
-            case CriteriaConstants.WIDTH:
-                value.setReal((double) result.getAnalyzedWidth());
-                break;
-            case CriteriaConstants.NUMBER_OF_GATES:
-                value.setReal((double) result.getAnalyzedNumberOfGates());
-                break;
-            case CriteriaConstants.NUMBER_OF_MUTLI_QUBIT_GATES:
-                value.setReal((double) result.getAnalyzedNumberOfMultiQubitGates());
-                break;
-            default:
-                LOG.error("Criterion with name {} not supported!", criterion.getName());
-        }
-        performance.setValue(value);
-        return performance;
-    }
-
-    private AlternativeOnCriteriaPerformances.Performance createPerformanceForCircuitCriterion(CompilationResult result, Criterion criterion) {
+    private AlternativeOnCriteriaPerformances.Performance createPerformanceForCircuitCriterion(CircuitResult result, Criterion criterion) {
         AlternativeOnCriteriaPerformances.Performance performance = new AlternativeOnCriteriaPerformances.Performance();
         performance.setCriterionID(criterion.getId());
         Value value = new Value();

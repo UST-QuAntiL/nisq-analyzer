@@ -197,11 +197,11 @@ public class NisqAnalyzerControlService {
 
         // get suited Sdk connector plugin
         SdkConnector selectedSdkConnector = connectorList.stream()
-            .filter(executor -> executor.supportedSdks().contains(result.getUsedCompiler()))
+            .filter(executor -> executor.supportedSdks().contains(result.getCompiler()))
             .findFirst().orElse(null);
         if (Objects.isNull(selectedSdkConnector)) {
-            LOG.error("Unable to find connector plugin with name {}.", result.getUsedCompiler());
-            throw new RuntimeException("Unable to find connector plugin with name " + result.getUsedCompiler());
+            LOG.error("Unable to find connector plugin with name {}.", result.getCompiler());
+            throw new RuntimeException("Unable to find connector plugin with name " + result.getCompiler());
         }
 
         // create a object to store the execution results
@@ -323,11 +323,20 @@ public class NisqAnalyzerControlService {
                             circuitInformation.getCircuitDepth())) {
 
                         // qpu is suited candidate to execute the implementation
-                        AnalysisResult result = analysisResultRepository.save(new AnalysisResult(
-                                algorithm, qpu.getName(), provider.getName(),
-                                selectedSdkConnector.getName(), executableImpl, inputParameters, OffsetDateTime.now(),
-                                circuitInformation.getCircuitDepth(), circuitInformation.getCircuitWidth(),
-                                circuitInformation.getCircuitNumberOfGates(), circuitInformation.getCircuitNumberOfMultiQubitGates()));
+                        AnalysisResult result = new AnalysisResult();
+                        result.setImplementation(executableImpl);
+                        result.setImplementedAlgorithm(algorithm);
+                        result.setTime(OffsetDateTime.now());
+                        result.setInputParameters(inputParameters);
+                        result.setQpu(qpu.getName());
+                        result.setCircuitName(executableImpl.getName());
+                        result.setProvider(provider.getName());
+                        result.setCompiler(selectedSdkConnector.getName());
+                        result.setAnalyzedDepth(circuitInformation.getCircuitDepth());
+                        result.setAnalyzedWidth(circuitInformation.getCircuitWidth());
+                        result.setAnalyzedNumberOfGates(circuitInformation.getCircuitNumberOfGates());
+                        result.setAnalyzedNumberOfMultiQubitGates(circuitInformation.getCircuitNumberOfMultiQubitGates());
+                        result = analysisResultRepository.save(result);
 
                         analysisResults.add(result);
                         job.setJobResults(analysisResults);
@@ -336,7 +345,6 @@ public class NisqAnalyzerControlService {
                         LOG.debug("QPU {} suitable for implementation {}.", qpu.getName(), executableImpl.getName());
                     } else {
                         LOG.debug("QPU {} not suitable for implementation {}.", qpu.getName(), executableImpl.getName());
-                        continue;
                     }
                 }
             }
@@ -458,10 +466,22 @@ public class NisqAnalyzerControlService {
 
                 // add results to the database and the job
                 for (CompilationResult result : compilationResults) {
-                    QpuSelectionResult qpuSelectionResult = qpuSelectionResultRepository
-                            .save(new QpuSelectionResult(provider.getName(), qpu.getName(), qpu.getQueueSize(), OffsetDateTime.now(), result.getCircuitName(), result.getTranspiledCircuit(),
-                                    result.getTranspiledLanguage(), result.getCompiler(), result.getAnalyzedDepth(), result.getAnalyzedWidth(),
-                                    result.getAnalyzedNumberOfGates(), result.getAnalyzedNumberOfMultiQubitGates(), result.getToken()));
+                    QpuSelectionResult qpuSelectionResult = new QpuSelectionResult();
+                    qpuSelectionResult.setCircuitName(result.getCircuitName());
+                    qpuSelectionResult.setTranspiledCircuit(result.getTranspiledCircuit());
+                    qpuSelectionResult.setTranspiledLanguage(result.getTranspiledLanguage());
+                    qpuSelectionResult.setTime(OffsetDateTime.now());
+                    qpuSelectionResult.setQueueSize(qpu.getQueueSize());
+                    qpuSelectionResult.setQpu(qpu.getName());
+                    qpuSelectionResult.setProvider(provider.getName());
+                    qpuSelectionResult.setCompiler(result.getCompiler());
+                    qpuSelectionResult.setAnalyzedDepth(result.getAnalyzedDepth());
+                    qpuSelectionResult.setAnalyzedWidth(result.getAnalyzedWidth());
+                    qpuSelectionResult.setAnalyzedNumberOfGates(result.getAnalyzedNumberOfGates());
+                    qpuSelectionResult.setAnalyzedNumberOfMultiQubitGates(result.getAnalyzedNumberOfMultiQubitGates());
+                    qpuSelectionResult.setToken(result.getToken());
+
+                    qpuSelectionResult = qpuSelectionResultRepository.save(qpuSelectionResult);
                     job.getJobResults().add(qpuSelectionResult);
                 }
             }
@@ -574,26 +594,25 @@ public class NisqAnalyzerControlService {
                 continue;
             }
 
-            if (Objects.isNull(qpu)) {
-                LOG.warn("Unable to retrieve QPU with name '{}' from QProv. Adding all compilation results without executability filtering!",
-                        qpuName);
+            // check if QPU is simulator or can handle the depth in the current decoherence time
+            if (Objects.isNull(qpu) || (qpu.isSimulator() || qpu.getT1() / qpu.getMaxGateTime() >= circuitInformation.getCircuitDepth())) {
 
                 // add resulting compiled circuit to result list
-                compilerAnalysisResults.add(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
-                        circuitInformation.getCircuitWidth(), circuitInformation.getCircuitNumberOfGates(),
-                        circuitInformation.getCircuitNumberOfMultiQubitGates(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
-                        circuitInformation.getTranspiledLanguage(), token, OffsetDateTime.now()));
-                continue;
-            }
-
-            // check if QPU is simulator or can handle the depth in the current decoherence time
-            if (qpu.isSimulator() || qpu.getT1() / qpu.getMaxGateTime() >= circuitInformation.getCircuitDepth()) {
-                compilerAnalysisResults.add(new CompilationResult(providerName, qpuName, compilerName, circuitInformation.getCircuitDepth(),
-                        circuitInformation.getCircuitWidth(), circuitInformation.getCircuitNumberOfGates(),
-                        circuitInformation.getCircuitNumberOfMultiQubitGates(), circuitName, initialCircuitAsString, circuitInformation.getTranspiledCircuit(),
-                        circuitInformation.getTranspiledLanguage(), token, OffsetDateTime.now()));
-            } else {
-                LOG.debug("Skipping compilation result as depth ({}) is higher than estimated maximum depth!", circuitInformation.getCircuitDepth());
+                CompilationResult compilationResult = new CompilationResult();
+                compilationResult.setCircuitName(circuitName);
+                compilationResult.setTranspiledLanguage(circuitInformation.getTranspiledLanguage());
+                compilationResult.setTime(OffsetDateTime.now());
+                compilationResult.setInitialCircuit(initialCircuitAsString);
+                compilationResult.setTranspiledCircuit(circuitInformation.getTranspiledCircuit());
+                compilationResult.setQpu(qpuName);
+                compilationResult.setProvider(providerName);
+                compilationResult.setCompiler(compilerName);
+                compilationResult.setAnalyzedDepth(circuitInformation.getCircuitDepth());
+                compilationResult.setAnalyzedWidth(circuitInformation.getCircuitWidth());
+                compilationResult.setAnalyzedNumberOfGates(circuitInformation.getCircuitNumberOfGates());
+                compilationResult.setAnalyzedNumberOfMultiQubitGates(circuitInformation.getCircuitNumberOfMultiQubitGates());
+                compilationResult.setToken(token);
+                compilerAnalysisResults.add(compilationResult);
             }
         }
         return compilerAnalysisResults;

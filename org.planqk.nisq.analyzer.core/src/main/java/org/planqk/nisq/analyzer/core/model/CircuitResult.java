@@ -19,35 +19,50 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import java.time.OffsetDateTime;
-
-import javax.persistence.Entity;
-import javax.persistence.Lob;
+import javax.persistence.MappedSuperclass;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
- * Object to represent the result of a compilation for a certain qpu and circuit
+ * Base class defining the properties for all NISQ Analyzer jobs related to circuit analysis
  */
-@EqualsAndHashCode(callSuper = true)
-@Entity
-@Data
+@MappedSuperclass
 @NoArgsConstructor
 @AllArgsConstructor
-public class CompilationResult extends CircuitResult {
+public abstract class CircuitResult extends HasId {
 
-    @Lob
-    private String initialCircuit;
+    @Getter
+    @Setter
+    private String provider;
 
-    @Lob
-    private String transpiledCircuit;
+    @Getter
+    @Setter
+    private String qpu;
 
-    private String transpiledLanguage;
+    @Getter
+    @Setter
+    private String compiler;
 
-    private String token;
+    @Getter
+    @Setter
+    private String circuitName;
 
-    private OffsetDateTime time;
+    @Getter
+    @Setter
+    private int analyzedDepth;
+
+    @Getter
+    @Setter
+    private int analyzedWidth;
+
+    @Getter
+    @Setter
+    private int analyzedNumberOfGates;
+
+    @Getter
+    @Setter
+    private int analyzedNumberOfMultiQubitGates;
 }
