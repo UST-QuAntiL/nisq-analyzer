@@ -285,11 +285,13 @@ public class JobDataExtractor {
                 value.setReal((double) result.getAnalyzedWidth());
                 break;
             case CriteriaConstants.NUMBER_OF_GATES:
-                // TODO
+                value.setReal((double) result.getAnalyzedNumberOfGates());
                 break;
             case CriteriaConstants.NUMBER_OF_MUTLI_QUBIT_GATES:
-                // TODO
+                value.setReal((double) result.getAnalyzedNumberOfMultiQubitGates());
                 break;
+            default:
+                LOG.error("Criterion with name {} not supported!", criterion.getName());
         }
         performance.setValue(value);
         return performance;
@@ -307,11 +309,13 @@ public class JobDataExtractor {
                 value.setReal((double) result.getAnalyzedWidth());
                 break;
             case CriteriaConstants.NUMBER_OF_GATES:
-                // TODO
+                value.setReal((double) result.getAnalyzedNumberOfGates());
                 break;
             case CriteriaConstants.NUMBER_OF_MUTLI_QUBIT_GATES:
-                // TODO
+                value.setReal((double) result.getAnalyzedNumberOfMultiQubitGates());
                 break;
+            default:
+                LOG.error("Criterion with name {} not supported!", criterion.getName());
         }
         performance.setValue(value);
         return performance;
@@ -329,11 +333,13 @@ public class JobDataExtractor {
                 value.setReal((double) result.getAnalyzedWidth());
                 break;
             case CriteriaConstants.NUMBER_OF_GATES:
-                // TODO
+                value.setReal((double) result.getAnalyzedNumberOfGates());
                 break;
             case CriteriaConstants.NUMBER_OF_MUTLI_QUBIT_GATES:
-                // TODO
+                value.setReal((double) result.getAnalyzedNumberOfMultiQubitGates());
                 break;
+            default:
+                LOG.error("Criterion with name {} not supported!", criterion.getName());
         }
         performance.setValue(value);
         return performance;

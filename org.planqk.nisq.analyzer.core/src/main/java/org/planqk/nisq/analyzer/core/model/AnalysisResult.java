@@ -57,5 +57,10 @@ public class AnalysisResult extends HasId {
     private OffsetDateTime time;
 
     private int analyzedDepth;
+
     private int analyzedWidth;
+
+    private int analyzedNumberOfGates;
+
+    private int analyzedNumberOfMultiQubitGates;
 }

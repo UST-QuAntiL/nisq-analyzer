@@ -49,6 +49,10 @@ public class CompilationResult extends HasId {
 
     private int analyzedWidth;
 
+    private int analyzedNumberOfGates;
+
+    private int analyzedNumberOfMultiQubitGates;
+
     private String circuitName;
 
     @Lob
