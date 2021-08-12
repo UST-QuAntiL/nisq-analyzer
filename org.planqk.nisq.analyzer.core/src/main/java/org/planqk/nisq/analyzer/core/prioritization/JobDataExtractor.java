@@ -135,10 +135,10 @@ public class JobDataExtractor {
             List<AlternativeOnCriteriaPerformances.Performance> performanceList = alternativePerformances.getPerformance();
             for (Criterion criterion : xmcdaRepository.findAll()) {
 
-                if (CriteriaConstants.QPU_CRITERION.contains(criterion.getName())) {
+                if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName().toLowerCase())) {
                     LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName());
                     performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
-                } else if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName())) {
+                } else if (CriteriaConstants.QPU_CRITERION.contains(criterion.getName().toLowerCase())) {
                     LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
                     performanceList.add(createPerformanceForQpuCriterion(qpuOptional.get(), criterion));
                 } else {
@@ -183,11 +183,11 @@ public class JobDataExtractor {
             List<AlternativeOnCriteriaPerformances.Performance> performanceList = alternativePerformances.getPerformance();
             for (Criterion criterion : xmcdaRepository.findAll()) {
 
-                if (CriteriaConstants.QPU_CRITERION.contains(criterion.getName())) {
-                    LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName());
+                if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName())) {
+                    LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName().toLowerCase());
                     performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
-                } else if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName())) {
-                    LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
+                } else if (CriteriaConstants.QPU_CRITERION.contains(criterion.getName())) {
+                    LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName().toLowerCase());
                     performanceList.add(createPerformanceForQpuCriterion(qpuOptional.get(), criterion));
                 } else {
                     LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
@@ -231,11 +231,11 @@ public class JobDataExtractor {
             List<AlternativeOnCriteriaPerformances.Performance> performanceList = alternativePerformances.getPerformance();
             for (Criterion criterion : xmcdaRepository.findAll()) {
 
-                if (CriteriaConstants.QPU_CRITERION.contains(criterion.getName())) {
-                    LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName());
+                if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName())) {
+                    LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName().toLowerCase());
                     performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
-                } else if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName())) {
-                    LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
+                } else if (CriteriaConstants.QPU_CRITERION.contains(criterion.getName())) {
+                    LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName().toLowerCase());
                     performanceList.add(createPerformanceForQpuCriterion(qpuOptional.get(), criterion));
                 } else {
                     LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
@@ -302,7 +302,7 @@ public class JobDataExtractor {
         AlternativeOnCriteriaPerformances.Performance performance = new AlternativeOnCriteriaPerformances.Performance();
         performance.setCriterionID(criterion.getId());
         Value value = new Value();
-        switch (criterion.getName()) {
+        switch (criterion.getName().toLowerCase()) {
             case CriteriaConstants.DEPTH:
                 value.setReal((double) result.getAnalyzedDepth());
                 break;

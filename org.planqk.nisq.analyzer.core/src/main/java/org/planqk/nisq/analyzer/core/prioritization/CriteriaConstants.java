@@ -33,7 +33,7 @@ public class CriteriaConstants {
 
     public static final String AVG_READOUT_ERROR = "avg-readout-error";
 
-    public static final String AVG_T1 = "avg-T1";
+    public static final String AVG_T1 = "avg-t1";
 
     public static final List<String> QPU_CRITERION = Arrays.asList(QUANTUM_VOLUME, AVG_CNOT_ERROR, AVG_READOUT_ERROR, AVG_T1);
 
