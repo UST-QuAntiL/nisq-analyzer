@@ -65,7 +65,7 @@
     
   - Choose C:\Apache\apache-tomcat-9.0.7 (or wherever you saved and extracted Tomcat) as Tomcat Home and Tomcat base directory. 
     -> Your Tomcat version is displayed, confirm with "OK". 
-  - Set no Browser Launch and define url as localhost:8080/nisq-analyzer
+  - Set no Browser Launch and define url as localhost:5010/nisq-analyzer
     
     ![tomcat](graphics/tomcat-after-launch.PNG)
     
