@@ -19,11 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import java.time.OffsetDateTime;
-import java.util.UUID;
-
 import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
-import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
 
 import lombok.Data;
@@ -32,27 +28,13 @@ import lombok.EqualsAndHashCode;
 @Relation(itemRelation = "qpuSelectionResult", collectionRelation = "qpuSelectionResults")
 @EqualsAndHashCode(callSuper = false)
 @Data
-public class QpuSelectionResultDto extends RepresentationModel<QpuSelectionResultDto> {
-
-    UUID id;
-
-    String provider;
-
-    String qpu;
+public class QpuSelectionResultDto extends CircuitResultDto {
 
     int queueSize;
 
     String transpiledCircuit;
 
     String transpiledLanguage;
-
-    String compiler;
-
-    int analyzedDepth;
-
-    int analyzedWidth;
-
-    private OffsetDateTime time;
 
     private String circuitName;
 
@@ -71,6 +53,9 @@ public class QpuSelectionResultDto extends RepresentationModel<QpuSelectionResul
             dto.setCompiler(object.getCompiler());
             dto.setAnalyzedDepth(object.getAnalyzedDepth());
             dto.setAnalyzedWidth(object.getAnalyzedWidth());
+            dto.setAnalyzedNumberOfGates(object.getAnalyzedNumberOfGates());
+            dto.setAnalyzedNumberOfMultiQubitGates(object.getAnalyzedNumberOfMultiQubitGates());
+            dto.setAnalyzedMultiQubitGateDepth(object.getAnalyzedMultiQubitGateDepth());
             return dto;
         }
     }
