@@ -8,7 +8,7 @@
 			<criterionID>c01</criterionID>
 			<values>
 				<value>
-					<real>0.125</real>
+					<real>0.111</real>
 				</value>
 			</values>
 		</criterionValue>
@@ -16,7 +16,7 @@
 			<criterionID>c02</criterionID>
 			<values>
 				<value>
-					<real>0.125</real>
+					<real>0.111</real>
 				</value>
 			</values>
 		</criterionValue>
@@ -24,7 +24,7 @@
 			<criterionID>c03</criterionID>
 			<values>
 				<value>
-					<real>0.125</real>
+					<real>0.111</real>
 				</value>
 			</values>
 		</criterionValue>
@@ -32,7 +32,7 @@
 			<criterionID>c04</criterionID>
 			<values>
 				<value>
-					<real>0.125</real>
+					<real>0.111</real>
 				</value>
 			</values>
 		</criterionValue>
@@ -40,7 +40,7 @@
 			<criterionID>c05</criterionID>
 			<values>
 				<value>
-					<real>0.125</real>
+					<real>0.111</real>
 				</value>
 			</values>
 		</criterionValue>
@@ -48,7 +48,7 @@
 			<criterionID>c06</criterionID>
 			<values>
 				<value>
-					<real>0.125</real>
+					<real>0.111</real>
 				</value>
 			</values>
 		</criterionValue>
@@ -56,7 +56,7 @@
 			<criterionID>c07</criterionID>
 			<values>
 				<value>
-					<real>0.125</real>
+					<real>0.111</real>
 				</value>
 			</values>
 		</criterionValue>
@@ -64,7 +64,15 @@
 			<criterionID>c08</criterionID>
 			<values>
 				<value>
-					<real>0.125</real>
+					<real>0.111</real>
+				</value>
+			</values>
+		</criterionValue>
+		<criterionValue>
+			<criterionID>c09</criterionID>
+			<values>
+				<value>
+					<real>0.111</real>
 				</value>
 			</values>
 		</criterionValue>

@@ -223,16 +223,19 @@ public class JobDataExtractor {
         Value value = new Value();
         switch (criterion.getName().toLowerCase()) {
             case CriteriaConstants.DEPTH:
-                value.setReal((double) result.getAnalyzedDepth());
+                value.setInteger(result.getAnalyzedDepth());
                 break;
             case CriteriaConstants.WIDTH:
-                value.setReal((double) result.getAnalyzedWidth());
+                value.setInteger(result.getAnalyzedWidth());
                 break;
             case CriteriaConstants.NUMBER_OF_GATES:
-                value.setReal((double) result.getAnalyzedNumberOfGates());
+                value.setInteger(result.getAnalyzedNumberOfGates());
                 break;
-            case CriteriaConstants.NUMBER_OF_MUTLI_QUBIT_GATES:
-                value.setReal((double) result.getAnalyzedNumberOfMultiQubitGates());
+            case CriteriaConstants.NUMBER_OF_MULTI_QUBIT_GATES:
+                value.setInteger(result.getAnalyzedNumberOfMultiQubitGates());
+                break;
+            case CriteriaConstants.MULTI_QUBIT_GATE_DEPTH:
+                value.setInteger(result.getAnalyzedMultiQubitGateDepth());
                 break;
             default:
                 LOG.error("Criterion with name {} not supported!", criterion.getName());

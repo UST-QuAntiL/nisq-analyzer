@@ -336,6 +336,7 @@ public class NisqAnalyzerControlService {
                         result.setAnalyzedWidth(circuitInformation.getCircuitWidth());
                         result.setAnalyzedNumberOfGates(circuitInformation.getCircuitNumberOfGates());
                         result.setAnalyzedNumberOfMultiQubitGates(circuitInformation.getCircuitNumberOfMultiQubitGates());
+                        result.setAnalyzedMultiQubitGateDepth(circuitInformation.getCircuitMultiQubitGateDepth());
                         result = analysisResultRepository.save(result);
 
                         analysisResults.add(result);
@@ -479,6 +480,7 @@ public class NisqAnalyzerControlService {
                     qpuSelectionResult.setAnalyzedWidth(result.getAnalyzedWidth());
                     qpuSelectionResult.setAnalyzedNumberOfGates(result.getAnalyzedNumberOfGates());
                     qpuSelectionResult.setAnalyzedNumberOfMultiQubitGates(result.getAnalyzedNumberOfMultiQubitGates());
+                    qpuSelectionResult.setAnalyzedMultiQubitGateDepth(result.getAnalyzedMultiQubitGateDepth());
                     qpuSelectionResult.setToken(result.getToken());
 
                     qpuSelectionResult = qpuSelectionResultRepository.save(qpuSelectionResult);
@@ -611,6 +613,7 @@ public class NisqAnalyzerControlService {
                 compilationResult.setAnalyzedWidth(circuitInformation.getCircuitWidth());
                 compilationResult.setAnalyzedNumberOfGates(circuitInformation.getCircuitNumberOfGates());
                 compilationResult.setAnalyzedNumberOfMultiQubitGates(circuitInformation.getCircuitNumberOfMultiQubitGates());
+                compilationResult.setAnalyzedMultiQubitGateDepth(circuitInformation.getCircuitMultiQubitGateDepth());
                 compilationResult.setToken(token);
                 compilerAnalysisResults.add(compilationResult);
             }

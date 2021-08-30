@@ -43,7 +43,10 @@ public class CriteriaConstants {
 
     public static final String NUMBER_OF_GATES = "number-of-gates";
 
-    public static final String NUMBER_OF_MUTLI_QUBIT_GATES = "number-of-multi-qubit-gates";
+    public static final String NUMBER_OF_MULTI_QUBIT_GATES = "number-of-multi-qubit-gates";
 
-    public static final List<String> CIRCUIT_CRITERION = Arrays.asList(WIDTH, DEPTH, NUMBER_OF_GATES, NUMBER_OF_MUTLI_QUBIT_GATES);
+    public static final String MULTI_QUBIT_GATE_DEPTH = "multi-qubit-gate-depth";
+
+    public static final List<String> CIRCUIT_CRITERION = Arrays
+        .asList(WIDTH, DEPTH, NUMBER_OF_GATES, NUMBER_OF_MULTI_QUBIT_GATES, MULTI_QUBIT_GATE_DEPTH);
 }

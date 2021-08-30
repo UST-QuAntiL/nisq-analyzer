@@ -21,6 +21,7 @@ package org.planqk.nisq.analyzer.core.connector;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -54,6 +55,11 @@ public class CircuitInformation {
     @Setter
     @JsonProperty("number-of-multi-qubit-gates")
     private int circuitNumberOfMultiQubitGates = 0;
+
+    @Getter
+    @Setter
+    @JsonProperty("multi-qubit-gate-depth")
+    private int circuitMultiQubitGateDepth = 0;
 
     @Getter
     @Setter

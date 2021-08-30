@@ -55,12 +55,34 @@
 			<scale>
 				<quantitative>
 					<preferenceDirection>min</preferenceDirection>
-					<minimum><real>0</real></minimum>
-					<maximum><real>9999</real></maximum>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>9999</real>
+					</maximum>
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c05" name="quantum-volume">
+		<criterion id="c05" name="multi-qubit-gate-depth">
+			<description>
+				<title>Multi-qubit-gate depth</title>
+				<comment>Depth of multi-qubit-gates in the circuit. Should be minimal.</comment>
+			</description>
+			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>min</preferenceDirection>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>9999</real>
+					</maximum>
+				</quantitative>
+			</scale>
+		</criterion>
+		<criterion id="c06" name="quantum-volume">
 			<description>
 				<title>Quantum Volume</title>
 				<comment>Quantum Volume of the quantum computer. Should be maximal.</comment>
@@ -69,12 +91,16 @@
 			<scale>
 				<quantitative>
 					<preferenceDirection>max</preferenceDirection>
-					<minimum><real>0</real></minimum>
-					<maximum><real>9999</real></maximum>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>9999</real>
+					</maximum>
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c06" name="avg-cnot-error">
+		<criterion id="c07" name="avg-cnot-error">
 			<description>
 				<title>Average CNOT error</title>
 				<comment>Average CNOT error of the quantum computer. Should be minimal.</comment>
@@ -83,12 +109,16 @@
 			<scale>
 				<quantitative>
 					<preferenceDirection>min</preferenceDirection>
-					<minimum><real>0</real></minimum>
-					<maximum><real>9999</real></maximum>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>9999</real>
+					</maximum>
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c07" name="avg-readout-error">
+		<criterion id="c08" name="avg-readout-error">
 			<description>
 				<title>Average readout error</title>
 				<comment>Average readout error of the quantum computer. Should be minimal.</comment>
@@ -97,12 +127,16 @@
 			<scale>
 				<quantitative>
 					<preferenceDirection>min</preferenceDirection>
-					<minimum><real>0</real></minimum>
-					<maximum><real>9999</real></maximum>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>9999</real>
+					</maximum>
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c08" name="avg-t1">
+		<criterion id="c09" name="avg-t1">
 			<description>
 				<title>Average T1</title>
 				<comment>Average T1 time of the quantum computer. Should be maximal.</comment>
@@ -111,8 +145,12 @@
 			<scale>
 				<quantitative>
 					<preferenceDirection>max</preferenceDirection>
-					<minimum><real>0</real></minimum>
-					<maximum><real>9999</real></maximum>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>9999</real>
+					</maximum>
 				</quantitative>
 			</scale>
 		</criterion>

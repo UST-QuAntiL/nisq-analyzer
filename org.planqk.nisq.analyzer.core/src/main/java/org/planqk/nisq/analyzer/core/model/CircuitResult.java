@@ -69,5 +69,9 @@ public abstract class CircuitResult extends HasId {
 
     @Getter
     @Setter
+    private int analyzedMultiQubitGateDepth;
+
+    @Getter
+    @Setter
     private OffsetDateTime time;
 }
