@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
+import java.time.OffsetDateTime;
 import javax.persistence.MappedSuperclass;
 
 import lombok.AllArgsConstructor;
@@ -65,4 +66,8 @@ public abstract class CircuitResult extends HasId {
     @Getter
     @Setter
     private int analyzedNumberOfMultiQubitGates;
+
+    @Getter
+    @Setter
+    private OffsetDateTime time;
 }

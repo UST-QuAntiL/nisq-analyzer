@@ -43,6 +43,10 @@ public class Qpu extends HasId {
 
     @Getter
     @Setter
+    private float avgReadoutError;
+
+    @Getter
+    @Setter
     private float maxGateTime;
 
     @Getter

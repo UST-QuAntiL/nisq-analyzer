@@ -29,7 +29,6 @@ import javax.xml.namespace.QName;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.CircuitResult;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
-import org.planqk.nisq.analyzer.core.model.CompilationResult;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 import org.planqk.nisq.analyzer.core.qprov.QProvService;
@@ -152,10 +151,10 @@ public class JobDataExtractor {
             for (Criterion criterion : xmcdaRepository.findAll()) {
 
                 if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName().toLowerCase())) {
-                    LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName());
+                    LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
                     performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
                 } else if (CriteriaConstants.QPU_CRITERION.contains(criterion.getName().toLowerCase())) {
-                    LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
+                    LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName());
                     performanceList.add(createPerformanceForQpuCriterion(qpuOptional.get(), criterion));
                 } else {
                     LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
@@ -254,7 +253,7 @@ public class JobDataExtractor {
                 // TODO
                 break;
             case CriteriaConstants.AVG_READOUT_ERROR:
-                // TODO
+                value.setReal((double) qpu.getAvgReadoutError());
                 break;
             case CriteriaConstants.AVG_T1:
                 value.setReal((double) qpu.getT1());

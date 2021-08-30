@@ -19,7 +19,6 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.UUID;
 import javax.persistence.ElementCollection;
@@ -48,6 +47,4 @@ public class AnalysisResult extends CircuitResult {
 
     @ElementCollection
     private Map<String, String> inputParameters;
-
-    private OffsetDateTime time;
 }

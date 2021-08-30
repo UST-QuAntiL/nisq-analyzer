@@ -21,12 +21,14 @@ package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
 import java.util.UUID;
 
+import org.planqk.nisq.analyzer.core.model.Qpu;
+import org.springframework.hateoas.RepresentationModel;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.planqk.nisq.analyzer.core.model.Qpu;
-import org.springframework.hateoas.RepresentationModel;
 
 /**
  * Data transfer object for the model class {@link Qpu}.
@@ -53,6 +55,11 @@ public class QpuDto extends RepresentationModel<QpuDto> {
 
     @Getter
     @Setter
+    @JsonProperty("avgReadoutError")
+    private float avgReadoutError;
+
+    @Getter
+    @Setter
     private float maxGateTime;
 
     @Getter
@@ -71,6 +78,7 @@ public class QpuDto extends RepresentationModel<QpuDto> {
             dto.setName(object.getName());
             dto.setNumberOfQubits(object.getQubitCount());
             dto.setT1(object.getT1());
+            dto.setAvgReadoutError(object.getAvgReadoutError());
             dto.setMaxGateTime(object.getMaxGateTime());
             dto.setQueueSize(object.getQueueSize());
             return dto;
@@ -91,6 +99,7 @@ public class QpuDto extends RepresentationModel<QpuDto> {
             // time unit has to be converted
             qpu.setT1(convert_micro_to_nano_seconds(object.getT1()));
 
+            qpu.setAvgReadoutError(object.getAvgReadoutError());
             qpu.setMaxGateTime(object.getMaxGateTime());
             qpu.setProvider(provider);
             return qpu;
