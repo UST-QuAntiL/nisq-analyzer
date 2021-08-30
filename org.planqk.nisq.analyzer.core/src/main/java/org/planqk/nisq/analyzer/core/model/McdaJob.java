@@ -35,11 +35,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class McdaJob extends HasId {
+public class McdaJob extends Job {
 
     private String method;
-
-    private boolean ready;
 
     private String state;
 

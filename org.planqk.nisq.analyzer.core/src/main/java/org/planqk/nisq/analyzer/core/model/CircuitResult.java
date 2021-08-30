@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Base class defining the properties for all NISQ Analyzer jobs related to circuit analysis
+ * Base class defining the properties for all circuits related to analyses
  */
 @MappedSuperclass
 @NoArgsConstructor

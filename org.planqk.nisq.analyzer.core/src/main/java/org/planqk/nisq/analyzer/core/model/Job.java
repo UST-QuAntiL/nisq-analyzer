@@ -19,32 +19,27 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import javax.persistence.CascadeType;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
+import java.time.OffsetDateTime;
+import javax.persistence.MappedSuperclass;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@EqualsAndHashCode(callSuper = true)
-@Entity
-@Data
+/**
+ * Base class defining the properties for all NISQ Analyzer jobs related to circuit analysis
+ */
+@MappedSuperclass
 @NoArgsConstructor
 @AllArgsConstructor
-public class AnalysisJob extends Job {
+public abstract class Job extends HasId {
 
-    private UUID implementedAlgorithm;
+    @Getter
+    @Setter
+    private OffsetDateTime time;
 
-    @ElementCollection
-    private Map<String, String> inputParameters;
-    
-    @OneToMany(cascade = CascadeType.PERSIST)
-    private List<AnalysisResult> jobResults = new ArrayList<>();
+    @Getter
+    @Setter
+    private boolean ready;
 }
