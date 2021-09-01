@@ -100,10 +100,10 @@
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c07" name="avg-cnot-error">
+		<criterion id="c07" name="avg-multi-qubit-gate-error">
 			<description>
-				<title>Average CNOT error</title>
-				<comment>Average CNOT error of the quantum computer. Should be minimal.</comment>
+				<title>Average multi-qubit-gate error</title>
+				<comment>Average multi-qubit-gate error of the quantum computer. Should be minimal.</comment>
 			</description>
 			<active>true</active>
 			<scale>
@@ -145,6 +145,60 @@
 			<scale>
 				<quantitative>
 					<preferenceDirection>max</preferenceDirection>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>9999</real>
+					</maximum>
+				</quantitative>
+			</scale>
+		</criterion>
+		<criterion id="c10" name="avg-t2">
+			<description>
+				<title>Average T2</title>
+				<comment>Average T2 time of the quantum computer. Should be maximal.</comment>
+			</description>
+			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>max</preferenceDirection>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>9999</real>
+					</maximum>
+				</quantitative>
+			</scale>
+		</criterion>
+		<criterion id="c11" name="queue-size">
+			<description>
+				<title>Queue size</title>
+				<comment>Queue size of the quantum computer. Should be minimal.</comment>
+			</description>
+			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>min</preferenceDirection>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>9999</real>
+					</maximum>
+				</quantitative>
+			</scale>
+		</criterion>
+		<criterion id="c12" name="avg-multi-qubit-gate-time">
+			<description>
+				<title>Average multi-qubit-gate time</title>
+				<comment>Average multi-qubit-gate time of the quantum computer. Should be minimal.</comment>
+			</description>
+			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>min</preferenceDirection>
 					<minimum>
 						<real>0</real>
 					</minimum>

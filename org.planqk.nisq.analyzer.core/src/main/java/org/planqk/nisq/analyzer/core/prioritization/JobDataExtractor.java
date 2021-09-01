@@ -252,14 +252,23 @@ public class JobDataExtractor {
             case CriteriaConstants.QUANTUM_VOLUME:
                 // TODO
                 break;
-            case CriteriaConstants.AVG_CNOT_ERROR:
-                // TODO
+            case CriteriaConstants.AVG_MULTI_QUBIT_GATE_ERROR:
+                value.setReal((double) qpu.getAvgMultiQubitGateError());
+                break;
+            case CriteriaConstants.AVG_MULTI_QUBIT_GATE_TIME:
+                value.setReal((double) qpu.getAvgMultiQubitGateTime());
                 break;
             case CriteriaConstants.AVG_READOUT_ERROR:
                 value.setReal((double) qpu.getAvgReadoutError());
                 break;
             case CriteriaConstants.AVG_T1:
                 value.setReal((double) qpu.getT1());
+                break;
+            case CriteriaConstants.AVG_T2:
+                value.setReal((double) qpu.getT2());
+                break;
+            case CriteriaConstants.QUEUE_SIZE:
+                value.setInteger(qpu.getQueueSize());
                 break;
             default:
                 LOG.error("Criterion with name {} not supported!", criterion.getName());
