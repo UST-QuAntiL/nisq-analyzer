@@ -67,6 +67,7 @@ public class McdaConstants {
     public static final String WEB_SERVICE_INPUT_WEIGHTS = "weights";
     public static final String WEB_SERVICE_OUTPUT_TICKET = "ticket";
     public static final String WEB_SERVICE_OUTPUT_STATUS = "service-status";
+    public static final String WEB_SERVICE_OUTPUT_MESSAGES = "messages";
 
     public static final String WEB_SERVICE_NAME_TOPSIS_RANKING = "TOPSIS_ranking-PUT.py";
     public static final String WEB_SERVICE_NAME_TOPSIS_ALTERNATIVES = "TOPSIS_extremeAlternatives-PUT.py";

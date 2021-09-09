@@ -96,7 +96,8 @@ public class TopsisMethod implements McdaMethod {
             Map<String, String> results = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
             LOG.debug("Invoked normalization and weighting service successfully and retrieved {} results!", results.size());
 
-            // TODO: handle response
+            // TODO
+            results.keySet().stream().forEach(LOG::debug);
 
             // TODO: invoke other Topsis services
         } catch (MalformedURLException e) {

@@ -19,8 +19,6 @@
 
 package org.planqk.nisq.analyzer.core.prioritization;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,12 +47,12 @@ public class McdaWebServiceHandler {
     private final static Logger LOG = LoggerFactory.getLogger(McdaWebServiceHandler.class);
 
     /**
-     * TODO
+     * Invoke the given operation on the web service available at the given URL with the given body fields
      *
      * @param serviceURL    the URL of the web service to invoke
      * @param operationName the name of the operation to invoke to use as root element of the SOAP message
      * @param bodyFields    a map containing the names of the tags to add as children of the root element and their text content as value
-     * @return
+     * @return the different result elements of the web service invocation excluding status information, or null if an error occurs
      */
     public Map<String, String> invokeMcdaOperation(URL serviceURL, String operationName, Map<String, String> bodyFields) {
         LOG.debug("Invoking operation '{}' on MCDA web service at URL: {}", operationName, serviceURL.toString());
@@ -72,22 +70,35 @@ public class McdaWebServiceHandler {
 
             // poll for the web service result
             soapResponse = waitForResponse(serviceURL, soapConnection, soapResponse, 10);
-
             if (Objects.isNull(soapResponse)) {
                 LOG.error("Unable to retrieve result from web service within defined timeout! Aborting!");
                 return null;
             }
 
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            try {
-                soapResponse.writeTo(out);
-                LOG.debug(new String(out.toByteArray()));
-            } catch (IOException e) {
-                e.printStackTrace();
+            // get root element of the response
+            SOAPBody body = soapResponse.getSOAPBody();
+            if (body.getChildNodes().getLength() == 0) {
+                LOG.error("Retrieved SOAP message contains body with no elements!");
+                return null;
             }
+            Node rootElement = body.getChildNodes().item(0);
 
-            // TODO: return results
-            return null;
+            LOG.debug("Result of web service invocation contains {} elements!", rootElement.getChildNodes().getLength());
+            HashMap<String, String> result = new HashMap<>();
+            for (int i = 0; i < rootElement.getChildNodes().getLength(); i++) {
+                Node childNode = rootElement.getChildNodes().item(i);
+                LOG.debug(childNode.getNodeName());
+
+                // skip status information
+                if (childNode.getNodeName().equals(McdaConstants.WEB_SERVICE_OUTPUT_TICKET)
+                        || childNode.getNodeName().equals(McdaConstants.WEB_SERVICE_OUTPUT_STATUS)
+                        || childNode.getNodeName().equals(McdaConstants.WEB_SERVICE_OUTPUT_MESSAGES)) {
+                    continue;
+                }
+
+                result.put(childNode.getNodeName(), childNode.getTextContent());
+            }
+            return result;
         } catch (SOAPException e) {
             LOG.error("Error while invoking MCDA web service: {}", e.getLocalizedMessage());
             return null;
