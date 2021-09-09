@@ -87,12 +87,11 @@ public class McdaWebServiceHandler {
             HashMap<String, String> result = new HashMap<>();
             for (int i = 0; i < rootElement.getChildNodes().getLength(); i++) {
                 Node childNode = rootElement.getChildNodes().item(i);
-                LOG.debug(childNode.getNodeName());
 
                 // skip status information
-                if (childNode.getNodeName().equals(McdaConstants.WEB_SERVICE_OUTPUT_TICKET)
-                        || childNode.getNodeName().equals(McdaConstants.WEB_SERVICE_OUTPUT_STATUS)
-                        || childNode.getNodeName().equals(McdaConstants.WEB_SERVICE_OUTPUT_MESSAGES)) {
+                if (childNode.getNodeName().equals(McdaConstants.WEB_SERVICE_DATA_TICKET)
+                        || childNode.getNodeName().equals(McdaConstants.WEB_SERVICE_DATA_STATUS)
+                        || childNode.getNodeName().equals(McdaConstants.WEB_SERVICE_DATA_MESSAGES)) {
                     continue;
                 }
 
@@ -127,7 +126,7 @@ public class McdaWebServiceHandler {
 
         // create SOAP message for the polling
         HashMap<String, String> bodyFields = new HashMap<>();
-        bodyFields.put(McdaConstants.WEB_SERVICE_OUTPUT_TICKET, ticketId);
+        bodyFields.put(McdaConstants.WEB_SERVICE_DATA_TICKET, ticketId);
         SOAPMessage pollingMessage = createSoapMessage(McdaConstants.WEB_SERVICE_OPERATIONS_REQUEST_SOLUTION, bodyFields);
 
         int iteration = 0;
@@ -153,7 +152,7 @@ public class McdaWebServiceHandler {
                 Node childNode = rootElement.getChildNodes().item(i);
 
                 // check if status code is unequal to 1, meaning that the service terminated
-                if (childNode.getNodeName().equals(McdaConstants.WEB_SERVICE_OUTPUT_STATUS)) {
+                if (childNode.getNodeName().equals(McdaConstants.WEB_SERVICE_DATA_STATUS)) {
                     if (Integer.parseInt(childNode.getTextContent()) == 1) {
                         LOG.debug("Web service is still processing the request...");
                     } else {
@@ -184,7 +183,7 @@ public class McdaWebServiceHandler {
         Node rootElement = body.getChildNodes().item(0);
         for (int i = 0; i < rootElement.getChildNodes().getLength(); i++) {
             Node childNode = rootElement.getChildNodes().item(i);
-            if (childNode.getNodeName().equals(McdaConstants.WEB_SERVICE_OUTPUT_TICKET)) {
+            if (childNode.getNodeName().equals(McdaConstants.WEB_SERVICE_DATA_TICKET)) {
                 return childNode.getTextContent();
             }
         }

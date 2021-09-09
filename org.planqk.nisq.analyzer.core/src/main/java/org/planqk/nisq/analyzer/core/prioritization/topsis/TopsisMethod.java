@@ -89,22 +89,69 @@ public class TopsisMethod implements McdaMethod {
             LOG.debug("Invoking normalization and weighting service for TOPSIS!");
             URL url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_TOPSIS_WEIGHTING);
             HashMap<String, String> bodyFields = new HashMap<>();
-            bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_CRITERIA, xmlUtils.xmcdaToString(mcdaInformation.getCriteria()));
-            bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_ALTERNATIVES, xmlUtils.xmcdaToString(mcdaInformation.getAlternatives()));
-            bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_PERFORMANCE, xmlUtils.xmcdaToString(mcdaInformation.getPerformances()));
-            bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_WEIGHTS, xmlUtils.xmcdaToString(mcdaInformation.getWeights()));
-            Map<String, String> results = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
-            LOG.debug("Invoked normalization and weighting service successfully and retrieved {} results!", results.size());
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_CRITERIA, xmlUtils.xmcdaToString(mcdaInformation.getCriteria()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, xmlUtils.xmcdaToString(mcdaInformation.getAlternatives()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE, xmlUtils.xmcdaToString(mcdaInformation.getPerformances()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_WEIGHTS, xmlUtils.xmcdaToString(mcdaInformation.getWeights()));
+            Map<String, String> resultsWeighting = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+            LOG.debug("Invoked normalization and weighting service successfully and retrieved {} results!", resultsWeighting.size());
 
-            // TODO
-            results.keySet().stream().forEach(LOG::debug);
+            // check for required results
+            if (!resultsWeighting.containsKey(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE)) {
+                setJobToFailed(mcdaJob,
+                        "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_PERFORMANCE + " in the results but doesn´t! Aborting!");
+                return;
+            }
+            LOG.debug("Resulting normalized performances: {}", resultsWeighting.get(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE));
 
-            // TODO: invoke other Topsis services
+            // invoke alternatives calculation service for TOPSIS
+            LOG.debug("Invoking alternatives calculation service for TOPSIS!");
+            url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_TOPSIS_ALTERNATIVES);
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_CRITERIA, xmlUtils.xmcdaToString(mcdaInformation.getCriteria()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, xmlUtils.xmcdaToString(mcdaInformation.getAlternatives()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE, resultsWeighting.get(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE));
+            Map<String, String> resultsAlternatives = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+            LOG.debug("Invoked alternatives calculation service successfully and retrieved {} results!", resultsAlternatives.size());
+
+            // check for required results
+            if (!(resultsAlternatives.containsKey(McdaConstants.WEB_SERVICE_DATA_IDEAL_POSITIVE) &&
+                    resultsAlternatives.containsKey(McdaConstants.WEB_SERVICE_DATA_IDEAL_NEGATIVE))) {
+                setJobToFailed(mcdaJob,
+                        "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_IDEAL_POSITIVE + " and " + McdaConstants.WEB_SERVICE_DATA_IDEAL_NEGATIVE + " in the results but doesn´t! Aborting!");
+                return;
+            }
+            LOG.debug("Resulting negative ideals: {}", resultsAlternatives.get(McdaConstants.WEB_SERVICE_DATA_IDEAL_NEGATIVE));
+            LOG.debug("Resulting positive ideals: {}", resultsAlternatives.get(McdaConstants.WEB_SERVICE_DATA_IDEAL_POSITIVE));
+
+            // invoke ranking service for TOPSIS
+            LOG.debug("Invoking ranking service for TOPSIS!");
+            url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_TOPSIS_RANKING);
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_CRITERIA, xmlUtils.xmcdaToString(mcdaInformation.getCriteria()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, xmlUtils.xmcdaToString(mcdaInformation.getAlternatives()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE, resultsWeighting.get(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_IDEAL_POSITIVE, resultsAlternatives.get(McdaConstants.WEB_SERVICE_DATA_IDEAL_POSITIVE));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_IDEAL_NEGATIVE, resultsAlternatives.get(McdaConstants.WEB_SERVICE_DATA_IDEAL_NEGATIVE));
+            Map<String, String> resultsRanking = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+            LOG.debug("Invoked alternatives calculation service successfully and retrieved {} results!", resultsAlternatives.size());
+
+            // check for required results
+            if (!resultsRanking.containsKey(McdaConstants.WEB_SERVICE_DATA_SCORES)) {
+                setJobToFailed(mcdaJob,
+                        "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_SCORES + " in the results but doesn´t! Aborting!");
+                return;
+            }
+
+            // TODO: interpret ranking results and add to McdaJob
+            LOG.debug("Resulting scores: {}", resultsRanking.get(McdaConstants.WEB_SERVICE_DATA_SCORES));
         } catch (MalformedURLException e) {
-            LOG.error("Unable to create URL for invoking the web services!");
-            mcdaJob.setState("failed");
-            mcdaJob.setReady(true);
-            mcdaJobRepository.save(mcdaJob);
+            setJobToFailed(mcdaJob, "Unable to create URL for invoking the web services!");
         }
+    }
+
+    private void setJobToFailed(McdaJob mcdaJob, String errorMessage) {
+        LOG.error(errorMessage);
+        mcdaJob.setState("failed");
+        mcdaJob.setReady(true);
+        mcdaJobRepository.save(mcdaJob);
     }
 }
