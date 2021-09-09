@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Class containing the names of the criteria that are supported, as well as if they have to be retrieved from the QPU or the circuit analysis.
  */
-public class CriteriaConstants {
+public class McdaConstants {
 
     public static final String QUANTUM_VOLUME = "quantum-volume";
 
@@ -56,4 +56,21 @@ public class CriteriaConstants {
 
     public static final List<String> CIRCUIT_CRITERION = Arrays
         .asList(WIDTH, DEPTH, NUMBER_OF_GATES, NUMBER_OF_MULTI_QUBIT_GATES, MULTI_QUBIT_GATE_DEPTH);
+
+    // MCDA web service names
+    public static final String WEB_SERVICE_NAME_TOPSIS_RANKING = "TOPSIS_ranking-PUT";
+    public static final String WEB_SERVICE_NAME_TOPSIS_ALTERNATIVES = "TOPSIS_extremeAlternatives-PUT";
+    public static final String WEB_SERVICE_NAME_TOPSIS_WEIGHTING = "TOPSIS_normalizationAndWeighting-PUT";
+
+    public static final String WEB_SERVICE_NAME_ELECTREIII_CONCORDANCE = "ElectreConcordance-J-MCDA.py";
+    public static final String WEB_SERVICE_NAME_ELECTREIII_DISCORDANCE = "ElectreDiscordances-J-MCDA.py";
+    public static final String WEB_SERVICE_NAME_ELECTREIII_OUTRANKING = "ElectreOutranking-J-MCDA.py";
+    public static final String WEB_SERVICE_NAME_ELECTREIII_RELATION = "cutRelation-ITTB.py";
+    public static final String WEB_SERVICE_NAME_ELECTREIII_RANKING = "alternativesRankingViaQualificationDistillation-ITTB.py";
+    public static final String WEB_SERVICE_NAME_ELECTREIII_PLOT = "plotAlternativesComparisons-ITTB.py";
+
+    public static final String WEB_SERVICE_NAME_PROMOTHEEI_PREFERENCE = "PrometheePreference-J-MCDA.py";
+    public static final String WEB_SERVICE_NAME_PROMOTHEEI_FLOWS = "PrometheeFlows-J-MCDA.py";
+    public static final String WEB_SERVICE_NAME_PROMOTHEEI_RANKING = "Promethee1Ranking-RXMCDA.py";
+    public static final String WEB_SERVICE_NAME_PROMOTHEEI_PLOT = "plotAlternativesComparisons-ITTB.py";
 }

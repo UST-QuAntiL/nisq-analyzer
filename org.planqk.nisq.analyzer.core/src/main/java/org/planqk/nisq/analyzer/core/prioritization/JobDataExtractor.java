@@ -150,10 +150,10 @@ public class JobDataExtractor {
             List<AlternativeOnCriteriaPerformances.Performance> performanceList = alternativePerformances.getPerformance();
             for (Criterion criterion : xmcdaRepository.findAll()) {
 
-                if (CriteriaConstants.CIRCUIT_CRITERION.contains(criterion.getName().toLowerCase())) {
+                if (McdaConstants.CIRCUIT_CRITERION.contains(criterion.getName().toLowerCase())) {
                     LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
                     performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
-                } else if (CriteriaConstants.QPU_CRITERION.contains(criterion.getName().toLowerCase())) {
+                } else if (McdaConstants.QPU_CRITERION.contains(criterion.getName().toLowerCase())) {
                     LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName());
                     performanceList.add(createPerformanceForQpuCriterion(qpuOptional.get(), criterion));
                 } else {
@@ -222,19 +222,19 @@ public class JobDataExtractor {
         performance.setCriterionID(criterion.getId());
         Value value = new Value();
         switch (criterion.getName().toLowerCase()) {
-            case CriteriaConstants.DEPTH:
+            case McdaConstants.DEPTH:
                 value.setInteger(result.getAnalyzedDepth());
                 break;
-            case CriteriaConstants.WIDTH:
+            case McdaConstants.WIDTH:
                 value.setInteger(result.getAnalyzedWidth());
                 break;
-            case CriteriaConstants.NUMBER_OF_GATES:
+            case McdaConstants.NUMBER_OF_GATES:
                 value.setInteger(result.getAnalyzedNumberOfGates());
                 break;
-            case CriteriaConstants.NUMBER_OF_MULTI_QUBIT_GATES:
+            case McdaConstants.NUMBER_OF_MULTI_QUBIT_GATES:
                 value.setInteger(result.getAnalyzedNumberOfMultiQubitGates());
                 break;
-            case CriteriaConstants.MULTI_QUBIT_GATE_DEPTH:
+            case McdaConstants.MULTI_QUBIT_GATE_DEPTH:
                 value.setInteger(result.getAnalyzedMultiQubitGateDepth());
                 break;
             default:
@@ -249,25 +249,25 @@ public class JobDataExtractor {
         performance.setCriterionID(criterion.getId());
         Value value = new Value();
         switch (criterion.getName().toLowerCase()) {
-            case CriteriaConstants.QUANTUM_VOLUME:
+            case McdaConstants.QUANTUM_VOLUME:
                 // TODO
                 break;
-            case CriteriaConstants.AVG_MULTI_QUBIT_GATE_ERROR:
+            case McdaConstants.AVG_MULTI_QUBIT_GATE_ERROR:
                 value.setReal((double) qpu.getAvgMultiQubitGateError());
                 break;
-            case CriteriaConstants.AVG_MULTI_QUBIT_GATE_TIME:
+            case McdaConstants.AVG_MULTI_QUBIT_GATE_TIME:
                 value.setReal((double) qpu.getAvgMultiQubitGateTime());
                 break;
-            case CriteriaConstants.AVG_READOUT_ERROR:
+            case McdaConstants.AVG_READOUT_ERROR:
                 value.setReal((double) qpu.getAvgReadoutError());
                 break;
-            case CriteriaConstants.AVG_T1:
+            case McdaConstants.AVG_T1:
                 value.setReal((double) qpu.getT1());
                 break;
-            case CriteriaConstants.AVG_T2:
+            case McdaConstants.AVG_T2:
                 value.setReal((double) qpu.getT2());
                 break;
-            case CriteriaConstants.QUEUE_SIZE:
+            case McdaConstants.QUEUE_SIZE:
                 value.setInteger(qpu.getQueueSize());
                 break;
             default:

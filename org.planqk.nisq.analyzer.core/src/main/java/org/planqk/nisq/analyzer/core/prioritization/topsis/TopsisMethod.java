@@ -21,7 +21,6 @@ package org.planqk.nisq.analyzer.core.prioritization.topsis;
 
 import java.io.StringWriter;
 import java.util.Objects;
-
 import javax.xml.bind.JAXB;
 
 import org.planqk.nisq.analyzer.core.model.McdaJob;
@@ -31,6 +30,7 @@ import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -47,6 +47,9 @@ public class TopsisMethod implements McdaMethod {
     private final JobDataExtractor jobDataExtractor;
 
     private final McdaJobRepository mcdaJobRepository;
+
+    @Value("${org.planqk.nisq.analyzer.mcda.url}")
+    private String baseURL;
 
     @Override
     public String getName() {

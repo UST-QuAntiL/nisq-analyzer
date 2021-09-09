@@ -20,7 +20,7 @@
 package org.planqk.nisq.analyzer.core;
 
 /**
- * Constants for the Quality API classes.
+ * Constants for the NISQ Analyzer API classes.
  */
 public class Constants {
 

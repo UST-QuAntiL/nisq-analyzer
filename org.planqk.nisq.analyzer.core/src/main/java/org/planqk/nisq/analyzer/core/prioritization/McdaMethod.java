@@ -19,8 +19,6 @@
 
 package org.planqk.nisq.analyzer.core.prioritization;
 
-import java.util.UUID;
-
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 
 /**
