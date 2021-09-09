@@ -19,14 +19,18 @@
 
 package org.planqk.nisq.analyzer.core.prioritization.topsis;
 
-import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
 import java.util.Objects;
-import javax.xml.bind.JAXB;
 
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
+import org.planqk.nisq.analyzer.core.prioritization.McdaConstants;
 import org.planqk.nisq.analyzer.core.prioritization.McdaInformation;
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
+import org.planqk.nisq.analyzer.core.prioritization.McdaWebServiceHandler;
+import org.planqk.nisq.analyzer.core.prioritization.XmlUtils;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +51,10 @@ public class TopsisMethod implements McdaMethod {
     private final JobDataExtractor jobDataExtractor;
 
     private final McdaJobRepository mcdaJobRepository;
+
+    private final McdaWebServiceHandler mcdaWebServiceHandler;
+
+    private final XmlUtils xmlUtils;
 
     @Value("${org.planqk.nisq.analyzer.mcda.url}")
     private String baseURL;
@@ -75,20 +83,24 @@ public class TopsisMethod implements McdaMethod {
             return;
         }
 
-        StringWriter sw = new StringWriter();
-        JAXB.marshal(mcdaInformation.getAlternatives(), sw);
-        String xmlString = sw.toString();
-        LOG.debug(xmlString);
-        JAXB.marshal(mcdaInformation.getPerformances(), sw);
-        xmlString = sw.toString();
-        LOG.debug(xmlString);
-        JAXB.marshal(mcdaInformation.getCriteria(), sw);
-        xmlString = sw.toString();
-        LOG.debug(xmlString);
-        JAXB.marshal(mcdaInformation.getWeights(), sw);
-        xmlString = sw.toString();
-        LOG.debug(xmlString);
+        try {
+            // invoke the normalization and weighting service for TOPSIS
+            URL url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_TOPSIS_WEIGHTING);
+            HashMap<String, String> bodyFields = new HashMap<>();
+            bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_CRITERIA, xmlUtils.encodeXMCDA(mcdaInformation.getCriteria()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_ALTERNATIVES, xmlUtils.encodeXMCDA(mcdaInformation.getAlternatives()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_PERFORMANCE, xmlUtils.encodeXMCDA(mcdaInformation.getPerformances()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_WEIGHTS, xmlUtils.encodeXMCDA(mcdaInformation.getWeights()));
+            mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
 
-        // TODO: perform Topsis
+            // TODO: handle response
+
+            // TODO: invoke other Topsis services
+        } catch (MalformedURLException e) {
+            LOG.error("Unable to create URL for invoking the web services!");
+            mcdaJob.setState("failed");
+            mcdaJob.setReady(true);
+            mcdaJobRepository.save(mcdaJob);
+        }
     }
 }
