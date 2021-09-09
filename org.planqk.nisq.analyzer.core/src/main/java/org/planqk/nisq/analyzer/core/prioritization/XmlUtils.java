@@ -22,7 +22,6 @@ package org.planqk.nisq.analyzer.core.prioritization;
 import java.io.StringWriter;
 import javax.xml.bind.JAXB;
 
-import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.stereotype.Service;
 import org.xmcda.v2.XMCDA;
 
@@ -33,16 +32,14 @@ import org.xmcda.v2.XMCDA;
 public class XmlUtils {
 
     /**
-     * Transform the given XMCDA document to a string and encode it to enable its usage in other SOAP messages as text element which is required by
-     * the MCDA web services
+     * Get the string representation of the given XMCDA document
      *
-     * @param xmcda the XMCDA element to transform into an encoded string
-     * @return the encoded string with the content of the XMCDA element
+     * @param xmcda the XMCDA element
+     * @return the string representing the XMCDA document
      */
-    public String encodeXMCDA(XMCDA xmcda) {
+    public String xmcdaToString(XMCDA xmcda) {
         StringWriter sw = new StringWriter();
         JAXB.marshal(xmcda, sw);
-        String xmlString = sw.toString();
-        return StringEscapeUtils.escapeXml10(xmlString);
+        return sw.toString();
     }
 }

@@ -87,10 +87,10 @@ public class TopsisMethod implements McdaMethod {
             // invoke the normalization and weighting service for TOPSIS
             URL url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_TOPSIS_WEIGHTING);
             HashMap<String, String> bodyFields = new HashMap<>();
-            bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_CRITERIA, xmlUtils.encodeXMCDA(mcdaInformation.getCriteria()));
-            bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_ALTERNATIVES, xmlUtils.encodeXMCDA(mcdaInformation.getAlternatives()));
-            bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_PERFORMANCE, xmlUtils.encodeXMCDA(mcdaInformation.getPerformances()));
-            bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_WEIGHTS, xmlUtils.encodeXMCDA(mcdaInformation.getWeights()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_CRITERIA, xmlUtils.xmcdaToString(mcdaInformation.getCriteria()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_ALTERNATIVES, xmlUtils.xmcdaToString(mcdaInformation.getAlternatives()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_PERFORMANCE, xmlUtils.xmcdaToString(mcdaInformation.getPerformances()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_WEIGHTS, xmlUtils.xmcdaToString(mcdaInformation.getWeights()));
             mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
 
             // TODO: handle response
