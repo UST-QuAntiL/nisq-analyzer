@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPBody;
@@ -36,6 +37,7 @@ import javax.xml.soap.SOAPMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.Node;
 
 /**
  * Utility to interact with the MCDA SOAP services
@@ -45,6 +47,14 @@ public class McdaWebServiceHandler {
 
     private final static Logger LOG = LoggerFactory.getLogger(McdaWebServiceHandler.class);
 
+    /**
+     * TODO
+     *
+     * @param serviceURL
+     * @param operationName
+     * @param bodyFields
+     * @return
+     */
     public String invokeMcdaOperation(URL serviceURL, String operationName, Map<String, String> bodyFields) {
         LOG.debug("Invoking operation '{}' on MCDA web service at URL: {}", operationName, serviceURL.toString());
 
@@ -58,6 +68,14 @@ public class McdaWebServiceHandler {
 
             // invoke the web service and retrieve the response
             SOAPMessage soapResponse = soapConnection.call(soapMessage, serviceURL);
+
+            // poll for the web service result
+            soapResponse = waitForResponse(soapConnection, soapResponse, 10);
+
+            if (Objects.isNull(soapResponse)) {
+                LOG.error("Unable to retrieve result from web service within defined timeout! Aborting!");
+                return null;
+            }
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             try {
@@ -76,12 +94,63 @@ public class McdaWebServiceHandler {
     }
 
     /**
+     * Poll for the result of the web service until it terminates or the maximum number of iterations is reached
+     *
+     * @param soapConnection the SOAP connection to use to perform the requests
+     * @param soapMessage    the SOAP message containing the ticket to poll for
+     * @param maxIterations  the number of iterations to poll for the result until aborting
+     * @return the SOAP message with the results or null if the web service did not terminate in time
+     */
+    private SOAPMessage waitForResponse(SOAPConnection soapConnection, SOAPMessage soapMessage, int maxIterations) throws SOAPException {
+
+        // get the ticket ID from the SOAP message
+        String ticketId = getTicketId(soapMessage);
+        if (Objects.isNull(ticketId)) {
+            LOG.error("Unable to retrieve ticket ID from SOAP response!");
+            return null;
+        }
+        LOG.debug("Polling for result with ticket ID: {}", ticketId);
+
+        int iteration = 0;
+        while (iteration < maxIterations) {
+            iteration++;
+            LOG.debug("Waiting for 5 seconds for web service result (iteration {} of {})", iteration, maxIterations);
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        // TODO
+        return null;
+    }
+
+    /**
+     * Get the ticket ID of the submitted job from the resulting response SOAP message
+     *
+     * @param soapMessage the result SOAP message
+     * @return the ticket ID if found or null otherwise
+     * @throws SOAPException exception if parsing the SOAP message is not possible
+     */
+    private String getTicketId(SOAPMessage soapMessage) throws SOAPException {
+        SOAPBody body = soapMessage.getSOAPBody();
+        Node rootElement = body.getChildNodes().item(0);
+        for (int i = 0; i < rootElement.getChildNodes().getLength(); i++) {
+            Node childNode = rootElement.getChildNodes().item(i);
+            if (childNode.getNodeName().equals(McdaConstants.WEB_SERVICE_OUTPUT_TICKET)) {
+                return childNode.getTextContent();
+            }
+        }
+        return null;
+    }
+
+    /**
      * Create a new SOAP message with the given operation name as root element in the body and add the given fields as children
      *
      * @param operationName the operation name to use as root element in the SOAP message
      * @param bodyFields    the fields that should be added to the SOAP body under the operation element with the tag name as key and the string
      *                      content as value
-     * @return              the created SOAP message with the given contens
+     * @return the created SOAP message with the given contens
      * @throws SOAPException execption if the creation of the SOAP message fails
      */
     private SOAPMessage createSoapMessage(String operationName, Map<String, String> bodyFields) throws SOAPException {
