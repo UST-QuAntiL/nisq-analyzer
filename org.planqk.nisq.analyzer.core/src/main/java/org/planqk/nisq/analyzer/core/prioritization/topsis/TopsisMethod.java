@@ -22,6 +22,7 @@ package org.planqk.nisq.analyzer.core.prioritization.topsis;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import org.planqk.nisq.analyzer.core.model.McdaJob;
@@ -85,13 +86,15 @@ public class TopsisMethod implements McdaMethod {
 
         try {
             // invoke the normalization and weighting service for TOPSIS
+            LOG.debug("Invoking normalization and weighting service for TOPSIS!");
             URL url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_TOPSIS_WEIGHTING);
             HashMap<String, String> bodyFields = new HashMap<>();
             bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_CRITERIA, xmlUtils.xmcdaToString(mcdaInformation.getCriteria()));
             bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_ALTERNATIVES, xmlUtils.xmcdaToString(mcdaInformation.getAlternatives()));
             bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_PERFORMANCE, xmlUtils.xmcdaToString(mcdaInformation.getPerformances()));
             bodyFields.put(McdaConstants.WEB_SERVICE_INPUT_WEIGHTS, xmlUtils.xmcdaToString(mcdaInformation.getWeights()));
-            mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+            Map<String, String> results = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+            LOG.debug("Invoked normalization and weighting service successfully and retrieved {} results!", results.size());
 
             // TODO: handle response
 
