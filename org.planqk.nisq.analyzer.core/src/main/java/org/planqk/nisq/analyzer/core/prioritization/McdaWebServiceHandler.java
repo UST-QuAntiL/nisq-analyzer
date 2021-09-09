@@ -26,6 +26,8 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPBody;
+import javax.xml.soap.SOAPConnection;
+import javax.xml.soap.SOAPConnectionFactory;
 import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
@@ -50,9 +52,16 @@ public class McdaWebServiceHandler {
             // create SOAP message with the XMCDA content
             SOAPMessage soapMessage = createSoapMessage(operationName, bodyFields);
 
+            // create SOAP connection
+            SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
+            SOAPConnection soapConnection = soapConnectionFactory.createConnection();
+
+            // invoke the web service and retrieve the response
+            SOAPMessage soapResponse = soapConnection.call(soapMessage, serviceURL);
+
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             try {
-                soapMessage.writeTo(out);
+                soapResponse.writeTo(out);
                 LOG.debug(new String(out.toByteArray()));
             } catch (IOException e) {
                 e.printStackTrace();
@@ -67,13 +76,13 @@ public class McdaWebServiceHandler {
     }
 
     /**
-     * TODO
+     * Create a new SOAP message with the given operation name as root element in the body and add the given fields as children
      *
      * @param operationName the operation name to use as root element in the SOAP message
      * @param bodyFields    the fields that should be added to the SOAP body under the operation element with the tag name as key and the string
      *                      content as value
      * @return              the created SOAP message with the given contens
-     * @throws SOAPException
+     * @throws SOAPException execption if the creation of the SOAP message fails
      */
     private SOAPMessage createSoapMessage(String operationName, Map<String, String> bodyFields) throws SOAPException {
 

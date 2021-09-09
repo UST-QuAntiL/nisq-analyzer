@@ -65,9 +65,9 @@ public class McdaConstants {
     public static final String WEB_SERVICE_INPUT_PERFORMANCE = "performance";
     public static final String WEB_SERVICE_INPUT_WEIGHTS = "weights";
 
-    public static final String WEB_SERVICE_NAME_TOPSIS_RANKING = "TOPSIS_ranking-PUT";
-    public static final String WEB_SERVICE_NAME_TOPSIS_ALTERNATIVES = "TOPSIS_extremeAlternatives-PUT";
-    public static final String WEB_SERVICE_NAME_TOPSIS_WEIGHTING = "TOPSIS_normalizationAndWeighting-PUT";
+    public static final String WEB_SERVICE_NAME_TOPSIS_RANKING = "TOPSIS_ranking-PUT.py";
+    public static final String WEB_SERVICE_NAME_TOPSIS_ALTERNATIVES = "TOPSIS_extremeAlternatives-PUT.py";
+    public static final String WEB_SERVICE_NAME_TOPSIS_WEIGHTING = "TOPSIS_normalizationAndWeighting-PUT.py";
 
     public static final String WEB_SERVICE_NAME_ELECTREIII_CONCORDANCE = "ElectreConcordance-J-MCDA.py";
     public static final String WEB_SERVICE_NAME_ELECTREIII_DISCORDANCE = "ElectreDiscordances-J-MCDA.py";
