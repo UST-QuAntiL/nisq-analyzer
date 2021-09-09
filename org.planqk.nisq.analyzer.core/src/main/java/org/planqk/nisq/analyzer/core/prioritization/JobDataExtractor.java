@@ -250,7 +250,8 @@ public class JobDataExtractor {
         Value value = new Value();
         switch (criterion.getName().toLowerCase()) {
             case McdaConstants.QUANTUM_VOLUME:
-                // TODO
+                // TODO: replace with quantum volume of QPU
+                value.setInteger(0);
                 break;
             case McdaConstants.AVG_MULTI_QUBIT_GATE_ERROR:
                 value.setReal((double) qpu.getAvgMultiQubitGateError());
