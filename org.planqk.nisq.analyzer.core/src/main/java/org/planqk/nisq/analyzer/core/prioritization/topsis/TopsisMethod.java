@@ -102,7 +102,6 @@ public class TopsisMethod implements McdaMethod {
                         "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_PERFORMANCE + " in the results but doesn´t! Aborting!");
                 return;
             }
-            LOG.debug("Resulting normalized performances: {}", resultsWeighting.get(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE));
 
             // invoke alternatives calculation service for TOPSIS
             LOG.debug("Invoking alternatives calculation service for TOPSIS!");
@@ -120,8 +119,6 @@ public class TopsisMethod implements McdaMethod {
                         "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_IDEAL_POSITIVE + " and " + McdaConstants.WEB_SERVICE_DATA_IDEAL_NEGATIVE + " in the results but doesn´t! Aborting!");
                 return;
             }
-            LOG.debug("Resulting negative ideals: {}", resultsAlternatives.get(McdaConstants.WEB_SERVICE_DATA_IDEAL_NEGATIVE));
-            LOG.debug("Resulting positive ideals: {}", resultsAlternatives.get(McdaConstants.WEB_SERVICE_DATA_IDEAL_POSITIVE));
 
             // invoke ranking service for TOPSIS
             LOG.debug("Invoking ranking service for TOPSIS!");

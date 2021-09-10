@@ -19,12 +19,19 @@
 
 package org.planqk.nisq.analyzer.core.prioritization.electre;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
+import org.planqk.nisq.analyzer.core.prioritization.McdaConstants;
 import org.planqk.nisq.analyzer.core.prioritization.McdaInformation;
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
+import org.planqk.nisq.analyzer.core.prioritization.McdaWebServiceHandler;
+import org.planqk.nisq.analyzer.core.prioritization.XmlUtils;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +52,10 @@ public class ElectreIIIMethod implements McdaMethod {
     private final JobDataExtractor jobDataExtractor;
 
     private final McdaJobRepository mcdaJobRepository;
+
+    private final McdaWebServiceHandler mcdaWebServiceHandler;
+
+    private final XmlUtils xmlUtils;
 
     @Value("${org.planqk.nisq.analyzer.mcda.url}")
     private String baseURL;
@@ -73,6 +84,37 @@ public class ElectreIIIMethod implements McdaMethod {
             return;
         }
 
-        // TODO: perform Electre
+        try {
+            // invoke the concordance service for Electre III
+            LOG.debug("Invoking concordance service for Electre III!");
+            URL url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_ELECTREIII_CONCORDANCE);
+            HashMap<String, String> bodyFields = new HashMap<>();
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_CRITERIA, xmlUtils.xmcdaToString(mcdaInformation.getCriteria()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, xmlUtils.xmcdaToString(mcdaInformation.getAlternatives()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE, xmlUtils.xmcdaToString(mcdaInformation.getPerformances()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_WEIGHTS, xmlUtils.xmcdaToString(mcdaInformation.getWeights()));
+            Map<String, String>
+                    resultsConcordance = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+            LOG.debug("Invoked concordance service successfully and retrieved {} results!", resultsConcordance.size());
+
+            // check for required results
+            if (!resultsConcordance.containsKey(McdaConstants.WEB_SERVICE_DATA_CONCORDANCE)) {
+                setJobToFailed(mcdaJob,
+                        "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_CONCORDANCE + " in the results but doesn´t! Aborting!");
+                return;
+            }
+            LOG.debug(resultsConcordance.get(McdaConstants.WEB_SERVICE_DATA_CONCORDANCE));
+
+            // TODO: add further services
+        } catch (MalformedURLException e) {
+            setJobToFailed(mcdaJob, "Unable to create URL for invoking the web services!");
+        }
+    }
+
+    private void setJobToFailed(McdaJob mcdaJob, String errorMessage) {
+        LOG.error(errorMessage);
+        mcdaJob.setState("failed");
+        mcdaJob.setReady(true);
+        mcdaJobRepository.save(mcdaJob);
     }
 }

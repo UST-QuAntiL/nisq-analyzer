@@ -64,6 +64,8 @@ public class McdaConstants {
     public static final String WEB_SERVICE_DATA_CRITERIA = "criteria";
     public static final String WEB_SERVICE_DATA_ALTERNATIVES = "alternatives";
     public static final String WEB_SERVICE_DATA_PERFORMANCE = "performance";
+    public static final String WEB_SERVICE_DATA_PREFERENCE = "preference";
+    public static final String WEB_SERVICE_DATA_FLOWS = "flows";
     public static final String WEB_SERVICE_DATA_WEIGHTS = "weights";
     public static final String WEB_SERVICE_DATA_TICKET = "ticket";
     public static final String WEB_SERVICE_DATA_STATUS = "service-status";
@@ -71,6 +73,7 @@ public class McdaConstants {
     public static final String WEB_SERVICE_DATA_IDEAL_POSITIVE = "ideal_positive";
     public static final String WEB_SERVICE_DATA_IDEAL_NEGATIVE = "ideal_negative";
     public static final String WEB_SERVICE_DATA_SCORES = "scores";
+    public static final String WEB_SERVICE_DATA_CONCORDANCE = "concordance";
 
     public static final String WEB_SERVICE_NAME_TOPSIS_RANKING = "TOPSIS_ranking-PUT.py";
     public static final String WEB_SERVICE_NAME_TOPSIS_ALTERNATIVES = "TOPSIS_extremeAlternatives-PUT.py";

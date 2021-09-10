@@ -19,17 +19,30 @@
 
 package org.planqk.nisq.analyzer.core.prioritization.promethee;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
+import org.planqk.nisq.analyzer.core.prioritization.McdaConstants;
 import org.planqk.nisq.analyzer.core.prioritization.McdaInformation;
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
+import org.planqk.nisq.analyzer.core.prioritization.McdaWebServiceHandler;
+import org.planqk.nisq.analyzer.core.prioritization.XmlUtils;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.xmcda.v2.MethodParameters;
+import org.xmcda.v2.ObjectFactory;
+import org.xmcda.v2.Parameter;
+import org.xmcda.v2.XMCDA;
 
 import lombok.RequiredArgsConstructor;
 
@@ -45,6 +58,10 @@ public class PrometheeIMethod implements McdaMethod {
     private final JobDataExtractor jobDataExtractor;
 
     private final McdaJobRepository mcdaJobRepository;
+
+    private final McdaWebServiceHandler mcdaWebServiceHandler;
+
+    private final XmlUtils xmlUtils;
 
     @Value("${org.planqk.nisq.analyzer.mcda.url}")
     private String baseURL;
@@ -72,7 +89,84 @@ public class PrometheeIMethod implements McdaMethod {
             mcdaJobRepository.save(mcdaJob);
             return;
         }
+        try {
+            // invoke the preference service for Promothee-I
+            LOG.debug("Invoking preference service for Promothee-I!");
+            URL url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_PROMOTHEEI_PREFERENCE);
+            HashMap<String, String> bodyFields = new HashMap<>();
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_CRITERIA, xmlUtils.xmcdaToString(mcdaInformation.getCriteria()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, xmlUtils.xmcdaToString(mcdaInformation.getAlternatives()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE, xmlUtils.xmcdaToString(mcdaInformation.getPerformances()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_WEIGHTS, xmlUtils.xmcdaToString(mcdaInformation.getWeights()));
+            Map<String, String>
+                    resultsPreferences = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+            LOG.debug("Invoked preference service successfully and retrieved {} results!", resultsPreferences.size());
 
-        // TODO: perform Promethee
+            // check for required results
+            if (!resultsPreferences.containsKey(McdaConstants.WEB_SERVICE_DATA_PREFERENCE)) {
+                setJobToFailed(mcdaJob,
+                        "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_PREFERENCE + " in the results but doesn´t! Aborting!");
+                return;
+            }
+
+            // invoke the flows service for Promothee-I to calculate positive flows
+            LOG.debug("Invoking flows service for Promothee-I to calculate positive flows!");
+            url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_PROMOTHEEI_FLOWS);
+            bodyFields = new HashMap<>();
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PREFERENCE, resultsPreferences.get(McdaConstants.WEB_SERVICE_DATA_PREFERENCE));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, xmlUtils.xmcdaToString(mcdaInformation.getAlternatives()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE, createFlowTypeParameter("POSITIVE"));
+            Map<String, String>
+                    resultsPositiveFlows = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+            LOG.debug("Invoked flows service successfully and retrieved {} results for positive flows!", resultsPositiveFlows.size());
+
+            // invoke the flows service for Promothee-I to calculate negative flows
+            LOG.debug("Invoking flows service for Promothee-I to calculate negative flows!");
+            url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_PROMOTHEEI_FLOWS);
+            bodyFields = new HashMap<>();
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PREFERENCE, resultsPreferences.get(McdaConstants.WEB_SERVICE_DATA_PREFERENCE));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, xmlUtils.xmcdaToString(mcdaInformation.getAlternatives()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE, createFlowTypeParameter("NEGATIVE"));
+            Map<String, String>
+                    resultsNegativeFlows = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+            LOG.debug("Invoked flows service successfully and retrieved {} results for negative flows!", resultsNegativeFlows.size());
+
+            // check for required results
+            if (!resultsPositiveFlows.containsKey(McdaConstants.WEB_SERVICE_DATA_FLOWS) ||
+                    !resultsNegativeFlows.containsKey(McdaConstants.WEB_SERVICE_DATA_FLOWS)) {
+                setJobToFailed(mcdaJob,
+                        "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_FLOWS + " in the results but doesn´t! Aborting!");
+                return;
+            }
+
+            // TODO
+            LOG.debug("Resulting negative flows: {}", resultsNegativeFlows.get(McdaConstants.WEB_SERVICE_DATA_FLOWS));
+
+            // TODO: execute further services
+        } catch (MalformedURLException e) {
+            setJobToFailed(mcdaJob, "Unable to create URL for invoking the web services!");
+        }
+    }
+
+    private void setJobToFailed(McdaJob mcdaJob, String errorMessage) {
+        LOG.error(errorMessage);
+        mcdaJob.setState("failed");
+        mcdaJob.setReady(true);
+        mcdaJobRepository.save(mcdaJob);
+    }
+
+    private String createFlowTypeParameter(String value) {
+        ObjectFactory objectFactory = new ObjectFactory();
+
+        MethodParameters methodParameters = new MethodParameters();
+        methodParameters.getDescriptionOrApproachOrProblematique()
+                .add(new JAXBElement(new QName("", "parameter"), String.class,
+                        new JAXBElement(new QName("", "value"), String.class,
+                                new JAXBElement(new QName("", "label"), String.class, value))));
+
+        XMCDA methodParametersWrapper = objectFactory.createXMCDA();
+        methodParametersWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters()
+                .add(objectFactory.createXMCDAMethodParameters(methodParameters));
+        return xmlUtils.xmcdaToString(methodParametersWrapper);
     }
 }
