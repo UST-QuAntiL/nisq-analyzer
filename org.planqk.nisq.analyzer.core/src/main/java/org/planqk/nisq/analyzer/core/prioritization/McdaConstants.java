@@ -64,6 +64,7 @@ public class McdaConstants {
     public static final String WEB_SERVICE_DATA_CRITERIA = "criteria";
     public static final String WEB_SERVICE_DATA_ALTERNATIVES = "alternatives";
     public static final String WEB_SERVICE_DATA_PERFORMANCE = "performance";
+    public static final String WEB_SERVICE_DATA_PERFORMANCES = "performances";
     public static final String WEB_SERVICE_DATA_PREFERENCE = "preference";
     public static final String WEB_SERVICE_DATA_FLOWS = "flows";
     public static final String WEB_SERVICE_DATA_WEIGHTS = "weights";
