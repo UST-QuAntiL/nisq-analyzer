@@ -19,9 +19,12 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
+import java.util.List;
 import java.util.UUID;
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 
+import javafx.util.Pair;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -43,5 +46,6 @@ public class McdaJob extends Job {
 
     private UUID jobId;
 
-    // TODO
+    @Lob
+    private List<Pair<UUID, Double>> rankedResults;
 }

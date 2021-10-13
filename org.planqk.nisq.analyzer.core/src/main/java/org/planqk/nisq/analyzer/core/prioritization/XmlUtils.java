@@ -19,9 +19,16 @@
 
 package org.planqk.nisq.analyzer.core.prioritization;
 
+import java.io.StringReader;
 import java.io.StringWriter;
 import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 
+import org.planqk.nisq.analyzer.core.repository.xmcda.CriterionInitializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.xmcda.v2.XMCDA;
 
@@ -30,6 +37,8 @@ import org.xmcda.v2.XMCDA;
  */
 @Service
 public class XmlUtils {
+
+    final private static Logger LOG = LoggerFactory.getLogger(XmlUtils.class);
 
     /**
      * Get the string representation of the given XMCDA document
@@ -43,7 +52,33 @@ public class XmlUtils {
         return sw.toString();
     }
 
+    /**
+     * Change the version of XMCDA objects to address the different versions required by the corresponding web services
+     *
+     * @param xmcda the string representation of the XMCDA object to change the version
+     * @param baseNamespace the old namespace of the XMCDA object to adapt
+     * @param targetNamespace the new namespace to use
+     * @return the string representation of the XMCDA object with updated namespace
+     */
     public String changeXMCDAVersion(String xmcda, String baseNamespace, String targetNamespace) {
         return xmcda.replace("xmlns:xmcda=\"" + baseNamespace, "xmlns:xmcda=\"" + targetNamespace);
+    }
+
+    /**
+     * Get the XMCDA object based on a corresponding XML string
+     *
+     * @param xmcdaString the XML string to parse
+     * @return the resulting XMCDA object
+     */
+    public XMCDA stringToXmcda(String xmcdaString) {
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance(XMCDA.class);
+            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+            StringReader reader = new StringReader(xmcdaString);
+            return (XMCDA) unmarshaller.unmarshal(reader);
+        } catch (JAXBException e) {
+            LOG.error("Unable to generate XMCDA object from string: {}", xmcdaString);
+            return null;
+        }
     }
 }

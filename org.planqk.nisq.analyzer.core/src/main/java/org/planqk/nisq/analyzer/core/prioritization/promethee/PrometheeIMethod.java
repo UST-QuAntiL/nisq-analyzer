@@ -21,9 +21,12 @@ package org.planqk.nisq.analyzer.core.prioritization.promethee;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -43,6 +46,7 @@ import org.xmcda.v2.MethodParameters;
 import org.xmcda.v2.ObjectFactory;
 import org.xmcda.v2.XMCDA;
 
+import javafx.util.Pair;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -93,10 +97,10 @@ public class PrometheeIMethod implements McdaMethod {
             LOG.debug("Invoking preference service for Promothee-I!");
             URL url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_PROMOTHEEI_PREFERENCE);
             HashMap<String, String> bodyFields = new HashMap<>();
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_CRITERIA,createVersionedXMCDAString(mcdaInformation.getCriteria()));
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES,createVersionedXMCDAString(mcdaInformation.getAlternatives()));
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCES,createVersionedXMCDAString(mcdaInformation.getPerformances()));
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_WEIGHTS,createVersionedXMCDAString(mcdaInformation.getWeights()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_CRITERIA, createVersionedXMCDAString(mcdaInformation.getCriteria()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, createVersionedXMCDAString(mcdaInformation.getAlternatives()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCES, createVersionedXMCDAString(mcdaInformation.getPerformances()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_WEIGHTS, createVersionedXMCDAString(mcdaInformation.getWeights()));
             Map<String, String>
                     resultsPreferences = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
             LOG.debug("Invoked preference service successfully and retrieved {} results!", resultsPreferences.size());
@@ -136,10 +140,30 @@ public class PrometheeIMethod implements McdaMethod {
             }
             LOG.debug("Resulting negative flows: {}", resultsNegativeFlows.get(McdaConstants.WEB_SERVICE_DATA_FLOWS));
 
-            // TODO: calculate netto flows from results and rank them accordingly
+            // rank the results based on the flows and update the job with the ranking
+            mcdaJob.setRankedResults(rankResultsByFlows(xmlUtils.stringToXmcda(resultsPositiveFlows.get(McdaConstants.WEB_SERVICE_DATA_FLOWS)),
+                    xmlUtils.stringToXmcda(resultsNegativeFlows.get(McdaConstants.WEB_SERVICE_DATA_FLOWS))));
+            mcdaJob.setState("finished");
+            mcdaJob.setReady(true);
+            mcdaJobRepository.save(mcdaJob);
         } catch (MalformedURLException e) {
             setJobToFailed(mcdaJob, "Unable to create URL for invoking the web services!");
         }
+    }
+
+    /**
+     * Rank the results of the job by calculating the net flow and sorting them accordingly
+     *
+     * @param positiveFlows the positive flows calculated by promothee
+     * @param negativeFlows the negative flows calculated by promothee
+     * @return the ranked results based on the net flow
+     */
+    private List<Pair<UUID, Double>> rankResultsByFlows(XMCDA positiveFlows, XMCDA negativeFlows) {
+        List<Pair<UUID, Double>> rankedResults = new ArrayList<>();
+
+        // TODO
+
+        return rankedResults;
     }
 
     private void setJobToFailed(McdaJob mcdaJob, String errorMessage) {
