@@ -22,7 +22,7 @@ package org.planqk.nisq.analyzer.core.prioritization.promethee;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,7 +93,7 @@ public class PrometheeIMethod implements McdaMethod {
 
         // abort if job can not be found and therefore no information available
         if (Objects.isNull(mcdaInformation)) {
-            setJobToFailed(mcdaJob,"Unable to retrieve information about job with ID: " + mcdaJob.getJobId());
+            setJobToFailed(mcdaJob, "Unable to retrieve information about job with ID: " + mcdaJob.getJobId());
             return;
         }
         try {
@@ -231,7 +231,12 @@ public class PrometheeIMethod implements McdaMethod {
         }
 
         // sort the list using the scores
-        rankedResults.sort(Comparator.comparingDouble(McdaResult::getScore));
+        Collections.sort(rankedResults, (o1, o2) -> Double.compare(o2.getScore(), o1.getScore()));
+        for (int i = 0; i < rankedResults.size(); i++) {
+            McdaResult mcdaResult = rankedResults.get(i);
+            mcdaResult.setPosition(i + 1);
+            mcdaResultRepository.save(mcdaResult);
+        }
 
         return rankedResults;
     }

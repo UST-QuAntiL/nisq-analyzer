@@ -39,5 +39,7 @@ public class McdaResult extends HasId {
 
     private UUID resultId;
 
+    private int position;
+
     private double score;
 }
