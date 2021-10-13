@@ -28,7 +28,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Object to represent a MCDA method job running the prioritization for a certain analysis of compilation job
+ * Object to represent a MCDA method job running the prioritization for a certain analysis or compilation job
  */
 @EqualsAndHashCode(callSuper = true)
 @Entity
