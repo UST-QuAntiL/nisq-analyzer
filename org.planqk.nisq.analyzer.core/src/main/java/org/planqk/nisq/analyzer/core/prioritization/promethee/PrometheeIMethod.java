@@ -41,12 +41,12 @@ import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.xmcda.v2.MethodParameters;
 import org.xmcda.v2.ObjectFactory;
 import org.xmcda.v2.XMCDA;
 
-import javafx.util.Pair;
 import lombok.RequiredArgsConstructor;
 
 /**

@@ -24,7 +24,8 @@ import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 
-import javafx.util.Pair;
+import org.springframework.data.util.Pair;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
