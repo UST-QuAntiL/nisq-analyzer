@@ -22,6 +22,7 @@ package org.planqk.nisq.analyzer.core.web.controller;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -273,6 +274,7 @@ public class XmcdaCriteriaController {
 
         // create job object and pass to corresponding MCDA plugin
         McdaJob mcdaJob = new McdaJob();
+        mcdaJob.setTime(OffsetDateTime.now());
         mcdaJob.setMethod(methodName);
         mcdaJob.setReady(false);
         mcdaJob.setJobId(jobId);
