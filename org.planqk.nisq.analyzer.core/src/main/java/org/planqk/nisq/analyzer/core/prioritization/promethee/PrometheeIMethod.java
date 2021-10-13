@@ -122,9 +122,6 @@ public class PrometheeIMethod implements McdaMethod {
             // invoke the flows service for Promothee-I to calculate negative flows
             LOG.debug("Invoking flows service for Promothee-I to calculate negative flows!");
             url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_PROMOTHEEI_FLOWS);
-            bodyFields = new HashMap<>();
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PREFERENCE, resultsPreferences.get(McdaConstants.WEB_SERVICE_DATA_PREFERENCE));
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, createVersionedXMCDAString(mcdaInformation.getAlternatives()));
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_FLOW_TYPE, createFlowTypeParameter("NEGATIVE"));
             Map<String, String>
                     resultsNegativeFlows = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);

@@ -100,5 +100,4 @@ public class McdaConstants {
     public static final String WEB_SERVICE_NAME_PROMOTHEEI_PREFERENCE = "PrometheePreference-J-MCDA.py";
     public static final String WEB_SERVICE_NAME_PROMOTHEEI_FLOWS = "PrometheeFlows-J-MCDA.py";
     public static final String WEB_SERVICE_NAME_PROMOTHEEI_RANKING = "Promethee1Ranking-RXMCDA.py";
-    public static final String WEB_SERVICE_NAME_PROMOTHEEI_PLOT = "plotAlternativesComparisons-ITTB.py";
 }
