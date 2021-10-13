@@ -21,15 +21,18 @@ package org.planqk.nisq.analyzer.core.prioritization;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.List;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import org.planqk.nisq.analyzer.core.repository.xmcda.CriterionInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.xmcda.v2.AlternativeValue;
+import org.xmcda.v2.AlternativesValues;
 import org.xmcda.v2.XMCDA;
 
 /**
@@ -55,8 +58,8 @@ public class XmlUtils {
     /**
      * Change the version of XMCDA objects to address the different versions required by the corresponding web services
      *
-     * @param xmcda the string representation of the XMCDA object to change the version
-     * @param baseNamespace the old namespace of the XMCDA object to adapt
+     * @param xmcda           the string representation of the XMCDA object to change the version
+     * @param baseNamespace   the old namespace of the XMCDA object to adapt
      * @param targetNamespace the new namespace to use
      * @return the string representation of the XMCDA object with updated namespace
      */
@@ -80,5 +83,31 @@ public class XmlUtils {
             LOG.error("Unable to generate XMCDA object from string: {}", xmcdaString);
             return null;
         }
+    }
+
+    /**
+     * Get the list of alternative values for a given XMCDA document
+     *
+     * @param xmcda the XMCDA document to extract the alternative values
+     * @return the list of alternative values
+     */
+    public List<AlternativeValue> getAlternativeValues(XMCDA xmcda) {
+
+        // retrieve the content of the given XMCDA objects
+        List<JAXBElement<?>> xmcdaJaxb = xmcda.getProjectReferenceOrMethodMessagesOrMethodParameters();
+        if (xmcdaJaxb.isEmpty()) {
+            LOG.error("XMCDA document is empty!");
+            return null;
+        }
+
+        // get the root element of the flows which have to be of class AlternativesValues
+        Object xmcdaRoot = xmcdaJaxb.get(0).getValue();
+        if (!(xmcdaRoot instanceof AlternativesValues)) {
+            LOG.error("Root element is not of type AlternativesValues!");
+            return null;
+        }
+
+        // cast to AlternativesValues and extract content
+        return ((AlternativesValues) xmcdaRoot).getAlternativeValue();
     }
 }

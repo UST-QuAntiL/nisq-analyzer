@@ -47,7 +47,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.xmcda.v2.AlternativeValue;
-import org.xmcda.v2.AlternativesValues;
 import org.xmcda.v2.MethodParameters;
 import org.xmcda.v2.ObjectFactory;
 import org.xmcda.v2.XMCDA;
@@ -177,26 +176,14 @@ public class PrometheeIMethod implements McdaMethod {
      */
     private List<McdaResult> rankResultsByFlows(XMCDA positiveFlows, XMCDA negativeFlows) {
 
-        // retrieve the content of the given XMCDA objects
-        List<JAXBElement<?>> positiveFlowsJaxb = positiveFlows.getProjectReferenceOrMethodMessagesOrMethodParameters();
-        List<JAXBElement<?>> negativeFlowsJaxb = negativeFlows.getProjectReferenceOrMethodMessagesOrMethodParameters();
-        if (positiveFlowsJaxb.isEmpty() || negativeFlowsJaxb.isEmpty()) {
-            LOG.error("Results from flow calculation are empty!");
+        // get alternative values for the two XMCDA documents
+        List<AlternativeValue> alternativeValuesPositive = xmlUtils.getAlternativeValues(positiveFlows);
+        List<AlternativeValue> alternativeValuesNegative = xmlUtils.getAlternativeValues(negativeFlows);
+        if (Objects.isNull(alternativeValuesPositive) || Objects.isNull(alternativeValuesNegative)) {
+            LOG.error("Unable to retrieve alternative values for positive and negative flows!");
             return null;
         }
 
-        // get the root element of the flows which have to be of class AlternativesValues
-        Object positiveFlowsRoot = positiveFlowsJaxb.get(0).getValue();
-        Object negativeFlowsRoot = negativeFlowsJaxb.get(0).getValue();
-        if (!(positiveFlowsRoot instanceof AlternativesValues)
-                || !(negativeFlowsRoot instanceof AlternativesValues)) {
-            LOG.error("Results from flow calculation do not contain AlternativeValues which are required!");
-            return null;
-        }
-
-        // cast to AlternativesValues and extract content
-        List<AlternativeValue> alternativeValuesPositive = ((AlternativesValues) positiveFlowsRoot).getAlternativeValue();
-        List<AlternativeValue> alternativeValuesNegative = ((AlternativesValues) negativeFlowsRoot).getAlternativeValue();
         LOG.debug("Found {} alternatives in positive flows and {} in negative flows!", alternativeValuesPositive.size(),
                 alternativeValuesNegative.size());
         if (alternativeValuesPositive.size() != alternativeValuesNegative.size()) {
