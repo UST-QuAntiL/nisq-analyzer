@@ -22,10 +22,12 @@ package org.planqk.nisq.analyzer.core.prioritization.promethee;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -38,10 +40,13 @@ import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
 import org.planqk.nisq.analyzer.core.prioritization.McdaWebServiceHandler;
 import org.planqk.nisq.analyzer.core.prioritization.XmlUtils;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
+import org.planqk.nisq.analyzer.core.repository.McdaResultRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.xmcda.v2.AlternativeValue;
+import org.xmcda.v2.AlternativesValues;
 import org.xmcda.v2.MethodParameters;
 import org.xmcda.v2.ObjectFactory;
 import org.xmcda.v2.XMCDA;
@@ -60,6 +65,8 @@ public class PrometheeIMethod implements McdaMethod {
     private final JobDataExtractor jobDataExtractor;
 
     private final McdaJobRepository mcdaJobRepository;
+
+    private final McdaResultRepository mcdaResultRepository;
 
     private final McdaWebServiceHandler mcdaWebServiceHandler;
 
@@ -137,11 +144,24 @@ public class PrometheeIMethod implements McdaMethod {
                         "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_FLOWS + " in the results but doesn´t! Aborting!");
                 return;
             }
-            LOG.debug("Resulting negative flows: {}", resultsNegativeFlows.get(McdaConstants.WEB_SERVICE_DATA_FLOWS));
+
+            // parse results to use the namespace required by the XMCDA library
+            String updatedPositiveFlows = xmlUtils.changeXMCDAVersion(resultsPositiveFlows.get(McdaConstants.WEB_SERVICE_DATA_FLOWS),
+                    McdaConstants.WEB_SERVICE_NAMESPACE_2_1_0,
+                    McdaConstants.WEB_SERVICE_NAMESPACE_DEFAULT);
+            String updatedNegativeFlows = xmlUtils.changeXMCDAVersion(resultsNegativeFlows.get(McdaConstants.WEB_SERVICE_DATA_FLOWS),
+                    McdaConstants.WEB_SERVICE_NAMESPACE_2_1_0,
+                    McdaConstants.WEB_SERVICE_NAMESPACE_DEFAULT);
 
             // rank the results based on the flows and update the job with the ranking
-            mcdaJob.setRankedResults(rankResultsByFlows(xmlUtils.stringToXmcda(resultsPositiveFlows.get(McdaConstants.WEB_SERVICE_DATA_FLOWS)),
-                    xmlUtils.stringToXmcda(resultsNegativeFlows.get(McdaConstants.WEB_SERVICE_DATA_FLOWS))));
+            List<McdaResult> rankResultsByFlows =
+                    rankResultsByFlows(xmlUtils.stringToXmcda(updatedPositiveFlows),
+                            xmlUtils.stringToXmcda(updatedNegativeFlows));
+            if (Objects.isNull(rankResultsByFlows)) {
+                setJobToFailed(mcdaJob, "Unable to rank results by given positive and negative flows!");
+                return;
+            }
+            mcdaJob.setRankedResults(rankResultsByFlows);
             mcdaJob.setState("finished");
             mcdaJob.setReady(true);
             mcdaJobRepository.save(mcdaJob);
@@ -158,11 +178,88 @@ public class PrometheeIMethod implements McdaMethod {
      * @return the ranked results based on the net flow
      */
     private List<McdaResult> rankResultsByFlows(XMCDA positiveFlows, XMCDA negativeFlows) {
-        List<McdaResult> rankedResults = new ArrayList<>();
 
-        // TODO
+        // retrieve the content of the given XMCDA objects
+        List<JAXBElement<?>> positiveFlowsJaxb = positiveFlows.getProjectReferenceOrMethodMessagesOrMethodParameters();
+        List<JAXBElement<?>> negativeFlowsJaxb = negativeFlows.getProjectReferenceOrMethodMessagesOrMethodParameters();
+        if (positiveFlowsJaxb.isEmpty() || negativeFlowsJaxb.isEmpty()) {
+            LOG.error("Results from flow calculation are empty!");
+            return null;
+        }
+
+        // get the root element of the flows which have to be of class AlternativesValues
+        Object positiveFlowsRoot = positiveFlowsJaxb.get(0).getValue();
+        Object negativeFlowsRoot = negativeFlowsJaxb.get(0).getValue();
+        if (!(positiveFlowsRoot instanceof AlternativesValues)
+                || !(negativeFlowsRoot instanceof AlternativesValues)) {
+            LOG.error("Results from flow calculation do not contain AlternativeValues which are required!");
+            return null;
+        }
+
+        // cast to AlternativesValues and extract content
+        List<AlternativeValue> alternativeValuesPositive = ((AlternativesValues) positiveFlowsRoot).getAlternativeValue();
+        List<AlternativeValue> alternativeValuesNegative = ((AlternativesValues) negativeFlowsRoot).getAlternativeValue();
+        LOG.debug("Found {} alternatives in positive flows and {} in negative flows!", alternativeValuesPositive.size(),
+                alternativeValuesNegative.size());
+        if (alternativeValuesPositive.size() != alternativeValuesNegative.size()) {
+            LOG.error("Positive and negative flows must contain the same number of alternatives!");
+            return null;
+        }
+
+        // calculate the net flows for the alternatives
+        List<McdaResult> rankedResults = new ArrayList<>();
+        for (AlternativeValue alternativeValuePositive : alternativeValuesPositive) {
+            boolean found = false;
+            for (AlternativeValue alternativeValueNegative : alternativeValuesNegative) {
+                if (alternativeValuePositive.getAlternativeID().equals(alternativeValueNegative.getAlternativeID())) {
+                    double netFlow = getValue(alternativeValuePositive) - getValue(alternativeValueNegative);
+                    UUID resultId = UUID.fromString(alternativeValuePositive.getAlternativeID());
+                    LOG.debug("Adding alternative with ID {} and net flow: {}", resultId, netFlow);
+
+                    McdaResult mcdaResult = new McdaResult();
+                    mcdaResult.setScore(netFlow);
+                    mcdaResult.setResultId(resultId);
+                    mcdaResult = mcdaResultRepository.save(mcdaResult);
+                    rankedResults.add(mcdaResult);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                LOG.error("Unable to find matching alternative in negative flows for ID: {}!", alternativeValuePositive.getAlternativeID());
+                return null;
+            }
+        }
+
+        // sort the list using the scores
+        rankedResults.sort(Comparator.comparingDouble(McdaResult::getScore));
 
         return rankedResults;
+    }
+
+    private double getValue(AlternativeValue alternativeValue) {
+        if (alternativeValue.getValueOrValues().isEmpty()) {
+            LOG.error("AlternativeValue does not contain value!");
+            return 0;
+        }
+        Object valueOrValues = alternativeValue.getValueOrValues().get(0);
+
+        // retrieve contained value or values element
+        if (valueOrValues instanceof org.xmcda.v2.Value) {
+            return ((org.xmcda.v2.Value) valueOrValues).getReal();
+        } else if (valueOrValues instanceof org.xmcda.v2.Values) {
+            org.xmcda.v2.Values values = ((org.xmcda.v2.Values) valueOrValues);
+            if (values.getValue().isEmpty()) {
+                LOG.error("Values element does not contain Value as child!");
+                return 0;
+            } else {
+                return values.getValue().get(0).getReal();
+            }
+        } else {
+            LOG.error("AlternativeValue contains neither Value nor Values as child!");
+            return 0;
+        }
     }
 
     private void setJobToFailed(McdaJob mcdaJob, String errorMessage) {

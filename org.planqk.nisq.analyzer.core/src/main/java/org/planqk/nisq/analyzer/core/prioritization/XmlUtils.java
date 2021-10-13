@@ -61,7 +61,7 @@ public class XmlUtils {
      * @return the string representation of the XMCDA object with updated namespace
      */
     public String changeXMCDAVersion(String xmcda, String baseNamespace, String targetNamespace) {
-        return xmcda.replace("xmlns:xmcda=\"" + baseNamespace, "xmlns:xmcda=\"" + targetNamespace);
+        return xmcda.replace("=\"" + baseNamespace, "=\"" + targetNamespace);
     }
 
     /**
