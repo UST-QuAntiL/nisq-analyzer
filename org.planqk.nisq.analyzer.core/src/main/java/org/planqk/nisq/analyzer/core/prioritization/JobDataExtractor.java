@@ -29,11 +29,14 @@ import javax.xml.namespace.QName;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.CircuitResult;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
+import org.planqk.nisq.analyzer.core.model.JobType;
+import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
+import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
 import org.planqk.nisq.analyzer.core.repository.xmcda.XmcdaRepository;
 import org.slf4j.Logger;
@@ -67,6 +70,8 @@ public class JobDataExtractor {
 
     private final CompilationJobRepository compilationJobRepository;
 
+    private final McdaJobRepository mcdaJobRepository;
+
     private final XmcdaRepository xmcdaRepository;
 
     private final QProvService qProvService;
@@ -74,14 +79,13 @@ public class JobDataExtractor {
     /**
      * Get the required information to run MCDA methods from different kinds of NISQ Analyzer jobs
      *
-     * @param jobId      the ID of the job to retrieve the information from
-     * @param mcdaMethod the MCDA method to retrieve the data for
+     * @param mcdaJob    the MCDA related to the prioritization
      * @return the retrieved job information
      */
-    public McdaInformation getJobInformationFromUuid(UUID jobId, String mcdaMethod) {
-        LOG.debug("Retrieving job information about job with ID: {}", jobId);
+    public McdaInformation getJobInformationFromUuid(McdaJob mcdaJob) {
+        LOG.debug("Retrieving job information about job with ID: {}", mcdaJob.getJobId());
 
-        Optional<QpuSelectionJob> qpuSelectionJobOptional = qpuSelectionJobRepository.findById(jobId);
+        Optional<QpuSelectionJob> qpuSelectionJobOptional = qpuSelectionJobRepository.findById(mcdaJob.getJobId());
         if (qpuSelectionJobOptional.isPresent()) {
             QpuSelectionJob job = qpuSelectionJobOptional.get();
             if (!job.isReady()) {
@@ -89,12 +93,14 @@ public class JobDataExtractor {
                 return null;
             }
 
+            mcdaJob.setJobType(JobType.QPU_SELECTION);
+            mcdaJobRepository.save(mcdaJob);
             LOG.debug("Retrieving information from QPU selection job!");
             List<CircuitResult> results = job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
-            return getFromCircuitResults(results, mcdaMethod);
+            return getFromCircuitResults(results, mcdaJob.getMethod());
         }
 
-        Optional<AnalysisJob> analysisJobOptional = analysisJobRepository.findById(jobId);
+        Optional<AnalysisJob> analysisJobOptional = analysisJobRepository.findById(mcdaJob.getJobId());
         if (analysisJobOptional.isPresent()) {
             AnalysisJob job = analysisJobOptional.get();
             if (!job.isReady()) {
@@ -102,12 +108,14 @@ public class JobDataExtractor {
                 return null;
             }
 
+            mcdaJob.setJobType(JobType.ANALYSIS);
+            mcdaJobRepository.save(mcdaJob);
             LOG.debug("Retrieving information from analysis job!");
             List<CircuitResult> results = job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
-            return getFromCircuitResults(results, mcdaMethod);
+            return getFromCircuitResults(results, mcdaJob.getMethod());
         }
 
-        Optional<CompilationJob> compilationJobOptional = compilationJobRepository.findById(jobId);
+        Optional<CompilationJob> compilationJobOptional = compilationJobRepository.findById(mcdaJob.getJobId());
         if (compilationJobOptional.isPresent()) {
             CompilationJob job = compilationJobOptional.get();
             if (!job.isReady()) {
@@ -115,12 +123,14 @@ public class JobDataExtractor {
                 return null;
             }
 
+            mcdaJob.setJobType(JobType.COMPILATION);
+            mcdaJobRepository.save(mcdaJob);
             LOG.debug("Retrieving information from compilation job!");
             List<CircuitResult> results = job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
-            return getFromCircuitResults(results, mcdaMethod);
+            return getFromCircuitResults(results, mcdaJob.getMethod());
         }
 
-        LOG.error("Unable to find QPU selection, analysis, or compilation job for ID: {}", jobId);
+        LOG.error("Unable to find QPU selection, analysis, or compilation job for ID: {}", mcdaJob.getJobId());
         return null;
     }
 

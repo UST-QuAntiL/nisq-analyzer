@@ -74,7 +74,7 @@ public class ElectreIIIMethod implements McdaMethod {
     @Override
     public void executeMcdaMethod(McdaJob mcdaJob) {
         LOG.debug("Starting Electre III MCDA method to prioritize job with ID: {}", mcdaJob.getJobId());
-        McdaInformation mcdaInformation = jobDataExtractor.getJobInformationFromUuid(mcdaJob.getJobId(), mcdaJob.getMethod());
+        McdaInformation mcdaInformation = jobDataExtractor.getJobInformationFromUuid(mcdaJob);
 
         // abort if job can not be found and therefore no information available
         if (Objects.isNull(mcdaInformation)) {

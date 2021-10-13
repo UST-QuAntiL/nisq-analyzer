@@ -19,35 +19,9 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import java.util.List;
-import java.util.UUID;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-
 /**
- * Object to represent a MCDA method job running the prioritization for a certain analysis or compilation job
+ * Enum containing all types of jobs used by the NISQ Analyzer
  */
-@EqualsAndHashCode(callSuper = true)
-@Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class McdaJob extends Job {
-
-    private String method;
-
-    private String state;
-
-    private UUID jobId;
-
-    private JobType jobType;
-
-    @OneToMany(cascade = CascadeType.PERSIST)
-    private List<McdaResult> rankedResults;
+public enum JobType {
+    ANALYSIS, COMPILATION, QPU_SELECTION, MCDA
 }
