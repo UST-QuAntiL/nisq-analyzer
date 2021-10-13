@@ -26,11 +26,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.planqk.nisq.analyzer.core.model.McdaJob;
+import org.planqk.nisq.analyzer.core.model.McdaResult;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
 import org.planqk.nisq.analyzer.core.prioritization.McdaConstants;
 import org.planqk.nisq.analyzer.core.prioritization.McdaInformation;
@@ -41,7 +41,6 @@ import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.xmcda.v2.MethodParameters;
 import org.xmcda.v2.ObjectFactory;
@@ -158,8 +157,8 @@ public class PrometheeIMethod implements McdaMethod {
      * @param negativeFlows the negative flows calculated by promothee
      * @return the ranked results based on the net flow
      */
-    private List<Pair<UUID, Double>> rankResultsByFlows(XMCDA positiveFlows, XMCDA negativeFlows) {
-        List<Pair<UUID, Double>> rankedResults = new ArrayList<>();
+    private List<McdaResult> rankResultsByFlows(XMCDA positiveFlows, XMCDA negativeFlows) {
+        List<McdaResult> rankedResults = new ArrayList<>();
 
         // TODO
 
