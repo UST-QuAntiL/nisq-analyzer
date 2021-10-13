@@ -136,25 +136,7 @@ public class PrometheeIMethod implements McdaMethod {
             }
             LOG.debug("Resulting negative flows: {}", resultsNegativeFlows.get(McdaConstants.WEB_SERVICE_DATA_FLOWS));
 
-            LOG.debug("Invoking flows service for Promothee-I to rank results!");
-            url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_PROMOTHEEI_RANKING);
-            bodyFields = new HashMap<>();
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_NEGATIVE_FLOWS, resultsNegativeFlows.get(McdaConstants.WEB_SERVICE_DATA_FLOWS));
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_POSITIVE_FLOWS, resultsPositiveFlows.get(McdaConstants.WEB_SERVICE_DATA_FLOWS));
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, createVersionedXMCDAString(mcdaInformation.getAlternatives()));
-            Map<String, String>
-                    resultsRanking = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
-            LOG.debug("Invoked ranking service successfully and retrieved {} results!", resultsRanking.size());
-
-            // check for required results
-            if (!resultsRanking.containsKey(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES_MATRIX)) {
-                setJobToFailed(mcdaJob,
-                        "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES_MATRIX + " in the results but doesn´t! Aborting!");
-                return;
-            }
-            LOG.debug("Alternatives matrix: {}", resultsRanking.get(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES_MATRIX));
-
-            // TODO: execute further services
+            // TODO: calculate netto flows from results and rank them accordingly
         } catch (MalformedURLException e) {
             setJobToFailed(mcdaJob, "Unable to create URL for invoking the web services!");
         }
