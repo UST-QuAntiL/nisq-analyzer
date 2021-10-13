@@ -230,7 +230,7 @@ public class XmcdaCriteriaController {
             description = "Retrieve all MCDA jobs for the given method")
     @GetMapping("/{methodName}/" + Constants.JOBS + "/{jobId}")
     public HttpEntity<EntityModel<McdaJob>> getPrioritizationJob(@PathVariable String methodName, @PathVariable UUID jobId) {
-        LOG.debug("Retrieving MCDA jobs with ID: {}", jobId);
+        LOG.debug("Retrieving MCDA job with ID: {}", jobId);
 
         // check if method is supported
         Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
@@ -254,7 +254,7 @@ public class XmcdaCriteriaController {
 
         EntityModel<McdaJob> mcdaJobDto = new EntityModel<>(job);
         addLinksToRelatedResults(mcdaJobDto, job);
-        mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, job.getJobId())).withSelfRel());
+        mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, jobId)).withSelfRel());
         return new ResponseEntity<>(mcdaJobDto, HttpStatus.OK);
     }
 

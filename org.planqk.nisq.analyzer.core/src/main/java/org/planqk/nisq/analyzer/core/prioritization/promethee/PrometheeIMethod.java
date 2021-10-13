@@ -197,7 +197,7 @@ public class PrometheeIMethod implements McdaMethod {
             boolean found = false;
             for (AlternativeValue alternativeValueNegative : alternativeValuesNegative) {
                 if (alternativeValuePositive.getAlternativeID().equals(alternativeValueNegative.getAlternativeID())) {
-                    double netFlow = getValue(alternativeValuePositive) - getValue(alternativeValueNegative);
+                    double netFlow = xmlUtils.getValue(alternativeValuePositive) - xmlUtils.getValue(alternativeValueNegative);
                     UUID resultId = UUID.fromString(alternativeValuePositive.getAlternativeID());
                     LOG.debug("Adding alternative with ID {} and net flow: {}", resultId, netFlow);
 
@@ -226,30 +226,6 @@ public class PrometheeIMethod implements McdaMethod {
         }
 
         return rankedResults;
-    }
-
-    private double getValue(AlternativeValue alternativeValue) {
-        if (alternativeValue.getValueOrValues().isEmpty()) {
-            LOG.error("AlternativeValue does not contain value!");
-            return 0;
-        }
-        Object valueOrValues = alternativeValue.getValueOrValues().get(0);
-
-        // retrieve contained value or values element
-        if (valueOrValues instanceof org.xmcda.v2.Value) {
-            return ((org.xmcda.v2.Value) valueOrValues).getReal();
-        } else if (valueOrValues instanceof org.xmcda.v2.Values) {
-            org.xmcda.v2.Values values = ((org.xmcda.v2.Values) valueOrValues);
-            if (values.getValue().isEmpty()) {
-                LOG.error("Values element does not contain Value as child!");
-                return 0;
-            } else {
-                return values.getValue().get(0).getReal();
-            }
-        } else {
-            LOG.error("AlternativeValue contains neither Value nor Values as child!");
-            return 0;
-        }
     }
 
     private void setJobToFailed(McdaJob mcdaJob, String errorMessage) {

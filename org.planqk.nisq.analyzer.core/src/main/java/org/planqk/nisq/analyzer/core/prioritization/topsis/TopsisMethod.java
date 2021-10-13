@@ -21,12 +21,17 @@ package org.planqk.nisq.analyzer.core.prioritization.topsis;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.McdaJob;
+import org.planqk.nisq.analyzer.core.model.McdaResult;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
 import org.planqk.nisq.analyzer.core.prioritization.McdaConstants;
 import org.planqk.nisq.analyzer.core.prioritization.McdaInformation;
@@ -34,10 +39,12 @@ import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
 import org.planqk.nisq.analyzer.core.prioritization.McdaWebServiceHandler;
 import org.planqk.nisq.analyzer.core.prioritization.XmlUtils;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
+import org.planqk.nisq.analyzer.core.repository.McdaResultRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.xmcda.v2.AlternativeValue;
 
 import lombok.RequiredArgsConstructor;
 
@@ -53,6 +60,8 @@ public class TopsisMethod implements McdaMethod {
     private final JobDataExtractor jobDataExtractor;
 
     private final McdaJobRepository mcdaJobRepository;
+
+    private final McdaResultRepository mcdaResultRepository;
 
     private final McdaWebServiceHandler mcdaWebServiceHandler;
 
@@ -78,7 +87,7 @@ public class TopsisMethod implements McdaMethod {
 
         // abort if job can not be found and therefore no information available
         if (Objects.isNull(mcdaInformation)) {
-            setJobToFailed(mcdaJob,"Unable to retrieve information about job with ID: " + mcdaJob.getJobId());
+            setJobToFailed(mcdaJob, "Unable to retrieve information about job with ID: " + mcdaJob.getJobId());
             return;
         }
 
@@ -91,7 +100,8 @@ public class TopsisMethod implements McdaMethod {
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, xmlUtils.xmcdaToString(mcdaInformation.getAlternatives()));
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE, xmlUtils.xmcdaToString(mcdaInformation.getPerformances()));
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_WEIGHTS, xmlUtils.xmcdaToString(mcdaInformation.getWeights()));
-            Map<String, String> resultsWeighting = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+            Map<String, String> resultsWeighting =
+                    mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
             LOG.debug("Invoked normalization and weighting service successfully and retrieved {} results!", resultsWeighting.size());
 
             // check for required results
@@ -107,14 +117,16 @@ public class TopsisMethod implements McdaMethod {
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_CRITERIA, xmlUtils.xmcdaToString(mcdaInformation.getCriteria()));
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, xmlUtils.xmcdaToString(mcdaInformation.getAlternatives()));
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE, resultsWeighting.get(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE));
-            Map<String, String> resultsAlternatives = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+            Map<String, String> resultsAlternatives =
+                    mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
             LOG.debug("Invoked alternatives calculation service successfully and retrieved {} results!", resultsAlternatives.size());
 
             // check for required results
             if (!(resultsAlternatives.containsKey(McdaConstants.WEB_SERVICE_DATA_IDEAL_POSITIVE) &&
                     resultsAlternatives.containsKey(McdaConstants.WEB_SERVICE_DATA_IDEAL_NEGATIVE))) {
                 setJobToFailed(mcdaJob,
-                        "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_IDEAL_POSITIVE + " and " + McdaConstants.WEB_SERVICE_DATA_IDEAL_NEGATIVE + " in the results but doesn´t! Aborting!");
+                        "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_IDEAL_POSITIVE + " and " +
+                                McdaConstants.WEB_SERVICE_DATA_IDEAL_NEGATIVE + " in the results but doesn´t! Aborting!");
                 return;
             }
 
@@ -126,7 +138,8 @@ public class TopsisMethod implements McdaMethod {
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE, resultsWeighting.get(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE));
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_IDEAL_POSITIVE, resultsAlternatives.get(McdaConstants.WEB_SERVICE_DATA_IDEAL_POSITIVE));
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_IDEAL_NEGATIVE, resultsAlternatives.get(McdaConstants.WEB_SERVICE_DATA_IDEAL_NEGATIVE));
-            Map<String, String> resultsRanking = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+            Map<String, String> resultsRanking =
+                    mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
             LOG.debug("Invoked alternatives calculation service successfully and retrieved {} results!", resultsAlternatives.size());
 
             // check for required results
@@ -136,11 +149,45 @@ public class TopsisMethod implements McdaMethod {
                 return;
             }
 
-            // TODO: interpret ranking results and add to McdaJob
-            LOG.debug("Resulting scores: {}", resultsRanking.get(McdaConstants.WEB_SERVICE_DATA_SCORES));
+            // get the alternative values from the ranking
+            String versionAdaptedXMCDA = xmlUtils.changeXMCDAVersion(resultsRanking.get(McdaConstants.WEB_SERVICE_DATA_SCORES),
+                    McdaConstants.WEB_SERVICE_NAMESPACE_2_2_2,
+                    McdaConstants.WEB_SERVICE_NAMESPACE_DEFAULT);
+            List<AlternativeValue> alternativeValueList = xmlUtils.getAlternativeValues(xmlUtils.stringToXmcda(versionAdaptedXMCDA));
+            LOG.debug("Retrieved {} alternatives from ranking!", alternativeValueList.size());
+
+            // parse results to McdaResults and sort them
+            List<McdaResult> mcdaResults = sortAlternatives(alternativeValueList);
+
+            // update job object with the results
+            mcdaJob.setRankedResults(mcdaResults);
+            mcdaJob.setState(ExecutionResultStatus.FINISHED.toString());
+            mcdaJob.setReady(true);
+            mcdaJobRepository.save(mcdaJob);
         } catch (MalformedURLException e) {
             setJobToFailed(mcdaJob, "Unable to create URL for invoking the web services!");
         }
+    }
+
+    private List<McdaResult> sortAlternatives(List<AlternativeValue> alternativeValueList) {
+        List<McdaResult> mcdaResults = new ArrayList<>();
+        for (AlternativeValue alternativeValue : alternativeValueList) {
+            McdaResult mcdaResult = new McdaResult();
+            mcdaResult.setScore(xmlUtils.getValue(alternativeValue));
+            mcdaResult.setResultId(UUID.fromString(alternativeValue.getAlternativeID()));
+            mcdaResult = mcdaResultRepository.save(mcdaResult);
+            mcdaResults.add(mcdaResult);
+        }
+
+        // sort the list using the scores
+        Collections.sort(mcdaResults, (o1, o2) -> Double.compare(o2.getScore(), o1.getScore()));
+        for (int i = 0; i < mcdaResults.size(); i++) {
+            McdaResult mcdaResult = mcdaResults.get(i);
+            mcdaResult.setPosition(i + 1);
+            mcdaResultRepository.save(mcdaResult);
+        }
+
+        return mcdaResults;
     }
 
     private void setJobToFailed(McdaJob mcdaJob, String errorMessage) {

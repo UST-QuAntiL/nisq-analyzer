@@ -64,6 +64,9 @@ public class McdaConstants {
     // XMCDA namespace for the promethee services
     public static final String WEB_SERVICE_NAMESPACE_2_1_0 = "http://www.decision-deck.org/2009/XMCDA-2.1.0";
 
+    // XMCDA namspace for the TOPSIS services
+    public static final String WEB_SERVICE_NAMESPACE_2_2_2 = "http://www.decision-deck.org/2017/XMCDA-2.2.2";
+
     // default namespace used by the XMCDA library
     public static final String WEB_SERVICE_NAMESPACE_DEFAULT = "http://www.decision-deck.org/2019/XMCDA-2.2.3";
 

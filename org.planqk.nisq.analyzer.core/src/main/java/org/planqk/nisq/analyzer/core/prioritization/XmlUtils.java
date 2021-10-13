@@ -110,4 +110,34 @@ public class XmlUtils {
         // cast to AlternativesValues and extract content
         return ((AlternativesValues) xmcdaRoot).getAlternativeValue();
     }
+
+    /**
+     * Get the first Value object as double from the given AlternativeValue object
+     *
+     * @param alternativeValue the AlternativeValue object to retrieve the Value for
+     * @return the double from the found Value, or 0 if non is found
+     */
+    public double getValue(AlternativeValue alternativeValue) {
+        if (alternativeValue.getValueOrValues().isEmpty()) {
+            LOG.error("AlternativeValue does not contain value!");
+            return 0;
+        }
+        Object valueOrValues = alternativeValue.getValueOrValues().get(0);
+
+        // retrieve contained value or values element
+        if (valueOrValues instanceof org.xmcda.v2.Value) {
+            return ((org.xmcda.v2.Value) valueOrValues).getReal();
+        } else if (valueOrValues instanceof org.xmcda.v2.Values) {
+            org.xmcda.v2.Values values = ((org.xmcda.v2.Values) valueOrValues);
+            if (values.getValue().isEmpty()) {
+                LOG.error("Values element does not contain Value as child!");
+                return 0;
+            } else {
+                return values.getValue().get(0).getReal();
+            }
+        } else {
+            LOG.error("AlternativeValue contains neither Value nor Values as child!");
+            return 0;
+        }
+    }
 }
