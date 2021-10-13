@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
 import org.planqk.nisq.analyzer.core.prioritization.McdaConstants;
@@ -78,7 +79,7 @@ public class ElectreIIIMethod implements McdaMethod {
         // abort if job can not be found and therefore no information available
         if (Objects.isNull(mcdaInformation)) {
             LOG.error("Unable to retrieve information about job with ID: {}", mcdaJob.getJobId());
-            mcdaJob.setState("failed");
+            mcdaJob.setState(ExecutionResultStatus.FAILED.toString());
             mcdaJob.setReady(true);
             mcdaJobRepository.save(mcdaJob);
             return;
@@ -113,7 +114,7 @@ public class ElectreIIIMethod implements McdaMethod {
 
     private void setJobToFailed(McdaJob mcdaJob, String errorMessage) {
         LOG.error(errorMessage);
-        mcdaJob.setState("failed");
+        mcdaJob.setState(ExecutionResultStatus.FAILED.toString());
         mcdaJob.setReady(true);
         mcdaJobRepository.save(mcdaJob);
     }

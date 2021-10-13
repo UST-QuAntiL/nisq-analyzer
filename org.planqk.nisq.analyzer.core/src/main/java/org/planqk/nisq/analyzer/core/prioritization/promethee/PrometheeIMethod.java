@@ -31,6 +31,7 @@ import java.util.UUID;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.model.McdaResult;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
@@ -92,10 +93,7 @@ public class PrometheeIMethod implements McdaMethod {
 
         // abort if job can not be found and therefore no information available
         if (Objects.isNull(mcdaInformation)) {
-            LOG.error("Unable to retrieve information about job with ID: {}", mcdaJob.getJobId());
-            mcdaJob.setState("failed");
-            mcdaJob.setReady(true);
-            mcdaJobRepository.save(mcdaJob);
+            setJobToFailed(mcdaJob,"Unable to retrieve information about job with ID: " + mcdaJob.getJobId());
             return;
         }
         try {
@@ -162,7 +160,7 @@ public class PrometheeIMethod implements McdaMethod {
                 return;
             }
             mcdaJob.setRankedResults(rankResultsByFlows);
-            mcdaJob.setState("finished");
+            mcdaJob.setState(ExecutionResultStatus.FINISHED.toString());
             mcdaJob.setReady(true);
             mcdaJobRepository.save(mcdaJob);
         } catch (MalformedURLException e) {
@@ -264,7 +262,7 @@ public class PrometheeIMethod implements McdaMethod {
 
     private void setJobToFailed(McdaJob mcdaJob, String errorMessage) {
         LOG.error(errorMessage);
-        mcdaJob.setState("failed");
+        mcdaJob.setState(ExecutionResultStatus.FAILED.toString());
         mcdaJob.setReady(true);
         mcdaJobRepository.save(mcdaJob);
     }

@@ -29,6 +29,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.Constants;
+import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
@@ -271,7 +272,7 @@ public class XmcdaCriteriaController {
         mcdaJob.setMethod(methodName);
         mcdaJob.setReady(false);
         mcdaJob.setJobId(jobId);
-        mcdaJob.setState("initialized");
+        mcdaJob.setState(ExecutionResultStatus.INITIALIZED.toString());
 
         // store object to generate UUID
         McdaJob storedMcdaJob = mcdaJobRepository.save(mcdaJob);

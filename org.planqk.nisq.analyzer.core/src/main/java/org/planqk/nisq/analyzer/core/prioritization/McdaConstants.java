@@ -73,9 +73,6 @@ public class McdaConstants {
     public static final String WEB_SERVICE_DATA_FLOW_TYPE = "flow_type";
     public static final String WEB_SERVICE_DATA_PERFORMANCES = "performances";
     public static final String WEB_SERVICE_DATA_PREFERENCE = "preference";
-    public static final String WEB_SERVICE_DATA_NEGATIVE_FLOWS = "negativeFlows";
-    public static final String WEB_SERVICE_DATA_POSITIVE_FLOWS = "positiveFlows";
-    public static final String WEB_SERVICE_DATA_ALTERNATIVES_MATRIX = "promethee1";
     public static final String WEB_SERVICE_DATA_FLOWS = "flows";
     public static final String WEB_SERVICE_DATA_WEIGHTS = "weights";
     public static final String WEB_SERVICE_DATA_TICKET = "ticket";
@@ -99,5 +96,4 @@ public class McdaConstants {
 
     public static final String WEB_SERVICE_NAME_PROMOTHEEI_PREFERENCE = "PrometheePreference-J-MCDA.py";
     public static final String WEB_SERVICE_NAME_PROMOTHEEI_FLOWS = "PrometheeFlows-J-MCDA.py";
-    public static final String WEB_SERVICE_NAME_PROMOTHEEI_RANKING = "Promethee1Ranking-RXMCDA.py";
 }
