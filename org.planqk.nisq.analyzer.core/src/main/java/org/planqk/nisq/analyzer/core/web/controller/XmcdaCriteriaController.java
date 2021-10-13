@@ -30,7 +30,9 @@ import java.util.stream.Collectors;
 
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
+import org.planqk.nisq.analyzer.core.model.JobType;
 import org.planqk.nisq.analyzer.core.model.McdaJob;
+import org.planqk.nisq.analyzer.core.model.McdaResult;
 import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
@@ -213,6 +215,7 @@ public class XmcdaCriteriaController {
         List<EntityModel<McdaJob>> jobs = new ArrayList<>();
         for (McdaJob mcdaJob : mcdaJobRepository.findByMethod(methodName)) {
             EntityModel<McdaJob> mcdaJobDto = new EntityModel<>(mcdaJob);
+            addLinksToRelatedResults(mcdaJobDto, mcdaJob);
             mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, mcdaJob.getJobId())).withSelfRel());
             jobs.add(mcdaJobDto);
         }
@@ -249,6 +252,7 @@ public class XmcdaCriteriaController {
         }
 
         EntityModel<McdaJob> mcdaJobDto = new EntityModel<>(job);
+        addLinksToRelatedResults(mcdaJobDto, job);
         mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, job.getJobId())).withSelfRel());
         return new ResponseEntity<>(mcdaJobDto, HttpStatus.OK);
     }
@@ -326,5 +330,19 @@ public class XmcdaCriteriaController {
         EntityModel<CriterionValue> dto = new EntityModel<>(criterionValue);
         dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getCriterionValue(methodName, criterionValue.getCriterionID())).withSelfRel());
         return dto;
+    }
+
+    private void addLinksToRelatedResults(EntityModel<McdaJob> mcdaJobDto, McdaJob job) {
+        for (McdaResult mcdaResult : job.getRankedResults()) {
+            if (job.getJobType().equals(JobType.ANALYSIS)) {
+                mcdaJobDto.add(linkTo(methodOn(AnalysisResultController.class).getAnalysisResult(mcdaResult.getResultId())).withRel(mcdaResult.getResultId().toString()));
+            }
+            if (job.getJobType().equals(JobType.COMPILATION)) {
+                mcdaJobDto.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisResult(mcdaResult.getResultId())).withRel(mcdaResult.getResultId().toString()));
+            }
+            if (job.getJobType().equals(JobType.QPU_SELECTION)) {
+                mcdaJobDto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionResult(mcdaResult.getResultId())).withRel(mcdaResult.getResultId().toString()));
+            }
+        }
     }
 }
