@@ -61,11 +61,21 @@ public class McdaConstants {
     public static final String WEB_SERVICE_OPERATIONS_INVOKE = "submitProblem";
     public static final String WEB_SERVICE_OPERATIONS_REQUEST_SOLUTION = "requestSolution";
 
+    // XMCDA namespace for the promethee services
+    public static final String WEB_SERVICE_NAMESPACE_2_1_0 = "http://www.decision-deck.org/2009/XMCDA-2.1.0";
+
+    // default namespace used by the XMCDA library
+    public static final String WEB_SERVICE_NAMESPACE_DEFAULT = "http://www.decision-deck.org/2019/XMCDA-2.2.3";
+
     public static final String WEB_SERVICE_DATA_CRITERIA = "criteria";
     public static final String WEB_SERVICE_DATA_ALTERNATIVES = "alternatives";
     public static final String WEB_SERVICE_DATA_PERFORMANCE = "performance";
+    public static final String WEB_SERVICE_DATA_FLOW_TYPE = "flow_type";
     public static final String WEB_SERVICE_DATA_PERFORMANCES = "performances";
     public static final String WEB_SERVICE_DATA_PREFERENCE = "preference";
+    public static final String WEB_SERVICE_DATA_NEGATIVE_FLOWS = "negativeFlows";
+    public static final String WEB_SERVICE_DATA_POSITIVE_FLOWS = "positiveFlows";
+    public static final String WEB_SERVICE_DATA_ALTERNATIVES_MATRIX = "promethee1";
     public static final String WEB_SERVICE_DATA_FLOWS = "flows";
     public static final String WEB_SERVICE_DATA_WEIGHTS = "weights";
     public static final String WEB_SERVICE_DATA_TICKET = "ticket";

@@ -42,4 +42,8 @@ public class XmlUtils {
         JAXB.marshal(xmcda, sw);
         return sw.toString();
     }
+
+    public String changeXMCDAVersion(String xmcda, String baseNamespace, String targetNamespace) {
+        return xmcda.replace("xmlns:xmcda=\"" + baseNamespace, "xmlns:xmcda=\"" + targetNamespace);
+    }
 }

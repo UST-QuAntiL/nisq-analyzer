@@ -41,7 +41,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.xmcda.v2.MethodParameters;
 import org.xmcda.v2.ObjectFactory;
-import org.xmcda.v2.Parameter;
 import org.xmcda.v2.XMCDA;
 
 import lombok.RequiredArgsConstructor;
@@ -94,10 +93,10 @@ public class PrometheeIMethod implements McdaMethod {
             LOG.debug("Invoking preference service for Promothee-I!");
             URL url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_PROMOTHEEI_PREFERENCE);
             HashMap<String, String> bodyFields = new HashMap<>();
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_CRITERIA, xmlUtils.xmcdaToString(mcdaInformation.getCriteria()));
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, xmlUtils.xmcdaToString(mcdaInformation.getAlternatives()));
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCES, xmlUtils.xmcdaToString(mcdaInformation.getPerformances()));
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_WEIGHTS, xmlUtils.xmcdaToString(mcdaInformation.getWeights()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_CRITERIA,createVersionedXMCDAString(mcdaInformation.getCriteria()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES,createVersionedXMCDAString(mcdaInformation.getAlternatives()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCES,createVersionedXMCDAString(mcdaInformation.getPerformances()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_WEIGHTS,createVersionedXMCDAString(mcdaInformation.getWeights()));
             Map<String, String>
                     resultsPreferences = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
             LOG.debug("Invoked preference service successfully and retrieved {} results!", resultsPreferences.size());
@@ -114,8 +113,8 @@ public class PrometheeIMethod implements McdaMethod {
             url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_PROMOTHEEI_FLOWS);
             bodyFields = new HashMap<>();
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PREFERENCE, resultsPreferences.get(McdaConstants.WEB_SERVICE_DATA_PREFERENCE));
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, xmlUtils.xmcdaToString(mcdaInformation.getAlternatives()));
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE, createFlowTypeParameter("POSITIVE"));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, createVersionedXMCDAString(mcdaInformation.getAlternatives()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_FLOW_TYPE, createFlowTypeParameter("POSITIVE"));
             Map<String, String>
                     resultsPositiveFlows = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
             LOG.debug("Invoked flows service successfully and retrieved {} results for positive flows!", resultsPositiveFlows.size());
@@ -125,8 +124,8 @@ public class PrometheeIMethod implements McdaMethod {
             url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_PROMOTHEEI_FLOWS);
             bodyFields = new HashMap<>();
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PREFERENCE, resultsPreferences.get(McdaConstants.WEB_SERVICE_DATA_PREFERENCE));
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, xmlUtils.xmcdaToString(mcdaInformation.getAlternatives()));
-            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCE, createFlowTypeParameter("NEGATIVE"));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, createVersionedXMCDAString(mcdaInformation.getAlternatives()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_FLOW_TYPE, createFlowTypeParameter("NEGATIVE"));
             Map<String, String>
                     resultsNegativeFlows = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
             LOG.debug("Invoked flows service successfully and retrieved {} results for negative flows!", resultsNegativeFlows.size());
@@ -138,9 +137,25 @@ public class PrometheeIMethod implements McdaMethod {
                         "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_FLOWS + " in the results but doesn´t! Aborting!");
                 return;
             }
-
-            // TODO
             LOG.debug("Resulting negative flows: {}", resultsNegativeFlows.get(McdaConstants.WEB_SERVICE_DATA_FLOWS));
+
+            LOG.debug("Invoking flows service for Promothee-I to rank results!");
+            url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_PROMOTHEEI_RANKING);
+            bodyFields = new HashMap<>();
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_NEGATIVE_FLOWS, resultsNegativeFlows.get(McdaConstants.WEB_SERVICE_DATA_FLOWS));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_POSITIVE_FLOWS, resultsPositiveFlows.get(McdaConstants.WEB_SERVICE_DATA_FLOWS));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, createVersionedXMCDAString(mcdaInformation.getAlternatives()));
+            Map<String, String>
+                    resultsRanking = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+            LOG.debug("Invoked ranking service successfully and retrieved {} results!", resultsRanking.size());
+
+            // check for required results
+            if (!resultsRanking.containsKey(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES_MATRIX)) {
+                setJobToFailed(mcdaJob,
+                        "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES_MATRIX + " in the results but doesn´t! Aborting!");
+                return;
+            }
+            LOG.debug("Alternatives matrix: {}", resultsRanking.get(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES_MATRIX));
 
             // TODO: execute further services
         } catch (MalformedURLException e) {
@@ -160,13 +175,19 @@ public class PrometheeIMethod implements McdaMethod {
 
         MethodParameters methodParameters = new MethodParameters();
         methodParameters.getDescriptionOrApproachOrProblematique()
-                .add(new JAXBElement(new QName("", "parameter"), String.class,
-                        new JAXBElement(new QName("", "value"), String.class,
+                .add(new JAXBElement(new QName("", "parameter"), JAXBElement.class,
+                        new JAXBElement(new QName("", "value"), JAXBElement.class,
                                 new JAXBElement(new QName("", "label"), String.class, value))));
 
         XMCDA methodParametersWrapper = objectFactory.createXMCDA();
         methodParametersWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters()
                 .add(objectFactory.createXMCDAMethodParameters(methodParameters));
-        return xmlUtils.xmcdaToString(methodParametersWrapper);
+        return createVersionedXMCDAString(methodParametersWrapper);
+    }
+
+    private String createVersionedXMCDAString(XMCDA xmcda) {
+        return xmlUtils.changeXMCDAVersion(xmlUtils.xmcdaToString(xmcda),
+                McdaConstants.WEB_SERVICE_NAMESPACE_DEFAULT,
+                McdaConstants.WEB_SERVICE_NAMESPACE_2_1_0);
     }
 }
