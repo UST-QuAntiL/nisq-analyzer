@@ -60,6 +60,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.xmcda.v2.Criterion;
 import org.xmcda.v2.Scale;
+import org.xmcda.v2.Value;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -193,6 +196,26 @@ public class XmcdaCriteriaController {
         if (!criterionValue.getCriterionID().equals(criterionId) || !criterionValue.getMcdaMethod().equals(methodName)) {
             LOG.error("Updated criterion value must specify correct criterion id and MCDA method name!");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        // check if criterion value contains exactly one value
+        if (criterionValue.getValueOrValues().size() != 1) {
+            LOG.error("Criterion value must specify exactly one value!");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        Object object = criterionValue.getValueOrValues().get(0);
+
+        // parse LinkedHashMap to Value object if serialization failed
+        if (object.getClass().equals(java.util.LinkedHashMap.class)) {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                Value value = mapper.convertValue(object, Value.class);
+                criterionValue.getValueOrValues().remove(object);
+                criterionValue.getValueOrValues().add(value);
+            } catch (Exception e) {
+                LOG.error("Unable to parse contained LinkedHashMap to Value object!");
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
         }
 
         xmcdaRepository.updateCriterionValue(criterionValue);
