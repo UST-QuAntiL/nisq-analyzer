@@ -6,99 +6,75 @@
 	<criteriaValues name="significance" mcdaConcept="Importance">
 		<criterionValue>
 			<criterionID>c01</criterionID>
-			<values>
-				<value>
-					<real>0.083</real>
-				</value>
-			</values>
+			<value>
+				<real>0.083</real>
+			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c02</criterionID>
-			<values>
-				<value>
-					<real>0.083</real>
-				</value>
-			</values>
+			<value>
+				<real>0.083</real>
+			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c03</criterionID>
-			<values>
-				<value>
-					<real>0.083</real>
-				</value>
-			</values>
+			<value>
+				<real>0.083</real>
+			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c04</criterionID>
-			<values>
-				<value>
-					<real>0.083</real>
-				</value>
-			</values>
+			<value>
+				<real>0.083</real>
+			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c05</criterionID>
-			<values>
-				<value>
-					<real>0.083</real>
-				</value>
-			</values>
+			<value>
+				<real>0.083</real>
+			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c06</criterionID>
-			<values>
-				<value>
-					<real>0.083</real>
-				</value>
-			</values>
+			<value>
+				<real>0.083</real>
+			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c07</criterionID>
-			<values>
-				<value>
-					<real>0.083</real>
-				</value>
-			</values>
+			<value>
+				<real>0.083</real>
+			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c08</criterionID>
-			<values>
-				<value>
-					<real>0.083</real>
-				</value>
-			</values>
+			<value>
+				<real>0.083</real>
+			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c09</criterionID>
-			<values>
-				<value>
-					<real>0.083</real>
-				</value>
-			</values>
+			<value>
+				<real>0.083</real>
+			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c10</criterionID>
-			<values>
-				<value>
-					<real>0.083</real>
-				</value>
-			</values>
+			<value>
+				<real>0.083</real>
+			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c11</criterionID>
-			<values>
-				<value>
-					<real>0.083</real>
-				</value>
-			</values>
+			<value>
+				<real>0.083</real>
+			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c12</criterionID>
-			<values>
-				<value>
-					<real>0.083</real>
-				</value>
-			</values>
+			<value>
+				<real>0.083</real>
+			</value>
 		</criterionValue>
 	</criteriaValues>
 </xmc:XMCDA>
