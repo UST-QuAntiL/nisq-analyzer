@@ -62,6 +62,9 @@ public class McdaConstants {
     public static final String WEB_SERVICE_OPERATIONS_INVOKE = "submitProblem";
     public static final String WEB_SERVICE_OPERATIONS_REQUEST_SOLUTION = "requestSolution";
 
+    // XMCDA namespace for the Electre services
+    public static final String WEB_SERVICE_NAMESPACE_2_0_0 = "http://www.decision-deck.org/2009/XMCDA-2.0.0";
+
     // XMCDA namespace for the promethee services
     public static final String WEB_SERVICE_NAMESPACE_2_1_0 = "http://www.decision-deck.org/2009/XMCDA-2.1.0";
 
@@ -95,6 +98,7 @@ public class McdaConstants {
     public static final String WEB_SERVICE_DATA_CUT_THRESHOLD = "cut_threshold";
     public static final String WEB_SERVICE_DATA_CLASSICAL_OUTPUT = "classical_output";
     public static final String WEB_SERVICE_DATA_OUTRANKING_RELATION = "outrankingRelation";
+    public static final String WEB_SERVICE_DATA_INTERSECTION_DISTILLATION = "intersectionDistillation";
 
     public static final String WEB_SERVICE_NAME_TOPSIS_RANKING = "TOPSIS_ranking-PUT.py";
     public static final String WEB_SERVICE_NAME_TOPSIS_ALTERNATIVES = "TOPSIS_extremeAlternatives-PUT.py";

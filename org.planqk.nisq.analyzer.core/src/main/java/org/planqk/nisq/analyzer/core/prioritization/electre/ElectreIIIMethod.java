@@ -22,6 +22,7 @@ package org.planqk.nisq.analyzer.core.prioritization.electre;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import javax.xml.bind.JAXBElement;
@@ -30,6 +31,7 @@ import javax.xml.namespace.QName;
 import org.planqk.nisq.analyzer.core.model.DynamicXmlElement;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.McdaJob;
+import org.planqk.nisq.analyzer.core.model.McdaResult;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
 import org.planqk.nisq.analyzer.core.prioritization.McdaConstants;
 import org.planqk.nisq.analyzer.core.prioritization.McdaInformation;
@@ -41,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.xmcda.v2.AlternativesComparisons;
 import org.xmcda.v2.MethodParameters;
 import org.xmcda.v2.ObjectFactory;
 import org.xmcda.v2.XMCDA;
@@ -172,11 +175,30 @@ public class ElectreIIIMethod implements McdaMethod {
                     resultsRanking = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
             LOG.debug("Invoked ranking successfully and retrieved {} results!", resultsRanking.size());
 
-            // TODO: retrieve results and map to result ranking
-            LOG.debug(resultsRanking.get("intersectionDistillation"));
-            LOG.debug(resultsRanking.get("downwardsDistillation"));
-            LOG.debug(resultsRanking.get("upwardsDistillation"));
+            // check for required results
+            if (!resultsRanking.containsKey(McdaConstants.WEB_SERVICE_DATA_INTERSECTION_DISTILLATION)) {
+                setJobToFailed(mcdaJob,
+                        "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_INTERSECTION_DISTILLATION +
+                                " in the results but doesn´t! Aborting!");
+                return;
+            }
 
+            // rank results according to the received intersection distillation matrix
+            String intersectionDistillationString =
+                    xmlUtils.changeXMCDAVersion(resultsRanking.get(McdaConstants.WEB_SERVICE_DATA_INTERSECTION_DISTILLATION),
+                            McdaConstants.WEB_SERVICE_NAMESPACE_2_0_0,
+                            McdaConstants.WEB_SERVICE_NAMESPACE_DEFAULT);
+            List<McdaResult> results = interpretElectreResults(xmlUtils.stringToXmcda(intersectionDistillationString));
+
+            // update job object with results
+            if (Objects.isNull(results)) {
+                setJobToFailed(mcdaJob, "Unable to rank results by given intersection distillation matrix!");
+                return;
+            }
+            mcdaJob.setRankedResults(results);
+            mcdaJob.setState(ExecutionResultStatus.FINISHED.toString());
+            mcdaJob.setReady(true);
+            mcdaJobRepository.save(mcdaJob);
         } catch (MalformedURLException e) {
             setJobToFailed(mcdaJob, "Unable to create URL for invoking the web services!");
         }
@@ -217,6 +239,48 @@ public class ElectreIIIMethod implements McdaMethod {
         methodParametersWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters()
                 .add(objectFactory.createXMCDAMethodParameters(methodParameters));
         return createVersionedXMCDAString(methodParametersWrapper);
+    }
+
+    /**
+     * Interpret the results of the Electre method and return a corresponding ranking
+     *
+     * @param intersectionDistillationMatrix the XMCDA object containing the results of the Electre web services
+     * @return the list of McdaResults containing the final ranking, or null if the XMCDA is invalid
+     */
+    private List<McdaResult> interpretElectreResults(XMCDA intersectionDistillationMatrix) {
+
+        // get the AlternativesComparisons object containg the result matrix that must be interpreted
+        AlternativesComparisons alternativesComparisons = getAlternativesComparison(intersectionDistillationMatrix);
+        if (Objects.isNull(alternativesComparisons)) {
+            LOG.error("Unable to retrieve AlternativesComparisons from resulting XMCDA. Result interpretation not possible!");
+            return null;
+        }
+
+        LOG.debug(xmlUtils.xmcdaToString(intersectionDistillationMatrix));
+        // TODO
+        return null;
+    }
+
+    /**
+     * Check if the given XMCDA document contains an AlternativesComparisons and return it or otherwise null
+     *
+     * @param xmcda the XMCDA document to retrieve the AlternativesComparisons from
+     * @return the retrieved AlternativesComparisons, or null if not available as root element
+     */
+    private AlternativesComparisons getAlternativesComparison(XMCDA xmcda) {
+        if (xmcda.getProjectReferenceOrMethodMessagesOrMethodParameters().size() != 1) {
+            LOG.error("XMCDA document must contain exactly one root element of type AlternativesComparisons!");
+            return null;
+        }
+
+        // get the root element of the document and check for required type
+        Object rootElement = xmcda.getProjectReferenceOrMethodMessagesOrMethodParameters().get(0).getValue();
+        if (!(rootElement instanceof AlternativesComparisons)) {
+            LOG.error("XMCDA document must contain exactly one root element of type AlternativesComparisons!");
+            return null;
+        }
+
+        return (AlternativesComparisons) rootElement;
     }
 
     /**
