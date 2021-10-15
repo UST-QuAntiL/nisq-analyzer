@@ -21,10 +21,13 @@ package org.planqk.nisq.analyzer.core.prioritization.electre;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
@@ -39,10 +42,13 @@ import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
 import org.planqk.nisq.analyzer.core.prioritization.McdaWebServiceHandler;
 import org.planqk.nisq.analyzer.core.prioritization.XmlUtils;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
+import org.planqk.nisq.analyzer.core.repository.McdaResultRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.xmcda.v2.Alternative;
+import org.xmcda.v2.Alternatives;
 import org.xmcda.v2.AlternativesComparisons;
 import org.xmcda.v2.MethodParameters;
 import org.xmcda.v2.ObjectFactory;
@@ -62,6 +68,8 @@ public class ElectreIIIMethod implements McdaMethod {
     private final JobDataExtractor jobDataExtractor;
 
     private final McdaJobRepository mcdaJobRepository;
+
+    private final McdaResultRepository mcdaResultRepository;
 
     private final McdaWebServiceHandler mcdaWebServiceHandler;
 
@@ -188,7 +196,8 @@ public class ElectreIIIMethod implements McdaMethod {
                     xmlUtils.changeXMCDAVersion(resultsRanking.get(McdaConstants.WEB_SERVICE_DATA_INTERSECTION_DISTILLATION),
                             McdaConstants.WEB_SERVICE_NAMESPACE_2_0_0,
                             McdaConstants.WEB_SERVICE_NAMESPACE_DEFAULT);
-            List<McdaResult> results = interpretElectreResults(xmlUtils.stringToXmcda(intersectionDistillationString));
+            List<UUID> alternativeIDs = getAlternativeIDs(mcdaInformation.getAlternatives());
+            List<McdaResult> results = interpretElectreResults(xmlUtils.stringToXmcda(intersectionDistillationString), alternativeIDs);
 
             // update job object with results
             if (Objects.isNull(results)) {
@@ -202,6 +211,29 @@ public class ElectreIIIMethod implements McdaMethod {
         } catch (MalformedURLException e) {
             setJobToFailed(mcdaJob, "Unable to create URL for invoking the web services!");
         }
+    }
+
+    private List<UUID> getAlternativeIDs(XMCDA xmcda) {
+        if (xmcda.getProjectReferenceOrMethodMessagesOrMethodParameters().size() != 1) {
+            LOG.error("XMCDA document must contain exactly one root element of type Alternatives!");
+            return null;
+        }
+
+        // get the root element of the document and check for required type
+        Object rootElement = xmcda.getProjectReferenceOrMethodMessagesOrMethodParameters().get(0).getValue();
+        if (!(rootElement instanceof Alternatives)) {
+            LOG.error("XMCDA document must contain exactly one root element of type Alternatives!");
+            return null;
+        }
+
+        // extract the IDs of the alternatives
+        Alternatives alternatives = (Alternatives) rootElement;
+        return alternatives.getDescriptionOrAlternative().stream()
+                .filter(object -> object instanceof Alternative)
+                .map(object -> (Alternative) object)
+                .map(Alternative::getId)
+                .map(UUID::fromString)
+                .collect(Collectors.toList());
     }
 
     private void setJobToFailed(McdaJob mcdaJob, String errorMessage) {
@@ -245,9 +277,10 @@ public class ElectreIIIMethod implements McdaMethod {
      * Interpret the results of the Electre method and return a corresponding ranking
      *
      * @param intersectionDistillationMatrix the XMCDA object containing the results of the Electre web services
+     * @param alternativeIDs                 all the IDs of possible alternatives related to this job
      * @return the list of McdaResults containing the final ranking, or null if the XMCDA is invalid
      */
-    private List<McdaResult> interpretElectreResults(XMCDA intersectionDistillationMatrix) {
+    private List<McdaResult> interpretElectreResults(XMCDA intersectionDistillationMatrix, List<UUID> alternativeIDs) {
 
         // get the AlternativesComparisons object containg the result matrix that must be interpreted
         AlternativesComparisons alternativesComparisons = getAlternativesComparison(intersectionDistillationMatrix);
@@ -256,9 +289,45 @@ public class ElectreIIIMethod implements McdaMethod {
             return null;
         }
 
-        LOG.debug(xmlUtils.xmcdaToString(intersectionDistillationMatrix));
-        // TODO
-        return null;
+        // map storing better alternatives for each possible alternative
+        Map<UUID, List<UUID>> rankingWrapperMap = new HashMap<>();
+        alternativeIDs.forEach(alternativeID -> rankingWrapperMap.put(alternativeID, new ArrayList<>()));
+
+        // iterate through each entry and store the information in the map
+        List<AlternativesComparisons.Pairs.Pair> resultPairs = alternativesComparisons.getPairs().getPair();
+        LOG.debug("Result matrix contains {} entries for {} overall alternatives!", resultPairs.size(), alternativeIDs.size());
+        for (AlternativesComparisons.Pairs.Pair pair : resultPairs) {
+
+            // get source and target IDs of the entry and skip if it is a diagonal element
+            UUID sourceID = UUID.fromString(pair.getInitial().getAlternativeID());
+            UUID targetID = UUID.fromString(pair.getTerminal().getAlternativeID());
+            if (sourceID.equals(targetID)) {
+                continue;
+            }
+
+            // retrieve the helper objects for the source element of the matrix entry
+            List<UUID> sourceWrapper = rankingWrapperMap.get(sourceID);
+
+            // add information that the target element is better suited than the source element
+            sourceWrapper.add(targetID);
+            LOG.debug("{} better suited than {}!", targetID, sourceID);
+        }
+
+        // calculate position depending on the number of better and worse elements
+        List<McdaResult> mcdaResults = new ArrayList<>();
+        for (Map.Entry<UUID, List<UUID>> rankingWrapper : rankingWrapperMap.entrySet()) {
+            int position = rankingWrapper.getValue().size() + 1;
+            LOG.debug("Alternative with ID {} has position {}!", rankingWrapper.getKey(), position);
+
+            McdaResult mcdaResult = new McdaResult();
+            mcdaResult.setResultId(rankingWrapper.getKey());
+            mcdaResult.setPosition(position);
+            mcdaResult.setScore(0);
+            mcdaResult = mcdaResultRepository.save(mcdaResult);
+            mcdaResults.add(mcdaResult);
+        }
+
+        return mcdaResults;
     }
 
     /**
