@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.McdaJob;
@@ -240,9 +239,9 @@ public class PrometheeIMethod implements McdaMethod {
 
         MethodParameters methodParameters = new MethodParameters();
         methodParameters.getDescriptionOrApproachOrProblematique()
-                .add(new JAXBElement(new QName("", "parameter"), JAXBElement.class,
-                        new JAXBElement(new QName("", "value"), JAXBElement.class,
-                                new JAXBElement(new QName("", "label"), String.class, value))));
+                .add(new JAXBElement(McdaConstants.WEB_SERVICE_QNAMES_PARAMETER, JAXBElement.class,
+                        new JAXBElement(McdaConstants.WEB_SERVICE_QNAMES_VALUE, JAXBElement.class,
+                                new JAXBElement(McdaConstants.WEB_SERVICE_QNAMES_LABEL, String.class, value))));
 
         XMCDA methodParametersWrapper = objectFactory.createXMCDA();
         methodParametersWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters()

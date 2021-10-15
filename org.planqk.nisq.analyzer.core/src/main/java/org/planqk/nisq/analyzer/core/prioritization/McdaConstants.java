@@ -21,6 +21,7 @@ package org.planqk.nisq.analyzer.core.prioritization;
 
 import java.util.Arrays;
 import java.util.List;
+import javax.xml.namespace.QName;
 
 /**
  * Class containing the names of the criteria that are supported, as well as if they have to be retrieved from the QPU or the circuit analysis.
@@ -85,6 +86,14 @@ public class McdaConstants {
     public static final String WEB_SERVICE_DATA_IDEAL_NEGATIVE = "ideal_negative";
     public static final String WEB_SERVICE_DATA_SCORES = "scores";
     public static final String WEB_SERVICE_DATA_CONCORDANCE = "concordance";
+    public static final String WEB_SERVICE_DATA_DISCORDANCES = "discordances";
+    public static final String WEB_SERVICE_DATA_OUTRANKING = "outranking";
+    public static final String WEB_SERVICE_DATA_RELATION = "relation";
+    public static final String WEB_SERVICE_DATA_OPTIONS = "options";
+    public static final String WEB_SERVICE_DATA_OUTPUT_RELATION = "output_relation";
+    public static final String WEB_SERVICE_DATA_CUT_TYPE = "cut_type";
+    public static final String WEB_SERVICE_DATA_CUT_THRESHOLD = "cut_threshold";
+    public static final String WEB_SERVICE_DATA_CLASSICAL_OUTPUT = "classical_output";
 
     public static final String WEB_SERVICE_NAME_TOPSIS_RANKING = "TOPSIS_ranking-PUT.py";
     public static final String WEB_SERVICE_NAME_TOPSIS_ALTERNATIVES = "TOPSIS_extremeAlternatives-PUT.py";
@@ -95,8 +104,13 @@ public class McdaConstants {
     public static final String WEB_SERVICE_NAME_ELECTREIII_OUTRANKING = "ElectreOutranking-J-MCDA.py";
     public static final String WEB_SERVICE_NAME_ELECTREIII_RELATION = "cutRelation-ITTB.py";
     public static final String WEB_SERVICE_NAME_ELECTREIII_RANKING = "alternativesRankingViaQualificationDistillation-ITTB.py";
-    public static final String WEB_SERVICE_NAME_ELECTREIII_PLOT = "plotAlternativesComparisons-ITTB.py";
 
     public static final String WEB_SERVICE_NAME_PROMOTHEEI_PREFERENCE = "PrometheePreference-J-MCDA.py";
     public static final String WEB_SERVICE_NAME_PROMOTHEEI_FLOWS = "PrometheeFlows-J-MCDA.py";
+
+    public static final QName WEB_SERVICE_QNAMES_LABEL = new QName("", "label");
+    public static final QName WEB_SERVICE_QNAMES_VALUE = new QName("", "value");
+    public static final QName WEB_SERVICE_QNAMES_PARAMETER = new QName("", "parameter");
+    public static final QName WEB_SERVICE_QNAMES_ID = new QName("","id");
+    public static final QName WEB_SERVICE_QNAMES_REAL = new QName("","real");
 }

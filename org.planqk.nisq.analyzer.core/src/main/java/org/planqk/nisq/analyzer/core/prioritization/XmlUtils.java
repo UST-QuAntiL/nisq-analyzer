@@ -26,8 +26,10 @@ import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import org.planqk.nisq.analyzer.core.model.DynamicXmlElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -50,9 +52,16 @@ public class XmlUtils {
      * @return the string representing the XMCDA document
      */
     public String xmcdaToString(XMCDA xmcda) {
-        StringWriter sw = new StringWriter();
-        JAXB.marshal(xmcda, sw);
-        return sw.toString();
+        try {
+            StringWriter sw = new StringWriter();
+            JAXBContext jc = JAXBContext.newInstance(XMCDA.class, DynamicXmlElement.class);
+            Marshaller m = jc.createMarshaller();
+            m.marshal(xmcda, sw);
+            return sw.toString();
+        } catch (JAXBException e) {
+            LOG.error("Unable to serialize given XMCDA to string!");
+            return "";
+        }
     }
 
     /**
