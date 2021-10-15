@@ -94,6 +94,7 @@ public class McdaConstants {
     public static final String WEB_SERVICE_DATA_CUT_TYPE = "cut_type";
     public static final String WEB_SERVICE_DATA_CUT_THRESHOLD = "cut_threshold";
     public static final String WEB_SERVICE_DATA_CLASSICAL_OUTPUT = "classical_output";
+    public static final String WEB_SERVICE_DATA_OUTRANKING_RELATION = "outrankingRelation";
 
     public static final String WEB_SERVICE_NAME_TOPSIS_RANKING = "TOPSIS_ranking-PUT.py";
     public static final String WEB_SERVICE_NAME_TOPSIS_ALTERNATIVES = "TOPSIS_extremeAlternatives-PUT.py";

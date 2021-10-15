@@ -162,9 +162,21 @@ public class ElectreIIIMethod implements McdaMethod {
                 return;
             }
 
-            LOG.debug(resultsCut.get(McdaConstants.WEB_SERVICE_DATA_OUTPUT_RELATION));
+            // invoke the ranking service for Electre III
+            LOG.debug("Invoking ranking service for Electre III!");
+            url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_ELECTREIII_RANKING);
+            bodyFields = new HashMap<>();
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, createVersionedXMCDAString(mcdaInformation.getAlternatives()));
+            bodyFields.put(McdaConstants.WEB_SERVICE_DATA_OUTRANKING_RELATION, resultsCut.get(McdaConstants.WEB_SERVICE_DATA_OUTPUT_RELATION));
+            Map<String, String>
+                    resultsRanking = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+            LOG.debug("Invoked ranking successfully and retrieved {} results!", resultsRanking.size());
 
-            // TODO: add further services
+            // TODO: retrieve results and map to result ranking
+            LOG.debug(resultsRanking.get("intersectionDistillation"));
+            LOG.debug(resultsRanking.get("downwardsDistillation"));
+            LOG.debug(resultsRanking.get("upwardsDistillation"));
+
         } catch (MalformedURLException e) {
             setJobToFailed(mcdaJob, "Unable to create URL for invoking the web services!");
         }
@@ -211,8 +223,8 @@ public class ElectreIIIMethod implements McdaMethod {
      * Generate an XML wrapper for method parameter with the given ID and the value wrapped as required by XMCDA as child elements
      *
      * @param comprisingElementTag the name of the XML tag comprising the value
-     * @param value the value to use for the parameter
-     * @param id the id of the parameter to define
+     * @param value                the value to use for the parameter
+     * @param id                   the id of the parameter to define
      * @return an XML wrapper for the given parameters with nested elements containing the given value
      */
     private DynamicXmlElement getParameterJaxbElement(QName comprisingElementTag, String value, String id) {
