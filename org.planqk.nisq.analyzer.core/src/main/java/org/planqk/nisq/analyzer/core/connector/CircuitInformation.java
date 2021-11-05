@@ -48,8 +48,8 @@ public class CircuitInformation {
 
     @Getter
     @Setter
-    @JsonProperty("number-of-gates")
-    private int circuitNumberOfGates = 0;
+    @JsonProperty("total-number-of-operations")
+    private int circuitTotalNumberOfOperations = 0;
 
     @Getter
     @Setter

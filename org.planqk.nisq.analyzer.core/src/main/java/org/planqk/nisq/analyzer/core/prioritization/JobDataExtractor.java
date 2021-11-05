@@ -238,8 +238,8 @@ public class JobDataExtractor {
             case McdaConstants.WIDTH:
                 value.setInteger(result.getAnalyzedWidth());
                 break;
-            case McdaConstants.NUMBER_OF_GATES:
-                value.setInteger(result.getAnalyzedNumberOfGates());
+            case McdaConstants.TOTAL_NUMBER_OF_OPERATIONS:
+                value.setInteger(result.getAnalyzedTotalNumberOfOperations());
                 break;
             case McdaConstants.NUMBER_OF_MULTI_QUBIT_GATES:
                 value.setInteger(result.getAnalyzedNumberOfMultiQubitGates());

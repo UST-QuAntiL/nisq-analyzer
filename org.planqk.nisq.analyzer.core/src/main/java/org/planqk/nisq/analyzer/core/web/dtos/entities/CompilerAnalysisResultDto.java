@@ -46,7 +46,7 @@ public class CompilerAnalysisResultDto extends CircuitResultDto {
             dto.setCompiler(object.getCompiler());
             dto.setAnalyzedDepth(object.getAnalyzedDepth());
             dto.setAnalyzedWidth(object.getAnalyzedWidth());
-            dto.setAnalyzedNumberOfGates(object.getAnalyzedNumberOfGates());
+            dto.setAnalyzedTotalNumberOfOperations(object.getAnalyzedTotalNumberOfOperations());
             dto.setAnalyzedNumberOfMultiQubitGates(object.getAnalyzedNumberOfMultiQubitGates());
             dto.setAnalyzedMultiQubitGateDepth(object.getAnalyzedMultiQubitGateDepth());
             dto.setCircuitName(object.getCircuitName());

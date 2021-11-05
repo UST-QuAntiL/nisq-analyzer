@@ -61,7 +61,7 @@ public abstract class CircuitResult extends HasId {
 
     @Getter
     @Setter
-    private int analyzedNumberOfGates;
+    private int analyzedTotalNumberOfOperations;
 
     @Getter
     @Setter

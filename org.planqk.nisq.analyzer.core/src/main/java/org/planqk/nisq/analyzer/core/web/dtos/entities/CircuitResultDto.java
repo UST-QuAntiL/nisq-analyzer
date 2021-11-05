@@ -41,7 +41,7 @@ public abstract class CircuitResultDto extends RepresentationModel<CircuitResult
 
     int analyzedWidth;
 
-    private int analyzedNumberOfGates;
+    private int analyzedTotalNumberOfOperations;
 
     private int analyzedNumberOfMultiQubitGates;
 

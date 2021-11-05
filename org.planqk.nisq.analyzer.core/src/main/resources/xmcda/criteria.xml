@@ -32,17 +32,21 @@
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c03" name="number-of-gates">
+		<criterion id="c03" name="total-number-of-operations">
 			<description>
-				<title>Number of gates</title>
-				<comment>Number of gates used in the circuit. Should be minimal.</comment>
+				<title>Total number of operations</title>
+				<comment>Number of operations used in the circuit. Should be minimal.</comment>
 			</description>
 			<active>true</active>
 			<scale>
 				<quantitative>
 					<preferenceDirection>min</preferenceDirection>
-					<minimum><real>0</real></minimum>
-					<maximum><real>9999</real></maximum>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>9999</real>
+					</maximum>
 				</quantitative>
 			</scale>
 		</criterion>

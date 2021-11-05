@@ -47,7 +47,7 @@ public class AnalysisResultDto extends CircuitResultDto {
             dto.setImplementation(ImplementationDto.Converter.convert(object.getImplementation()));
             dto.setAnalyzedDepth(object.getAnalyzedDepth());
             dto.setAnalyzedWidth(object.getAnalyzedWidth());
-            dto.setAnalyzedNumberOfGates(object.getAnalyzedNumberOfGates());
+            dto.setAnalyzedTotalNumberOfOperations(object.getAnalyzedTotalNumberOfOperations());
             dto.setAnalyzedNumberOfMultiQubitGates(object.getAnalyzedNumberOfMultiQubitGates());
             dto.setAnalyzedMultiQubitGateDepth(object.getAnalyzedMultiQubitGateDepth());
             dto.setInputParameters(object.getInputParameters());
