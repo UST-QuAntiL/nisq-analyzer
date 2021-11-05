@@ -282,7 +282,7 @@ public class ElectreIIIMethod implements McdaMethod {
      */
     private List<McdaResult> interpretElectreResults(XMCDA intersectionDistillationMatrix, List<UUID> alternativeIDs) {
 
-        // get the AlternativesComparisons object containg the result matrix that must be interpreted
+        // get the AlternativesComparisons object containing the result matrix that must be interpreted
         AlternativesComparisons alternativesComparisons = getAlternativesComparison(intersectionDistillationMatrix);
         if (Objects.isNull(alternativesComparisons)) {
             LOG.error("Unable to retrieve AlternativesComparisons from resulting XMCDA. Result interpretation not possible!");
@@ -299,8 +299,8 @@ public class ElectreIIIMethod implements McdaMethod {
         for (AlternativesComparisons.Pairs.Pair pair : resultPairs) {
 
             // get source and target IDs of the entry and skip if it is a diagonal element
-            UUID sourceID = UUID.fromString(pair.getInitial().getAlternativeID());
-            UUID targetID = UUID.fromString(pair.getTerminal().getAlternativeID());
+            UUID targetID = UUID.fromString(pair.getInitial().getAlternativeID());
+            UUID sourceID = UUID.fromString(pair.getTerminal().getAlternativeID());
             if (sourceID.equals(targetID)) {
                 continue;
             }
