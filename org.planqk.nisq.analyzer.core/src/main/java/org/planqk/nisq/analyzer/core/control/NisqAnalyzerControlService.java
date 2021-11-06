@@ -142,8 +142,8 @@ public class NisqAnalyzerControlService {
 
         // create a object to store the execution results
         ExecutionResult executionResult =
-                executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
-                        "Passing execution to executor plugin.", result, null, null, null, implementation));
+            executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
+                "Passing execution to executor plugin.", result, null, null, null, 0, implementation));
 
         // execute implementation
         new Thread(() -> selectedSdkConnector
@@ -173,9 +173,9 @@ public class NisqAnalyzerControlService {
 
         // create a object to store the execution results
         ExecutionResult executionResult =
-                executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
-                        "Passing execution to executor plugin.", null, result, null,
-                        null, null));
+            executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
+                "Passing execution to executor plugin.", null, result, null,
+                null, 0, null));
 
         // execute implementation
         new Thread(() -> selectedSdkConnector
@@ -208,7 +208,7 @@ public class NisqAnalyzerControlService {
         ExecutionResult executionResult =
             executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
                 "Passing execution to executor plugin.", null, null, result,
-                null, null));
+                null, 0, null));
 
         // execute implementation
         new Thread(() -> selectedSdkConnector
@@ -482,6 +482,7 @@ public class NisqAnalyzerControlService {
                     qpuSelectionResult.setAnalyzedNumberOfMultiQubitGates(result.getAnalyzedNumberOfMultiQubitGates());
                     qpuSelectionResult.setAnalyzedMultiQubitGateDepth(result.getAnalyzedMultiQubitGateDepth());
                     qpuSelectionResult.setToken(result.getToken());
+                    qpuSelectionResult.setQpuSelectionJobId(job.getId());
 
                     qpuSelectionResult = qpuSelectionResultRepository.save(qpuSelectionResult);
                     job.getJobResults().add(qpuSelectionResult);

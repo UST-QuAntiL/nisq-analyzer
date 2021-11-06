@@ -19,6 +19,8 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
+import java.util.UUID;
+
 import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
 import org.springframework.hateoas.server.core.Relation;
 
@@ -38,6 +40,8 @@ public class QpuSelectionResultDto extends CircuitResultDto {
 
     private String circuitName;
 
+    UUID qpuSelectionJobId;
+
     public static final class Converter {
 
         public static QpuSelectionResultDto convert(final QpuSelectionResult object) {
@@ -50,6 +54,7 @@ public class QpuSelectionResultDto extends CircuitResultDto {
             dto.setCircuitName(object.getCircuitName());
             dto.setTranspiledCircuit(object.getTranspiledCircuit());
             dto.setTranspiledLanguage(object.getTranspiledLanguage());
+            dto.setQpuSelectionJobId(object.getQpuSelectionJobId());
             dto.setCompiler(object.getCompiler());
             dto.setAnalyzedDepth(object.getAnalyzedDepth());
             dto.setAnalyzedWidth(object.getAnalyzedWidth());

@@ -19,6 +19,8 @@
 
 package org.planqk.nisq.analyzer.core.connector.forest;
 
+import static org.planqk.nisq.analyzer.core.web.Utils.getBearerTokenFromRefreshToken;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -50,8 +52,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
-import static org.planqk.nisq.analyzer.core.web.Utils.getBearerTokenFromRefreshToken;
 
 /**
  * Sdk connector which passes execution and analysis requests to a connected Forest service.
@@ -118,6 +118,7 @@ public class ForestSdkConnector implements SdkConnector {
                         executionResult.setStatus(ExecutionResultStatus.FINISHED);
                         executionResult.setStatusCode("Execution successfully completed.");
                         executionResult.setResult(result.getResult().toString());
+                        executionResult.setShots(result.getShots());
                         resultRepository.save(executionResult);
                     }
 

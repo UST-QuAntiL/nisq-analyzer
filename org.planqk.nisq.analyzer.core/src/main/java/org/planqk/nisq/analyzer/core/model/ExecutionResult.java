@@ -61,8 +61,12 @@ public class ExecutionResult extends HasId {
 
     @Getter
     @Setter
-    @Column(columnDefinition="text")
+    @Column(columnDefinition = "text")
     private String result;
+
+    @Getter
+    @Setter
+    private int shots;
 
     @Getter
     @Setter

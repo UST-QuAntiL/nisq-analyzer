@@ -42,4 +42,8 @@ public class ExecutionRequestResult {
     @Getter
     @Setter
     private Map<String, Object> result = new HashMap<>();
+
+    @Getter
+    @Setter
+    private int shots;
 }

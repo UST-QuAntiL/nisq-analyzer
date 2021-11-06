@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
+import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 
@@ -45,4 +46,6 @@ public class QpuSelectionResult extends CircuitResult {
     private String transpiledLanguage;
 
     private String token;
+
+    private UUID qpuSelectionJobId;
 }

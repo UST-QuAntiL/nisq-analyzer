@@ -19,6 +19,8 @@
 
 package org.planqk.nisq.analyzer.core.connector.pytket;
 
+import static org.planqk.nisq.analyzer.core.web.Utils.getBearerTokenFromRefreshToken;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -51,8 +53,6 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
-import static org.planqk.nisq.analyzer.core.web.Utils.getBearerTokenFromRefreshToken;
 
 @Service
 public class PyTketSdkConnector implements SdkConnector {
@@ -139,6 +139,7 @@ public class PyTketSdkConnector implements SdkConnector {
                         executionResult.setStatus(ExecutionResultStatus.FINISHED);
                         executionResult.setStatusCode("Execution successfully completed.");
                         executionResult.setResult(result.getResult().toString());
+                        executionResult.setShots(result.getShots());
                         resultRepository.save(executionResult);
                     }
 

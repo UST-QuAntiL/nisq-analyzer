@@ -23,7 +23,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -31,7 +33,6 @@ import javax.transaction.Transactional;
 
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
-import org.planqk.nisq.analyzer.core.model.CompilationResult;
 import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
@@ -147,6 +148,52 @@ public class QpuSelectionResultController {
 
         // get stored token for the execution
         QpuSelectionResult qpuSelectionResult = result.get();
+
+        // check if target machine is of Rigetti or IBMQ, consider accordingly qvm simulator or ibmq_qasm_simulator
+        String simulator;
+        if (Objects.equals(qpuSelectionResult.getProvider(), Constants.RIGETTI)) {
+            simulator = "qvm";
+        } else {
+            simulator = "qasm_simulator";
+        }
+
+        // if result to be executed is not a simulator, then check if a simulator result was already executed otherwise execute simulator first
+        // required for histogram intersection
+        if (!qpuSelectionResult.getQpu().contains(simulator)) {
+            // get all qpuSelectionResults of same qpuSelectionJob
+            List<QpuSelectionResult> jobResults =
+                qpuSelectionResultRepository.findAll().stream()
+                    .filter(qResult -> qResult.getQpuSelectionJobId().equals(qpuSelectionResult.getQpuSelectionJobId()))
+                    .collect(Collectors.toList());
+            // get qpuSelectionResult of simulator if available
+            QpuSelectionResult simulatorQpuSelectionResult =
+                jobResults.stream().filter(jobResult -> jobResult.getQpu().contains(simulator)).findFirst().orElse(null);
+            if (Objects.nonNull(simulatorQpuSelectionResult)) {
+                //check if qpu-selection result of simulator was already executed otherwise execute on simulator first
+                List<ExecutionResult> simulatorExecutionResults = executionResultRepository.findByQpuSelectionResult(simulatorQpuSelectionResult);
+                if (simulatorExecutionResults.size() == 0) {
+
+                    Map<String, ParameterValue> simulatorParams = new HashMap<>();
+                    simulatorParams.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, simulatorQpuSelectionResult.getToken()));
+
+                    ExecutionResult simulatorExecutionResult =
+                        controlService.executeCompiledQpuSelectionCircuit(simulatorQpuSelectionResult, simulatorParams);
+                    ExecutionResultDto simulatorDto = ExecutionResultDto.Converter.convert(simulatorExecutionResult);
+                    simulatorDto.add(
+                        linkTo(methodOn(ExecutionResultController.class).getExecutionResult(simulatorExecutionResult.getId())).withSelfRel());
+
+                    LOG.debug("Qpu-selection-result {} of {} has not yet been executed and will be executed now", simulatorQpuSelectionResult.getId(),
+                        simulator);
+                } else {
+                    LOG.debug("Qpu-selection-result {} for simulator already executed.", qpuSelectionResult.getId());
+                }
+            } else {
+                LOG.debug("No qpu-selection-result for simulator found in related job {} of qpu-selection-result {}.",
+                    qpuSelectionResult.getQpuSelectionJobId(),
+                    qpuSelectionResult.getId());
+            }
+        }
+
         Map<String, ParameterValue> params = new HashMap<>();
         params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, qpuSelectionResult.getToken()));
 
