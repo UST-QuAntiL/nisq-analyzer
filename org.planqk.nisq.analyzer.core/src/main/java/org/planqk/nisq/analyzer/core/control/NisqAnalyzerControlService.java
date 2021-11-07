@@ -143,7 +143,8 @@ public class NisqAnalyzerControlService {
         // create a object to store the execution results
         ExecutionResult executionResult =
             executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
-                "Passing execution to executor plugin.", result, null, null, null, 0, implementation));
+                "Passing execution to executor plugin.", result, null, null,
+                null, 0, 0, implementation));
 
         // execute implementation
         new Thread(() -> selectedSdkConnector
@@ -175,13 +176,13 @@ public class NisqAnalyzerControlService {
         ExecutionResult executionResult =
             executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
                 "Passing execution to executor plugin.", null, result, null,
-                null, 0, null));
+                null, 0, 0, null));
 
         // execute implementation
         new Thread(() -> selectedSdkConnector
-                .executeTranspiledQuantumCircuit(result.getTranspiledCircuit(), result.getTranspiledLanguage(), result.getProvider(), result.getQpu(),
-                        inputParameters,
-                        executionResult, executionResultRepository)).start();
+            .executeTranspiledQuantumCircuit(result.getTranspiledCircuit(), result.getTranspiledLanguage(), result.getProvider(), result.getQpu(),
+                inputParameters,
+                executionResult, executionResultRepository, qpuSelectionResultRepository)).start();
 
         return executionResult;
     }
@@ -208,13 +209,13 @@ public class NisqAnalyzerControlService {
         ExecutionResult executionResult =
             executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
                 "Passing execution to executor plugin.", null, null, result,
-                null, 0, null));
+                null, 0, 0, null));
 
         // execute implementation
         new Thread(() -> selectedSdkConnector
             .executeTranspiledQuantumCircuit(result.getTranspiledCircuit(), result.getTranspiledLanguage(), result.getProvider(), result.getQpu(),
                 inputParameters,
-                executionResult, executionResultRepository)).start();
+                executionResult, executionResultRepository, qpuSelectionResultRepository)).start();
 
         return executionResult;
     }
@@ -228,7 +229,8 @@ public class NisqAnalyzerControlService {
      * @throws UnsatisfiedLinkError Is thrown if the jpl driver is not on the java class path
      */
 
-    public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters, String refreshToken) throws UnsatisfiedLinkError {
+    public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters, String refreshToken)
+        throws UnsatisfiedLinkError {
         LOG.debug("Performing implementation and QPU selection for algorithm with Id: {}", algorithm);
 
         // check all implementation if they can handle the given set of input parameters

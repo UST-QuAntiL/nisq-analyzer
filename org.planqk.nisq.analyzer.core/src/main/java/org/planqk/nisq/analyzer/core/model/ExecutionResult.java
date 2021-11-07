@@ -70,6 +70,10 @@ public class ExecutionResult extends HasId {
 
     @Getter
     @Setter
+    private int histogramIntersectionValue;
+
+    @Getter
+    @Setter
     @ManyToOne
     private Implementation executedImplementation;
 }

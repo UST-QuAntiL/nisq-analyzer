@@ -30,6 +30,7 @@ import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
+import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 
 /**
  * Interface for the interaction with a certain SDK.
@@ -61,7 +62,7 @@ public interface SdkConnector {
      */
     void executeTranspiledQuantumCircuit(String transpiledCircuit, String transpiledLanguage, String providerName, String qpuName,
                                          Map<String, ParameterValue> parameters, ExecutionResult executionResult,
-                                         ExecutionResultRepository resultRepository);
+                                         ExecutionResultRepository resultRepository, QpuSelectionResultRepository qpuSelectionResultRepository);
 
     /**
      * Analyse the quantum algorithm implementation located at the given URL after compiling it for the given QPU and with the given input

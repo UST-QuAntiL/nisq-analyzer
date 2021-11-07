@@ -53,6 +53,10 @@ public class ExecutionResultDto extends RepresentationModel<ExecutionResultDto> 
     @Setter
     private int shots;
 
+    @Getter
+    @Setter
+    private int histogramIntersectionValue;
+
     public static final class Converter {
 
         public static ExecutionResultDto convert(final ExecutionResult object) {
@@ -62,6 +66,7 @@ public class ExecutionResultDto extends RepresentationModel<ExecutionResultDto> 
             dto.setStatusCode(object.getStatusCode());
             dto.setResult(object.getResult());
             dto.setShots(object.getShots());
+            dto.setHistogramIntersectionValue(object.getHistogramIntersectionValue());
             return dto;
         }
     }

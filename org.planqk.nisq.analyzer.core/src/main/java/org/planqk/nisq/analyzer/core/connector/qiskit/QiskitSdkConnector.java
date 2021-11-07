@@ -31,7 +31,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
@@ -45,7 +47,9 @@ import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
+import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
+import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -86,19 +90,21 @@ public class QiskitSdkConnector implements SdkConnector {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
         String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
         QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters, bearerToken);
-        executeQuantumCircuit(request, executionResult, resultRepository);
+        executeQuantumCircuit(request, executionResult, resultRepository, null);
     }
 
     @Override
     public void executeTranspiledQuantumCircuit(String transpiledCircuit, String transpiledLanguage, String providerName, String qpuName,
                                                 Map<String, ParameterValue> parameters, ExecutionResult executionResult,
-                                                ExecutionResultRepository resultRepository) {
+                                                ExecutionResultRepository resultRepository,
+                                                QpuSelectionResultRepository qpuSelectionResultRepository) {
         LOG.debug("Executing circuit passed as file with provider '{}' and qpu '{}'.", providerName, qpuName);
         QiskitRequest request = new QiskitRequest(transpiledCircuit, qpuName, parameters);
-        executeQuantumCircuit(request, executionResult, resultRepository);
+        executeQuantumCircuit(request, executionResult, resultRepository, qpuSelectionResultRepository);
     }
 
-    private void executeQuantumCircuit(QiskitRequest request, ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
+    private void executeQuantumCircuit(QiskitRequest request, ExecutionResult executionResult, ExecutionResultRepository resultRepository,
+                                       QpuSelectionResultRepository qpuSelectionResultRepository) {
         RestTemplate restTemplate = new RestTemplate();
         try {
             // make the execution request
@@ -120,6 +126,59 @@ public class QiskitSdkConnector implements SdkConnector {
                         executionResult.setStatusCode("Execution successfully completed.");
                         executionResult.setResult(result.getResult().toString());
                         executionResult.setShots(result.getShots());
+
+                        //FIXME currently only for qpu-selection
+                        Optional<QpuSelectionResult> qpuSelectionResult =
+                            qpuSelectionResultRepository.findById(executionResult.getQpuSelectionResult().getId());
+                        if (qpuSelectionResult.isPresent()) {
+                            // get stored token for the execution
+                            QpuSelectionResult qResult = qpuSelectionResult.get();
+
+                            // check if target machine is of Rigetti or IBMQ, consider accordingly qvm simulator or ibmq_qasm_simulator
+                            String simulator;
+                            if (Objects.equals(qResult.getProvider(), Constants.RIGETTI)) {
+                                simulator = "qvm";
+                            } else {
+                                simulator = "qasm_simulator";
+                            }
+
+                            // check if current execution result is already of a simulator otherwise get all qpu-selection-results of same job
+                            if (!qResult.getQpu().contains(simulator)) {
+                                List<QpuSelectionResult> jobResults =
+                                    qpuSelectionResultRepository.findAll().stream()
+                                        .filter(res -> res.getQpuSelectionJobId().equals(qResult.getQpuSelectionJobId()))
+                                        .collect(Collectors.toList());
+                                // get qpuSelectionResult of simulator if available
+                                QpuSelectionResult simulatorQpuSelectionResult =
+                                    jobResults.stream().filter(jobResult -> jobResult.getQpu().contains(simulator)).findFirst().orElse(null);
+                                if (Objects.nonNull(simulatorQpuSelectionResult)) {
+                                    //check if qpu-selection result of simulator was already executed otherwise wait
+                                    while (true) {
+                                        try {
+                                            Thread.sleep(1000);
+                                            ExecutionResult simulatorExecutionResult =
+                                                resultRepository
+                                                    .findAll()
+                                                    .stream()
+                                                    .filter(exeResult -> exeResult.getHistogramIntersectionValue() == 1)
+                                                    .findFirst()
+                                                    .orElse(null);
+
+                                            // as soon as exeuction result of simulator is returned calculate histogram intersection
+                                            if (Objects.nonNull(simulatorExecutionResult)) {
+                                                // convert stored execution result to Map
+                                                executionResult.setHistogramIntersectionValue(15);
+                                                break;
+                                            }
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }
+                            } else {
+                                executionResult.setHistogramIntersectionValue(1);
+                            }
+                        }
                         resultRepository.save(executionResult);
                     }
 
