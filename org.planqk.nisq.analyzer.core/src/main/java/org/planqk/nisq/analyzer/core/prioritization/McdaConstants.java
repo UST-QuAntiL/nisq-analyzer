@@ -28,9 +28,11 @@ import javax.xml.namespace.QName;
  */
 public class McdaConstants {
 
-    public static final String QUANTUM_VOLUME = "quantum-volume";
+    public static final String AVG_SINGLE_QUBIT_GATE_ERROR = "avg-single-qubit-gate-error";
 
     public static final String AVG_MULTI_QUBIT_GATE_ERROR = "avg-multi-qubit-gate-error";
+
+    public static final String AVG_SINGLE_QUBIT_GATE_TIME = "avg-single-qubit-gate-time";
 
     public static final String AVG_MULTI_QUBIT_GATE_TIME = "avg-multi-qubit-gate-time";
 
@@ -42,8 +44,9 @@ public class McdaConstants {
 
     public static final String QUEUE_SIZE = "queue-size";
 
-    public static final List<String> QPU_CRITERION = Arrays.asList(QUANTUM_VOLUME, AVG_MULTI_QUBIT_GATE_ERROR, AVG_MULTI_QUBIT_GATE_TIME,
-        AVG_READOUT_ERROR, AVG_T1, AVG_T2, QUEUE_SIZE);
+    public static final List<String> QPU_CRITERION =
+        Arrays.asList(AVG_SINGLE_QUBIT_GATE_ERROR, AVG_MULTI_QUBIT_GATE_ERROR, AVG_SINGLE_QUBIT_GATE_TIME, AVG_MULTI_QUBIT_GATE_TIME,
+            AVG_READOUT_ERROR, AVG_T1, AVG_T2, QUEUE_SIZE);
 
     public static final String WIDTH = "width";
 
@@ -51,15 +54,21 @@ public class McdaConstants {
 
     public static final String TOTAL_NUMBER_OF_OPERATIONS = "total-number-of-operations";
 
+    public static final String NUMBER_OF_SINGLE_QUBIT_GATES = "number-of-single-qubit-gates";
+
     public static final String NUMBER_OF_MULTI_QUBIT_GATES = "number-of-multi-qubit-gates";
+
+    public static final String NUMBER_OF_MEASUREMENT_OPERATIONS = "number-of-measurement-operations";
 
     public static final String MULTI_QUBIT_GATE_DEPTH = "multi-qubit-gate-depth";
 
     public static final List<String> CIRCUIT_CRITERION = Arrays
-        .asList(WIDTH, DEPTH, TOTAL_NUMBER_OF_OPERATIONS, NUMBER_OF_MULTI_QUBIT_GATES, MULTI_QUBIT_GATE_DEPTH);
+        .asList(WIDTH, DEPTH, TOTAL_NUMBER_OF_OPERATIONS, NUMBER_OF_SINGLE_QUBIT_GATES, NUMBER_OF_MULTI_QUBIT_GATES, NUMBER_OF_MEASUREMENT_OPERATIONS,
+            MULTI_QUBIT_GATE_DEPTH);
 
     // ***** MCDA web services *****
     public static final String WEB_SERVICE_OPERATIONS_INVOKE = "submitProblem";
+
     public static final String WEB_SERVICE_OPERATIONS_REQUEST_SOLUTION = "requestSolution";
 
     // XMCDA namespace for the Electre services

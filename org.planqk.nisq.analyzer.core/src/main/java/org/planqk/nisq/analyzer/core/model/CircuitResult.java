@@ -65,7 +65,15 @@ public abstract class CircuitResult extends HasId {
 
     @Getter
     @Setter
+    private int analyzedNumberOfSingleQubitGates;
+
+    @Getter
+    @Setter
     private int analyzedNumberOfMultiQubitGates;
+
+    @Getter
+    @Setter
+    private int analyzedNumberOfMeasurementOperations;
 
     @Getter
     @Setter

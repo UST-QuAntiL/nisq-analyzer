@@ -59,6 +59,8 @@ public class QpuSelectionResultDto extends CircuitResultDto {
             dto.setAnalyzedDepth(object.getAnalyzedDepth());
             dto.setAnalyzedWidth(object.getAnalyzedWidth());
             dto.setAnalyzedTotalNumberOfOperations(object.getAnalyzedTotalNumberOfOperations());
+            dto.setAnalyzedNumberOfSingleQubitGates(object.getAnalyzedNumberOfSingleQubitGates());
+            dto.setAnalyzedNumberOfMeasurementOperations(object.getAnalyzedNumberOfMeasurementOperations());
             dto.setAnalyzedNumberOfMultiQubitGates(object.getAnalyzedNumberOfMultiQubitGates());
             dto.setAnalyzedMultiQubitGateDepth(object.getAnalyzedMultiQubitGateDepth());
             return dto;

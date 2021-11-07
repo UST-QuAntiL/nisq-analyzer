@@ -337,6 +337,8 @@ public class NisqAnalyzerControlService {
                         result.setAnalyzedDepth(circuitInformation.getCircuitDepth());
                         result.setAnalyzedWidth(circuitInformation.getCircuitWidth());
                         result.setAnalyzedTotalNumberOfOperations(circuitInformation.getCircuitTotalNumberOfOperations());
+                        result.setAnalyzedNumberOfSingleQubitGates(circuitInformation.getCircuitNumberOfSingleQubitGates());
+                        result.setAnalyzedNumberOfMeasurementOperations(circuitInformation.getCircuitNumberOfMeasurementOperations());
                         result.setAnalyzedNumberOfMultiQubitGates(circuitInformation.getCircuitNumberOfMultiQubitGates());
                         result.setAnalyzedMultiQubitGateDepth(circuitInformation.getCircuitMultiQubitGateDepth());
                         result = analysisResultRepository.save(result);
@@ -481,6 +483,8 @@ public class NisqAnalyzerControlService {
                     qpuSelectionResult.setAnalyzedDepth(result.getAnalyzedDepth());
                     qpuSelectionResult.setAnalyzedWidth(result.getAnalyzedWidth());
                     qpuSelectionResult.setAnalyzedTotalNumberOfOperations(result.getAnalyzedTotalNumberOfOperations());
+                    qpuSelectionResult.setAnalyzedNumberOfSingleQubitGates(result.getAnalyzedNumberOfSingleQubitGates());
+                    qpuSelectionResult.setAnalyzedNumberOfMeasurementOperations(result.getAnalyzedNumberOfMeasurementOperations());
                     qpuSelectionResult.setAnalyzedNumberOfMultiQubitGates(result.getAnalyzedNumberOfMultiQubitGates());
                     qpuSelectionResult.setAnalyzedMultiQubitGateDepth(result.getAnalyzedMultiQubitGateDepth());
                     qpuSelectionResult.setToken(result.getToken());
@@ -615,6 +619,8 @@ public class NisqAnalyzerControlService {
                 compilationResult.setAnalyzedDepth(circuitInformation.getCircuitDepth());
                 compilationResult.setAnalyzedWidth(circuitInformation.getCircuitWidth());
                 compilationResult.setAnalyzedTotalNumberOfOperations(circuitInformation.getCircuitTotalNumberOfOperations());
+                compilationResult.setAnalyzedNumberOfSingleQubitGates(circuitInformation.getCircuitNumberOfSingleQubitGates());
+                compilationResult.setAnalyzedNumberOfMeasurementOperations(circuitInformation.getCircuitNumberOfMeasurementOperations());
                 compilationResult.setAnalyzedNumberOfMultiQubitGates(circuitInformation.getCircuitNumberOfMultiQubitGates());
                 compilationResult.setAnalyzedMultiQubitGateDepth(circuitInformation.getCircuitMultiQubitGateDepth());
                 compilationResult.setToken(token);

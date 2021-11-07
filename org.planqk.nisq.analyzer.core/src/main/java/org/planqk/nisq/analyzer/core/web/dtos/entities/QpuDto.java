@@ -65,8 +65,18 @@ public class QpuDto extends RepresentationModel<QpuDto> {
 
     @Getter
     @Setter
+    @JsonProperty("avgSingleQubitGateError")
+    private float avgSingleQubitGateError;
+
+    @Getter
+    @Setter
     @JsonProperty("avgMultiQubitGateError")
     private float avgMultiQubitGateError;
+
+    @Getter
+    @Setter
+    @JsonProperty("avgSingleQubitGateTime")
+    private float avgSingleQubitGateTime;
 
     @Getter
     @Setter
@@ -95,7 +105,9 @@ public class QpuDto extends RepresentationModel<QpuDto> {
             dto.setT1(object.getT1());
             dto.setT2(object.getT2());
             dto.setAvgReadoutError(object.getAvgReadoutError());
+            dto.setAvgSingleQubitGateError(object.getAvgSingleQubitGateError());
             dto.setAvgMultiQubitGateError(object.getAvgMultiQubitGateError());
+            dto.setAvgSingleQubitGateTime(object.getAvgSingleQubitGateTime());
             dto.setAvgMultiQubitGateTime(object.getAvgMultiQubitGateTime());
             dto.setMaxGateTime(object.getMaxGateTime());
             dto.setQueueSize(object.getQueueSize());
@@ -120,7 +132,9 @@ public class QpuDto extends RepresentationModel<QpuDto> {
             qpu.setT2(convert_micro_to_nano_seconds(object.getT2()));
 
             qpu.setAvgReadoutError(object.getAvgReadoutError());
+            qpu.setAvgSingleQubitGateError(object.getAvgSingleQubitGateError());
             qpu.setAvgMultiQubitGateError(object.getAvgMultiQubitGateError());
+            qpu.setAvgSingleQubitGateTime(object.getAvgSingleQubitGateTime());
             qpu.setAvgMultiQubitGateTime(object.getAvgMultiQubitGateTime());
             qpu.setMaxGateTime(object.getMaxGateTime());
             qpu.setProvider(provider);

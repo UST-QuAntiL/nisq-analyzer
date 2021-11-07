@@ -56,7 +56,7 @@
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c04" name="Total number of operations">
+		<criterion id="c04" name="total-number-of-operations">
 			<description>
 				<title>Total number of operations</title>
 				<comment>Number of operations used in the circuit. Should be minimal.</comment>

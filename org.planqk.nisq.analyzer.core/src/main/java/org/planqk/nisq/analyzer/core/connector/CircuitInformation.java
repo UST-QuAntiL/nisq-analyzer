@@ -53,8 +53,18 @@ public class CircuitInformation {
 
     @Getter
     @Setter
+    @JsonProperty("number-of-single-qubit-gates")
+    private int circuitNumberOfSingleQubitGates = 0;
+
+    @Getter
+    @Setter
     @JsonProperty("number-of-multi-qubit-gates")
     private int circuitNumberOfMultiQubitGates = 0;
+
+    @Getter
+    @Setter
+    @JsonProperty("number-of-measurement-operations")
+    private int circuitNumberOfMeasurementOperations = 0;
 
     @Getter
     @Setter

@@ -241,8 +241,14 @@ public class JobDataExtractor {
             case McdaConstants.TOTAL_NUMBER_OF_OPERATIONS:
                 value.setInteger(result.getAnalyzedTotalNumberOfOperations());
                 break;
+            case McdaConstants.NUMBER_OF_SINGLE_QUBIT_GATES:
+                value.setInteger(result.getAnalyzedNumberOfSingleQubitGates());
+                break;
             case McdaConstants.NUMBER_OF_MULTI_QUBIT_GATES:
                 value.setInteger(result.getAnalyzedNumberOfMultiQubitGates());
+                break;
+            case McdaConstants.NUMBER_OF_MEASUREMENT_OPERATIONS:
+                value.setInteger(result.getAnalyzedNumberOfMeasurementOperations());
                 break;
             case McdaConstants.MULTI_QUBIT_GATE_DEPTH:
                 value.setInteger(result.getAnalyzedMultiQubitGateDepth());
@@ -259,12 +265,14 @@ public class JobDataExtractor {
         performance.setCriterionID(criterion.getId());
         Value value = new Value();
         switch (criterion.getName().toLowerCase()) {
-            case McdaConstants.QUANTUM_VOLUME:
-                // TODO: replace with quantum volume of QPU
-                value.setInteger(1);
+            case McdaConstants.AVG_SINGLE_QUBIT_GATE_ERROR:
+                value.setReal((double) qpu.getAvgSingleQubitGateError());
                 break;
             case McdaConstants.AVG_MULTI_QUBIT_GATE_ERROR:
                 value.setReal((double) qpu.getAvgMultiQubitGateError());
+                break;
+            case McdaConstants.AVG_SINGLE_QUBIT_GATE_TIME:
+                value.setReal((double) qpu.getAvgSingleQubitGateTime());
                 break;
             case McdaConstants.AVG_MULTI_QUBIT_GATE_TIME:
                 value.setReal((double) qpu.getAvgMultiQubitGateTime());
