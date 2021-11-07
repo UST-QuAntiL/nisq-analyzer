@@ -55,7 +55,7 @@ public class ExecutionResultDto extends RepresentationModel<ExecutionResultDto> 
 
     @Getter
     @Setter
-    private int histogramIntersectionValue;
+    private double histogramIntersectionValue;
 
     public static final class Converter {
 

@@ -70,7 +70,7 @@ public class ExecutionResult extends HasId {
 
     @Getter
     @Setter
-    private int histogramIntersectionValue;
+    private double histogramIntersectionValue;
 
     @Getter
     @Setter
