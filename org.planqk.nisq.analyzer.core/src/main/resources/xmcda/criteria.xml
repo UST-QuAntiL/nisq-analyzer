@@ -14,25 +14,49 @@
 				<quantitative>
 					<preferenceDirection>min</preferenceDirection>
 					<minimum><real>0</real></minimum>
-					<maximum><real>9999</real></maximum>
+					<maximum>
+						<real>99999999</real>
+					</maximum>
 				</quantitative>
 			</scale>
 		</criterion>
 		<criterion id="c02" name="depth">
 			<description>
 				<title>Depth</title>
-				<comment>Longest path of gates in the circuit. Should be minimal.</comment>
+				<comment>Longest path of operations in the circuit. Should be minimal.</comment>
 			</description>
 			<active>true</active>
 			<scale>
 				<quantitative>
 					<preferenceDirection>min</preferenceDirection>
-					<minimum><real>0</real></minimum>
-					<maximum><real>9999</real></maximum>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>99999999</real>
+					</maximum>
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c03" name="total-number-of-operations">
+		<criterion id="c03" name="multi-qubit-gate-depth">
+			<description>
+				<title>Multi-qubit gate depth</title>
+				<comment>Depth of multi-qubit-gates in the circuit. Should be minimal.</comment>
+			</description>
+			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>min</preferenceDirection>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>99999999</real>
+					</maximum>
+				</quantitative>
+			</scale>
+		</criterion>
+		<criterion id="c04" name="Total number of operations">
 			<description>
 				<title>Total number of operations</title>
 				<comment>Number of operations used in the circuit. Should be minimal.</comment>
@@ -45,15 +69,33 @@
 						<real>0</real>
 					</minimum>
 					<maximum>
-						<real>9999</real>
+						<real>99999999</real>
 					</maximum>
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c04" name="number-of-multi-qubit-gates">
+		<criterion id="c05" name="number-of-single-qubit-gates">
+			<description>
+				<title>Number of single-qubit-gates</title>
+				<comment>Number single-qubit-gates used in the circuit. Should be minimal.</comment>
+			</description>
+			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>min</preferenceDirection>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>99999999</real>
+					</maximum>
+				</quantitative>
+			</scale>
+		</criterion>
+		<criterion id="c06" name="number-of-multi-qubit-gates">
 			<description>
 				<title>Number of multi-qubit-gates</title>
-				<comment>Number mulit-qubit-gates used in the circuit. Should be minimal.</comment>
+				<comment>Number multi-qubit-gates used in the circuit. Should be minimal.</comment>
 			</description>
 			<active>true</active>
 			<scale>
@@ -63,15 +105,15 @@
 						<real>0</real>
 					</minimum>
 					<maximum>
-						<real>9999</real>
+						<real>99999999</real>
 					</maximum>
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c05" name="multi-qubit-gate-depth">
+		<criterion id="c07" name="number-of-measurement-operations">
 			<description>
-				<title>Multi-qubit-gate depth</title>
-				<comment>Depth of multi-qubit-gates in the circuit. Should be minimal.</comment>
+				<title>Number of measurement operations</title>
+				<comment>Number measurement operations used in the circuit. Should be minimal.</comment>
 			</description>
 			<active>true</active>
 			<scale>
@@ -81,30 +123,30 @@
 						<real>0</real>
 					</minimum>
 					<maximum>
-						<real>9999</real>
+						<real>99999999</real>
 					</maximum>
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c06" name="quantum-volume">
+		<criterion id="c08" name="avg-single-qubit-gate-error">
 			<description>
-				<title>Quantum Volume</title>
-				<comment>Quantum Volume of the quantum computer. Should be maximal.</comment>
+				<title>Average single-qubit-gate error</title>
+				<comment>Average single-qubit-gate error of the quantum computer. Should be minimal.</comment>
 			</description>
 			<active>true</active>
 			<scale>
 				<quantitative>
-					<preferenceDirection>max</preferenceDirection>
+					<preferenceDirection>min</preferenceDirection>
 					<minimum>
 						<real>0</real>
 					</minimum>
 					<maximum>
-						<real>9999</real>
+						<real>99999999</real>
 					</maximum>
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c07" name="avg-multi-qubit-gate-error">
+		<criterion id="c09" name="avg-multi-qubit-gate-error">
 			<description>
 				<title>Average multi-qubit-gate error</title>
 				<comment>Average multi-qubit-gate error of the quantum computer. Should be minimal.</comment>
@@ -117,15 +159,15 @@
 						<real>0</real>
 					</minimum>
 					<maximum>
-						<real>9999</real>
+						<real>99999999</real>
 					</maximum>
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c08" name="avg-readout-error">
+		<criterion id="c10" name="avg-single-qubit-gate-time">
 			<description>
-				<title>Average readout error</title>
-				<comment>Average readout error of the quantum computer. Should be minimal.</comment>
+				<title>Average single-qubit-gate time</title>
+				<comment>Average single-qubit-gate time of the quantum computer. Should be minimal.</comment>
 			</description>
 			<active>true</active>
 			<scale>
@@ -135,66 +177,12 @@
 						<real>0</real>
 					</minimum>
 					<maximum>
-						<real>9999</real>
+						<real>99999999</real>
 					</maximum>
 				</quantitative>
 			</scale>
 		</criterion>
-		<criterion id="c09" name="avg-t1">
-			<description>
-				<title>Average T1</title>
-				<comment>Average T1 time of the quantum computer. Should be maximal.</comment>
-			</description>
-			<active>true</active>
-			<scale>
-				<quantitative>
-					<preferenceDirection>max</preferenceDirection>
-					<minimum>
-						<real>0</real>
-					</minimum>
-					<maximum>
-						<real>9999</real>
-					</maximum>
-				</quantitative>
-			</scale>
-		</criterion>
-		<criterion id="c10" name="avg-t2">
-			<description>
-				<title>Average T2</title>
-				<comment>Average T2 time of the quantum computer. Should be maximal.</comment>
-			</description>
-			<active>true</active>
-			<scale>
-				<quantitative>
-					<preferenceDirection>max</preferenceDirection>
-					<minimum>
-						<real>0</real>
-					</minimum>
-					<maximum>
-						<real>9999</real>
-					</maximum>
-				</quantitative>
-			</scale>
-		</criterion>
-		<criterion id="c11" name="queue-size">
-			<description>
-				<title>Queue size</title>
-				<comment>Queue size of the quantum computer. Should be minimal.</comment>
-			</description>
-			<active>true</active>
-			<scale>
-				<quantitative>
-					<preferenceDirection>min</preferenceDirection>
-					<minimum>
-						<real>0</real>
-					</minimum>
-					<maximum>
-						<real>9999</real>
-					</maximum>
-				</quantitative>
-			</scale>
-		</criterion>
-		<criterion id="c12" name="avg-multi-qubit-gate-time">
+		<criterion id="c11" name="avg-multi-qubit-gate-time">
 			<description>
 				<title>Average multi-qubit-gate time</title>
 				<comment>Average multi-qubit-gate time of the quantum computer. Should be minimal.</comment>
@@ -207,7 +195,79 @@
 						<real>0</real>
 					</minimum>
 					<maximum>
-						<real>9999</real>
+						<real>99999999</real>
+					</maximum>
+				</quantitative>
+			</scale>
+		</criterion>
+		<criterion id="c12" name="avg-readout-error">
+			<description>
+				<title>Average readout error</title>
+				<comment>Average readout error of the quantum computer. Should be minimal.</comment>
+			</description>
+			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>min</preferenceDirection>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>99999999</real>
+					</maximum>
+				</quantitative>
+			</scale>
+		</criterion>
+		<criterion id="c13" name="avg-t1">
+			<description>
+				<title>Average T1</title>
+				<comment>Average T1 time of the quantum computer. Should be maximal.</comment>
+			</description>
+			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>max</preferenceDirection>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>99999999</real>
+					</maximum>
+				</quantitative>
+			</scale>
+		</criterion>
+		<criterion id="c14" name="avg-t2">
+			<description>
+				<title>Average T2</title>
+				<comment>Average T2 time of the quantum computer. Should be maximal.</comment>
+			</description>
+			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>max</preferenceDirection>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>99999999</real>
+					</maximum>
+				</quantitative>
+			</scale>
+		</criterion>
+		<criterion id="c15" name="queue-size">
+			<description>
+				<title>Queue size</title>
+				<comment>Queue size of the quantum computer. Should be minimal.</comment>
+			</description>
+			<active>true</active>
+			<scale>
+				<quantitative>
+					<preferenceDirection>min</preferenceDirection>
+					<minimum>
+						<real>0</real>
+					</minimum>
+					<maximum>
+						<real>99999999</real>
 					</maximum>
 				</quantitative>
 			</scale>

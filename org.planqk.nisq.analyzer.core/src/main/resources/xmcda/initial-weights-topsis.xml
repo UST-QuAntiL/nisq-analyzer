@@ -7,73 +7,91 @@
 		<criterionValue>
 			<criterionID>c01</criterionID>
 			<value>
-				<real>0.083</real>
+				<real>0.067</real>
 			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c02</criterionID>
 			<value>
-				<real>0.083</real>
+				<real>0.067</real>
 			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c03</criterionID>
 			<value>
-				<real>0.083</real>
+				<real>0.067</real>
 			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c04</criterionID>
 			<value>
-				<real>0.083</real>
+				<real>0.067</real>
 			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c05</criterionID>
 			<value>
-				<real>0.083</real>
+				<real>0.067</real>
 			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c06</criterionID>
 			<value>
-				<real>0.083</real>
+				<real>0.067</real>
 			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c07</criterionID>
 			<value>
-				<real>0.083</real>
+				<real>0.067</real>
 			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c08</criterionID>
 			<value>
-				<real>0.083</real>
+				<real>0.067</real>
 			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c09</criterionID>
 			<value>
-				<real>0.083</real>
+				<real>0.067</real>
 			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c10</criterionID>
 			<value>
-				<real>0.083</real>
+				<real>0.067</real>
 			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c11</criterionID>
 			<value>
-				<real>0.083</real>
+				<real>0.067</real>
 			</value>
 		</criterionValue>
 		<criterionValue>
 			<criterionID>c12</criterionID>
 			<value>
-				<real>0.083</real>
+				<real>0.067</real>
+			</value>
+		</criterionValue>
+		<criterionValue>
+			<criterionID>c13</criterionID>
+			<value>
+				<real>0.067</real>
+			</value>
+		</criterionValue>
+		<criterionValue>
+			<criterionID>c14</criterionID>
+			<value>
+				<real>0.067</real>
+			</value>
+		</criterionValue>
+		<criterionValue>
+			<criterionID>c15</criterionID>
+			<value>
+				<real>0.067</real>
 			</value>
 		</criterionValue>
 	</criteriaValues>
