@@ -150,7 +150,7 @@ public class QiskitSdkConnector implements SdkConnector {
                                 QpuSelectionResult simulatorQpuSelectionResult =
                                     jobResults.stream().filter(jobResult -> jobResult.getQpu().contains(simulator)).findFirst().orElse(null);
                                 if (Objects.nonNull(simulatorQpuSelectionResult)) {
-                                    //check if qpu-selection result of simulator (or other with perfect results) was already executed otherwise wait max 1 minute
+                                    //check if qpu-selection result of simulator was already executed otherwise wait max 1 minute
                                     int iterator = 60;
                                     while (iterator > 0) {
                                         try {
@@ -159,7 +159,8 @@ public class QiskitSdkConnector implements SdkConnector {
                                                 resultRepository
                                                     .findAll()
                                                     .stream()
-                                                    .filter(exeResult -> exeResult.getHistogramIntersectionValue() == 1)
+                                                    .filter(exeResult -> exeResult.getQpuSelectionResult().getId()
+                                                        .equals(simulatorQpuSelectionResult.getId()))
                                                     .findFirst()
                                                     .orElse(null);
 
