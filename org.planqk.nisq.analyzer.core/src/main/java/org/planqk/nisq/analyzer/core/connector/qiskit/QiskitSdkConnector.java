@@ -193,7 +193,7 @@ public class QiskitSdkConnector implements SdkConnector {
                                                         Math.min(simulatorCountsOfResults.get(simulatorKey), qpuExecutionResult.get(simulatorKey));
                                                 }
                                                 if (intersection > 0) {
-                                                    executionResult.setHistogramIntersectionValue(intersection / executionResult.getShots());
+                                                    executionResult.setHistogramIntersectionValue(intersection / simulatorExecutionResult.getShots());
                                                 }
                                                 break;
                                             }
