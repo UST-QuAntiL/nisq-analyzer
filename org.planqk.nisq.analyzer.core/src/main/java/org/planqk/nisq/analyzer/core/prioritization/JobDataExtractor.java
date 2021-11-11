@@ -281,10 +281,18 @@ public class JobDataExtractor {
                 value.setReal((double) qpu.getAvgReadoutError());
                 break;
             case McdaConstants.AVG_T1:
-                value.setReal((double) qpu.getT1());
+                if (qpu.isSimulator()) {
+                    value.setReal(99999999.0);
+                } else {
+                    value.setReal((double) qpu.getT1());
+                }
                 break;
             case McdaConstants.AVG_T2:
-                value.setReal((double) qpu.getT2());
+                if (qpu.isSimulator()) {
+                    value.setReal(99999999.0);
+                } else {
+                    value.setReal((double) qpu.getT2());
+                }
                 break;
             case McdaConstants.QUEUE_SIZE:
                 value.setInteger(qpu.getQueueSize());
