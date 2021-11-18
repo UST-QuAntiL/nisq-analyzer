@@ -462,7 +462,7 @@ public class NisqAnalyzerControlService {
                 }
 
                 // we currently restrict the set of compilers to use to reduce the runtime
-                List<String> compilersToUse = Arrays.asList(Constants.QISKIT, Constants.FOREST);
+                List<String> compilersToUse = Arrays.asList(Constants.QISKIT, Constants.PYTKET, Constants.FOREST);
 
                 // perform compiler selection for the given QPU and circuit
                 List<CompilationResult> compilationResults =
