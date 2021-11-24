@@ -7,24 +7,23 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import javax.transaction.Transactional;
 
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
+import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
-import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
+import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
-import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisJobDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisJobListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisResultListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.ExecutionResultDto;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisJobDto;
-import org.planqk.nisq.analyzer.core.web.dtos.entities.AnalysisJobListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.requests.ExecuteAnalysisResultRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -165,14 +164,20 @@ public class AnalysisResultController {
 
             // Retrieve the type of the parameter from the algorithm definition
             Map<String, ParameterValue> typedParams =
-                    ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), analysisResult.getInputParameters());
+                ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), analysisResult.getInputParameters());
             String refreshToken = "";
 
             if (request != null && request.getRefreshToken() != null) {
                 refreshToken = request.getRefreshToken();
             }
 
-            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(analysisResult, typedParams, refreshToken);
+            int shots = 1024;
+
+            if (request != null && request.getShots() != 1024) {
+                shots = request.getShots();
+            }
+
+            ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(analysisResult, typedParams, refreshToken, shots);
 
             ExecutionResultDto dto = ExecutionResultDto.Converter.convert(result);
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(result.getId())).withSelfRel());

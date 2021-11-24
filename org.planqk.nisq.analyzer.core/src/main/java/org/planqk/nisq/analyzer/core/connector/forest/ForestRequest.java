@@ -56,6 +56,11 @@ public class ForestRequest {
 
     @Getter
     @Setter
+    @JsonProperty("shots")
+    private int shots;
+
+    @Getter
+    @Setter
     @JsonProperty(value = "transpiled-quil")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String transpiled_quil;
@@ -71,10 +76,23 @@ public class ForestRequest {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String bearerToken;
 
-    public ForestRequest(URL impl_url, String impl_language, String qpu_name, Map<String, ParameterValue> input_params, String bearerToken) {
+    //implementation.getFileLocation(), implementation.getLanguage(), qpuName, parameters, bearerToken
+
+    public ForestRequest(URL impl_url, String impl_language, String qpu_name, Map<String, ParameterValue> input_params,
+                         String bearerToken) {
         this.impl_url = impl_url;
         this.impl_language = impl_language;
         this.qpu_name = qpu_name;
+        this.input_params = input_params;
+        this.bearerToken = bearerToken;
+    }
+
+    public ForestRequest(URL impl_url, String impl_language, String qpu_name, int shots, Map<String, ParameterValue> input_params,
+                         String bearerToken) {
+        this.impl_url = impl_url;
+        this.impl_language = impl_language;
+        this.qpu_name = qpu_name;
+        this.shots = shots;
         this.input_params = input_params;
         this.bearerToken = bearerToken;
     }
@@ -86,9 +104,10 @@ public class ForestRequest {
         this.input_params = input_params;
     }
 
-    public ForestRequest(String transpiled_quil, String qpu_name, Map<String, ParameterValue> input_params) {
+    public ForestRequest(String transpiled_quil, String qpu_name, int shots, Map<String, ParameterValue> input_params) {
         this.transpiled_quil = transpiled_quil;
         this.qpu_name = qpu_name;
+        this.shots = shots;
         this.input_params = input_params;
     }
 }

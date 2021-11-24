@@ -85,7 +85,8 @@ public class ForestSdkConnector implements SdkConnector {
                                                       ExecutionResult executionResult, ExecutionResultRepository resultRepository, String refreshToken) {
         LOG.debug("Executing quantum algorithm implementation with Forest Sdk connector plugin!");
         String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
-        ForestRequest request = new ForestRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters, bearerToken);
+        ForestRequest request = new ForestRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(),
+            executionResult.getShots(), parameters, bearerToken);
         executeQuantumCircuit(request, executionResult, resultRepository);
     }
 
@@ -95,7 +96,7 @@ public class ForestSdkConnector implements SdkConnector {
                                                 ExecutionResultRepository resultRepository,
                                                 QpuSelectionResultRepository qpuSelectionResultRepository) {
         LOG.debug("Executing circuit passed as file with provider '{}' and qpu '{}'.", providerName, qpuName);
-        ForestRequest request = new ForestRequest(transpiledCircuit, qpuName, parameters);
+        ForestRequest request = new ForestRequest(transpiledCircuit, qpuName, executionResult.getShots(), parameters);
         executeQuantumCircuit(request, executionResult, resultRepository);
     }
 
@@ -120,7 +121,6 @@ public class ForestSdkConnector implements SdkConnector {
                         executionResult.setStatus(ExecutionResultStatus.FINISHED);
                         executionResult.setStatusCode("Execution successfully completed.");
                         executionResult.setResult(result.getResult().toString());
-                        executionResult.setShots(result.getShots());
                         resultRepository.save(executionResult);
                     }
 

@@ -25,4 +25,6 @@ import lombok.Data;
 public class ExecuteAnalysisResultRequestDto {
 
     String refreshToken;
+
+    int shots;
 }
