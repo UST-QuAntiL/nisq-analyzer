@@ -165,7 +165,7 @@ public class JobDataExtractor {
                     performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
                 } else if (McdaConstants.QPU_CRITERION.contains(criterion.getName().toLowerCase())) {
                     LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName());
-                    performanceList.add(createPerformanceForQpuCriterion(qpuOptional.get(), criterion));
+                    performanceList.add(createPerformanceForQpuCriterion(qpuOptional.get(), result, criterion));
                 } else {
                     LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
                             criterion.getName());
@@ -260,38 +260,38 @@ public class JobDataExtractor {
         return performance;
     }
 
-    private AlternativeOnCriteriaPerformances.Performance createPerformanceForQpuCriterion(Qpu qpu, Criterion criterion) {
+    private AlternativeOnCriteriaPerformances.Performance createPerformanceForQpuCriterion(Qpu qpu, CircuitResult result, Criterion criterion) {
         AlternativeOnCriteriaPerformances.Performance performance = new AlternativeOnCriteriaPerformances.Performance();
         performance.setCriterionID(criterion.getId());
         Value value = new Value();
         switch (criterion.getName().toLowerCase()) {
             case McdaConstants.AVG_SINGLE_QUBIT_GATE_ERROR:
-                value.setReal((double) qpu.getAvgSingleQubitGateError());
+                value.setReal((double) result.getAvgSingleQubitGateError());
                 break;
             case McdaConstants.AVG_MULTI_QUBIT_GATE_ERROR:
-                value.setReal((double) qpu.getAvgMultiQubitGateError());
+                value.setReal((double) result.getAvgMultiQubitGateError());
                 break;
             case McdaConstants.AVG_SINGLE_QUBIT_GATE_TIME:
-                value.setReal((double) qpu.getAvgSingleQubitGateTime());
+                value.setReal((double) result.getAvgSingleQubitGateTime());
                 break;
             case McdaConstants.AVG_MULTI_QUBIT_GATE_TIME:
-                value.setReal((double) qpu.getAvgMultiQubitGateTime());
+                value.setReal((double) result.getAvgMultiQubitGateTime());
                 break;
             case McdaConstants.AVG_READOUT_ERROR:
-                value.setReal((double) qpu.getAvgReadoutError());
+                value.setReal((double) result.getAvgReadoutError());
                 break;
             case McdaConstants.AVG_T1:
-                if (qpu.isSimulator()) {
+                if (result.isSimulator()) {
                     value.setReal(99999999.0);
                 } else {
-                    value.setReal((double) qpu.getT1());
+                    value.setReal((double) result.getT1());
                 }
                 break;
             case McdaConstants.AVG_T2:
-                if (qpu.isSimulator()) {
+                if (result.isSimulator()) {
                     value.setReal(99999999.0);
                 } else {
-                    value.setReal((double) qpu.getT2());
+                    value.setReal((double) result.getT2());
                 }
                 break;
             case McdaConstants.QUEUE_SIZE:
