@@ -51,5 +51,25 @@ public abstract class CircuitResultDto extends RepresentationModel<CircuitResult
 
     private int analyzedMultiQubitGateDepth;
 
+    private int numberOfQubits;
+
+    private float t1;
+
+    private float t2;
+
+    private float avgReadoutError;
+
+    private float avgSingleQubitGateError;
+
+    private float avgMultiQubitGateError;
+
+    private float avgSingleQubitGateTime;
+
+    private float avgMultiQubitGateTime;
+
+    private float maxGateTime;
+
+    private boolean simulator;
+
     OffsetDateTime time;
 }

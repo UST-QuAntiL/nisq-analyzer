@@ -130,82 +130,86 @@ public class QiskitSdkConnector implements SdkConnector {
 
                         // histogram intersection
                         //FIXME currently only for qpu-selection
-                        Optional<QpuSelectionResult> qpuSelectionResult =
-                            qpuSelectionResultRepository.findById(executionResult.getQpuSelectionResult().getId());
-                        if (qpuSelectionResult.isPresent()) {
-                            // get stored token for the execution
-                            QpuSelectionResult qResult = qpuSelectionResult.get();
+                        if (Objects.nonNull(qpuSelectionResultRepository)) {
+                            Optional<QpuSelectionResult> qpuSelectionResult =
+                                qpuSelectionResultRepository.findById(executionResult.getQpuSelectionResult().getId());
+                            if (qpuSelectionResult.isPresent()) {
+                                // get stored token for the execution
+                                QpuSelectionResult qResult = qpuSelectionResult.get();
 
-                            // as QiskitSdk Connector is invoked, the provider is IBM Q, thus, the ibmq_qasm_simulator is the one we need
-                            // for histogram intersection
-                            String simulator = "qasm_simulator";
+                                // as QiskitSdk Connector is invoked, the provider is IBM Q, thus, the ibmq_qasm_simulator is the one we need
+                                // for histogram intersection
+                                String simulator = "qasm_simulator";
 
-                            // check if current execution result is already of a simulator otherwise get all qpu-selection-results of same job
-                            if (!qResult.getQpu().contains(simulator)) {
-                                List<QpuSelectionResult> jobResults =
-                                    qpuSelectionResultRepository.findAll().stream()
-                                        .filter(res -> res.getQpuSelectionJobId().equals(qResult.getQpuSelectionJobId()))
-                                        .collect(Collectors.toList());
-                                // get qpuSelectionResult of simulator if available
-                                QpuSelectionResult simulatorQpuSelectionResult =
-                                    jobResults.stream().filter(jobResult -> jobResult.getQpu().contains(simulator)).findFirst().orElse(null);
-                                if (Objects.nonNull(simulatorQpuSelectionResult)) {
-                                    //check if qpu-selection result of simulator was already executed otherwise wait max 1 minute
-                                    int iterator = 60;
-                                    while (iterator > 0) {
-                                        try {
-                                            Thread.sleep(1000);
-                                            ExecutionResult simulatorExecutionResult =
-                                                resultRepository
-                                                    .findAll()
-                                                    .stream()
-                                                    .filter(exeResult -> exeResult.getQpuSelectionResult().getId()
-                                                        .equals(simulatorQpuSelectionResult.getId()))
-                                                    .findFirst()
-                                                    .orElse(null);
+                                // check if current execution result is already of a simulator otherwise get all qpu-selection-results of same job
+                                if (!qResult.getQpu().contains(simulator)) {
+                                    List<QpuSelectionResult> jobResults =
+                                        qpuSelectionResultRepository.findAll().stream()
+                                            .filter(res -> res.getQpuSelectionJobId().equals(qResult.getQpuSelectionJobId()))
+                                            .collect(Collectors.toList());
+                                    // get qpuSelectionResult of simulator if available
+                                    QpuSelectionResult simulatorQpuSelectionResult =
+                                        jobResults.stream().filter(jobResult -> jobResult.getQpu().contains(simulator)).findFirst().orElse(null);
+                                    if (Objects.nonNull(simulatorQpuSelectionResult)) {
+                                        //check if qpu-selection result of simulator was already executed otherwise wait max 1 minute
+                                        int iterator = 60;
+                                        while (iterator > 0) {
+                                            try {
+                                                Thread.sleep(1000);
+                                                ExecutionResult simulatorExecutionResult =
+                                                    resultRepository
+                                                        .findAll()
+                                                        .stream()
+                                                        .filter(exeResult -> exeResult.getQpuSelectionResult().getId()
+                                                            .equals(simulatorQpuSelectionResult.getId()))
+                                                        .findFirst()
+                                                        .orElse(null);
 
-                                            // as soon as execution result of simulator is returned calculate histogram intersection
-                                            if (Objects.nonNull(simulatorExecutionResult)) {
-                                                // convert stored execution result of simulator to Map
-                                                String simulatorExecutionResultString = simulatorExecutionResult.getResult();
-                                                Map<String, Integer> simulatorCountsOfResults = new HashMap<>();
-                                                String rawData = simulatorExecutionResultString.replaceAll("[\\{\\}\\s+]", "");
-                                                String[] instances = rawData.split(",");
-                                                for (String instance : instances) {
-                                                    String[] resultsData = instance.split("=");
-                                                    String measurementResult = resultsData[0].trim();
-                                                    int counts = Integer.parseInt(resultsData[1].trim());
-                                                    simulatorCountsOfResults.put(measurementResult, counts);
-                                                }
-
-                                                Map<String, Integer> qpuExecutionResult = result.getResult();
-                                                // histogram intersection calculation
-                                                double intersection = 0;
-                                                for (String qpuKey : qpuExecutionResult.keySet()) {
-                                                    if (!simulatorCountsOfResults.containsKey(qpuKey)) {
-                                                        simulatorCountsOfResults.put(qpuKey, 0);
+                                                // as soon as execution result of simulator is returned calculate histogram intersection
+                                                if (Objects.nonNull(simulatorExecutionResult)) {
+                                                    // convert stored execution result of simulator to Map
+                                                    String simulatorExecutionResultString = simulatorExecutionResult.getResult();
+                                                    Map<String, Integer> simulatorCountsOfResults = new HashMap<>();
+                                                    String rawData = simulatorExecutionResultString.replaceAll("[\\{\\}\\s+]", "");
+                                                    String[] instances = rawData.split(",");
+                                                    for (String instance : instances) {
+                                                        String[] resultsData = instance.split("=");
+                                                        String measurementResult = resultsData[0].trim();
+                                                        int counts = Integer.parseInt(resultsData[1].trim());
+                                                        simulatorCountsOfResults.put(measurementResult, counts);
                                                     }
-                                                }
-                                                for (String simulatorKey : simulatorCountsOfResults.keySet()) {
-                                                    if (!qpuExecutionResult.containsKey(simulatorKey)) {
-                                                        qpuExecutionResult.put(simulatorKey, 0);
+
+                                                    Map<String, Integer> qpuExecutionResult = result.getResult();
+                                                    // histogram intersection calculation
+                                                    double intersection = 0;
+                                                    for (String qpuKey : qpuExecutionResult.keySet()) {
+                                                        if (!simulatorCountsOfResults.containsKey(qpuKey)) {
+                                                            simulatorCountsOfResults.put(qpuKey, 0);
+                                                        }
                                                     }
-                                                    intersection = intersection +
-                                                        Math.min(simulatorCountsOfResults.get(simulatorKey), qpuExecutionResult.get(simulatorKey));
+                                                    for (String simulatorKey : simulatorCountsOfResults.keySet()) {
+                                                        if (!qpuExecutionResult.containsKey(simulatorKey)) {
+                                                            qpuExecutionResult.put(simulatorKey, 0);
+                                                        }
+                                                        intersection = intersection +
+                                                            Math.min(simulatorCountsOfResults.get(simulatorKey),
+                                                                qpuExecutionResult.get(simulatorKey));
+                                                    }
+                                                    if (intersection > 0) {
+                                                        executionResult.setHistogramIntersectionValue(
+                                                            intersection / simulatorExecutionResult.getShots());
+                                                    }
+                                                    break;
                                                 }
-                                                if (intersection > 0) {
-                                                    executionResult.setHistogramIntersectionValue(intersection / simulatorExecutionResult.getShots());
-                                                }
-                                                break;
+                                                iterator--;
+                                            } catch (InterruptedException e) {
+                                                // pass
                                             }
-                                            iterator--;
-                                        } catch (InterruptedException e) {
-                                            // pass
                                         }
                                     }
+                                } else {
+                                    executionResult.setHistogramIntersectionValue(1);
                                 }
-                            } else {
-                                executionResult.setHistogramIntersectionValue(1);
                             }
                         }
                         resultRepository.save(executionResult);

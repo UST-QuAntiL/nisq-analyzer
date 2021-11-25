@@ -63,6 +63,16 @@ public class QpuSelectionResultDto extends CircuitResultDto {
             dto.setAnalyzedNumberOfMeasurementOperations(object.getAnalyzedNumberOfMeasurementOperations());
             dto.setAnalyzedNumberOfMultiQubitGates(object.getAnalyzedNumberOfMultiQubitGates());
             dto.setAnalyzedMultiQubitGateDepth(object.getAnalyzedMultiQubitGateDepth());
+            dto.setAvgMultiQubitGateError(object.getAvgMultiQubitGateError());
+            dto.setAvgMultiQubitGateTime(object.getAvgMultiQubitGateTime());
+            dto.setAvgSingleQubitGateError(object.getAvgSingleQubitGateError());
+            dto.setAvgSingleQubitGateTime(object.getAvgSingleQubitGateTime());
+            dto.setAvgReadoutError(object.getAvgReadoutError());
+            dto.setMaxGateTime(object.getMaxGateTime());
+            dto.setT1(object.getT1());
+            dto.setT2(object.getT2());
+            dto.setNumberOfQubits(object.getQubitCount());
+            dto.setSimulator(object.isSimulator());
             return dto;
         }
     }

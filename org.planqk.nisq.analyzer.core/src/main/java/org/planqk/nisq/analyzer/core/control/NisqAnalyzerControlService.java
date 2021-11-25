@@ -182,7 +182,7 @@ public class NisqAnalyzerControlService {
         new Thread(() -> selectedSdkConnector
             .executeTranspiledQuantumCircuit(result.getTranspiledCircuit(), result.getTranspiledLanguage(), result.getProvider(), result.getQpu(),
                 inputParameters,
-                executionResult, executionResultRepository, qpuSelectionResultRepository)).start();
+                executionResult, executionResultRepository, null)).start();
 
         return executionResult;
     }
@@ -341,6 +341,16 @@ public class NisqAnalyzerControlService {
                         result.setAnalyzedNumberOfMeasurementOperations(circuitInformation.getCircuitNumberOfMeasurementOperations());
                         result.setAnalyzedNumberOfMultiQubitGates(circuitInformation.getCircuitNumberOfMultiQubitGates());
                         result.setAnalyzedMultiQubitGateDepth(circuitInformation.getCircuitMultiQubitGateDepth());
+                        result.setAvgMultiQubitGateError(qpu.getAvgMultiQubitGateError());
+                        result.setAvgMultiQubitGateTime(qpu.getAvgMultiQubitGateTime());
+                        result.setAvgReadoutError(qpu.getAvgReadoutError());
+                        result.setAvgSingleQubitGateError(qpu.getAvgSingleQubitGateError());
+                        result.setAvgSingleQubitGateTime(qpu.getAvgSingleQubitGateTime());
+                        result.setT1(qpu.getT1());
+                        result.setT2(qpu.getT2());
+                        result.setMaxGateTime(qpu.getMaxGateTime());
+                        result.setQubitCount(qpu.getQubitCount());
+                        result.setSimulator(qpu.isSimulator());
                         result = analysisResultRepository.save(result);
 
                         analysisResults.add(result);
@@ -489,6 +499,16 @@ public class NisqAnalyzerControlService {
                     qpuSelectionResult.setAnalyzedMultiQubitGateDepth(result.getAnalyzedMultiQubitGateDepth());
                     qpuSelectionResult.setToken(result.getToken());
                     qpuSelectionResult.setQpuSelectionJobId(job.getId());
+                    qpuSelectionResult.setAvgMultiQubitGateError(qpu.getAvgMultiQubitGateError());
+                    qpuSelectionResult.setAvgMultiQubitGateTime(qpu.getAvgMultiQubitGateTime());
+                    qpuSelectionResult.setAvgReadoutError(qpu.getAvgReadoutError());
+                    qpuSelectionResult.setAvgSingleQubitGateError(qpu.getAvgSingleQubitGateError());
+                    qpuSelectionResult.setAvgSingleQubitGateTime(qpu.getAvgSingleQubitGateTime());
+                    qpuSelectionResult.setT1(qpu.getT1());
+                    qpuSelectionResult.setT2(qpu.getT2());
+                    qpuSelectionResult.setMaxGateTime(qpu.getMaxGateTime());
+                    qpuSelectionResult.setQubitCount(qpu.getQubitCount());
+                    qpuSelectionResult.setSimulator(qpu.isSimulator());
 
                     qpuSelectionResult = qpuSelectionResultRepository.save(qpuSelectionResult);
                     job.getJobResults().add(qpuSelectionResult);
@@ -623,6 +643,18 @@ public class NisqAnalyzerControlService {
                 compilationResult.setAnalyzedNumberOfMeasurementOperations(circuitInformation.getCircuitNumberOfMeasurementOperations());
                 compilationResult.setAnalyzedNumberOfMultiQubitGates(circuitInformation.getCircuitNumberOfMultiQubitGates());
                 compilationResult.setAnalyzedMultiQubitGateDepth(circuitInformation.getCircuitMultiQubitGateDepth());
+                if (Objects.nonNull(qpu)) {
+                    compilationResult.setAvgMultiQubitGateError(qpu.getAvgMultiQubitGateError());
+                    compilationResult.setAvgMultiQubitGateTime(qpu.getAvgMultiQubitGateTime());
+                    compilationResult.setAvgReadoutError(qpu.getAvgReadoutError());
+                    compilationResult.setAvgSingleQubitGateError(qpu.getAvgSingleQubitGateError());
+                    compilationResult.setAvgSingleQubitGateTime(qpu.getAvgSingleQubitGateTime());
+                    compilationResult.setT1(qpu.getT1());
+                    compilationResult.setT2(qpu.getT2());
+                    compilationResult.setMaxGateTime(qpu.getMaxGateTime());
+                    compilationResult.setQubitCount(qpu.getQubitCount());
+                    compilationResult.setSimulator(qpu.isSimulator());
+                }
                 compilationResult.setToken(token);
                 compilerAnalysisResults.add(compilationResult);
             }

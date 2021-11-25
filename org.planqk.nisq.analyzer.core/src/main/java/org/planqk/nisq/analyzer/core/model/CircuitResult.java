@@ -81,5 +81,45 @@ public abstract class CircuitResult extends HasId {
 
     @Getter
     @Setter
+    private int qubitCount;
+
+    @Getter
+    @Setter
+    private float t1;
+
+    @Getter
+    @Setter
+    private float t2;
+
+    @Getter
+    @Setter
+    private float avgReadoutError;
+
+    @Getter
+    @Setter
+    private float avgSingleQubitGateError;
+
+    @Getter
+    @Setter
+    private float avgMultiQubitGateError;
+
+    @Getter
+    @Setter
+    private float avgSingleQubitGateTime;
+
+    @Getter
+    @Setter
+    private float avgMultiQubitGateTime;
+
+    @Getter
+    @Setter
+    private float maxGateTime;
+
+    @Getter
+    @Setter
+    private boolean simulator = false;
+
+    @Getter
+    @Setter
     private OffsetDateTime time;
 }

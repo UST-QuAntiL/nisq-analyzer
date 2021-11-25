@@ -54,6 +54,16 @@ public class CompilerAnalysisResultDto extends CircuitResultDto {
             dto.setCircuitName(object.getCircuitName());
             dto.setInitialCircuit(object.getInitialCircuit());
             dto.setTranspiledCircuit(object.getTranspiledCircuit());
+            dto.setAvgMultiQubitGateError(object.getAvgMultiQubitGateError());
+            dto.setAvgMultiQubitGateTime(object.getAvgMultiQubitGateTime());
+            dto.setAvgSingleQubitGateError(object.getAvgSingleQubitGateError());
+            dto.setAvgSingleQubitGateTime(object.getAvgSingleQubitGateTime());
+            dto.setAvgReadoutError(object.getAvgReadoutError());
+            dto.setMaxGateTime(object.getMaxGateTime());
+            dto.setT1(object.getT1());
+            dto.setT2(object.getT2());
+            dto.setNumberOfQubits(object.getQubitCount());
+            dto.setSimulator(object.isSimulator());
             dto.setTime(object.getTime());
             return dto;
         }
