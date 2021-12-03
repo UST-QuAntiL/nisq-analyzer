@@ -11,7 +11,7 @@
             </description>
             <criterionID>c01</criterionID>
             <value>
-                <real>0.060240964</real>
+                <real>0.068493151</real>
             </value>
         </criterionValue>
         <criterionValue>
@@ -21,7 +21,7 @@
             </description>
             <criterionID>c02</criterionID>
             <value>
-                <real>0.084337349</real>
+                <real>0.095890411</real>
             </value>
         </criterionValue>
         <criterionValue>
@@ -31,7 +31,7 @@
             </description>
             <criterionID>c03</criterionID>
             <value>
-                <real>0.092369478</real>
+                <real>0.105022831</real>
             </value>
         </criterionValue>
         <criterionValue>
@@ -41,7 +41,7 @@
             </description>
             <criterionID>c04</criterionID>
             <value>
-                <real>0.084337349</real>
+                <real>0.095890411</real>
             </value>
         </criterionValue>
         <criterionValue>
@@ -51,7 +51,7 @@
             </description>
             <criterionID>c05</criterionID>
             <value>
-                <real>0.084337349</real>
+                <real>0.095890411</real>
             </value>
         </criterionValue>
         <criterionValue>
@@ -61,7 +61,7 @@
             </description>
             <criterionID>c06</criterionID>
             <value>
-                <real>0.100401606</real>
+                <real>0.114155251</real>
             </value>
         </criterionValue>
         <criterionValue>
@@ -71,7 +71,7 @@
             </description>
             <criterionID>c07</criterionID>
             <value>
-                <real>0.060240964</real>
+                <real>0.068493151</real>
             </value>
         </criterionValue>
         <criterionValue>
@@ -81,7 +81,7 @@
             </description>
             <criterionID>c08</criterionID>
             <value>
-                <real>0.052208835</real>
+                <real>0.059360731</real>
             </value>
         </criterionValue>
         <criterionValue>
@@ -91,7 +91,7 @@
             </description>
             <criterionID>c09</criterionID>
             <value>
-                <real>0.052208835</real>
+                <real>0.059360731</real>
             </value>
         </criterionValue>
         <criterionValue>
@@ -101,7 +101,7 @@
             </description>
             <criterionID>c10</criterionID>
             <value>
-                <real>0.060240964</real>
+                <real>0.068493151</real>
             </value>
         </criterionValue>
         <criterionValue>
@@ -111,7 +111,7 @@
             </description>
             <criterionID>c11</criterionID>
             <value>
-                <real>0.040160643</real>
+                <real>0.0456621</real>
             </value>
         </criterionValue>
         <criterionValue>
@@ -121,7 +121,7 @@
             </description>
             <criterionID>c12</criterionID>
             <value>
-                <real>0.052208835</real>
+                <real>0.059360731</real>
             </value>
         </criterionValue>
         <criterionValue>
@@ -131,7 +131,7 @@
             </description>
             <criterionID>c13</criterionID>
             <value>
-                <real>0.036144578</real>
+                <real>0.04109589</real>
             </value>
         </criterionValue>
         <criterionValue>
@@ -141,17 +141,17 @@
             </description>
             <criterionID>c14</criterionID>
             <value>
-                <real>0.020080321</real>
+                <real>0.02283105</real>
             </value>
         </criterionValue>
         <criterionValue>
             <description>
                 <title>points</title>
-                <subTitle>100</subTitle>
+                <subTitle>0</subTitle>
             </description>
             <criterionID>c15</criterionID>
             <value>
-                <real>0.120481928</real>
+                <real>0</real>
             </value>
         </criterionValue>
     </criteriaValues>
