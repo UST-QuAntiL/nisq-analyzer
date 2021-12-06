@@ -284,7 +284,7 @@ public class XmcdaCriteriaController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Run the MCDA method on the NISQ Analyzer job passed as parameter")
     @PostMapping(value = "/{methodName}/" + Constants.MCDA_PRIORITIZE)
-    public HttpEntity<EntityModel<McdaJob>> selectQpuForCircuitUrl(@PathVariable String methodName, @RequestParam UUID jobId) {
+    public HttpEntity<EntityModel<McdaJob>> prioritizeCompiledCircuitsOfJob(@PathVariable String methodName, @RequestParam UUID jobId) {
         LOG.debug("Creating new job to run prioritization with MCDA method {} and NISQ Analyzer job with ID: {}", methodName, jobId);
 
         // check if method is supported

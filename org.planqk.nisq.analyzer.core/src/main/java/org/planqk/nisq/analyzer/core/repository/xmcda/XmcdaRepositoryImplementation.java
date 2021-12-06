@@ -20,9 +20,9 @@
 package org.planqk.nisq.analyzer.core.repository.xmcda;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import javax.xml.bind.JAXBException;
@@ -49,9 +49,9 @@ public class XmcdaRepositoryImplementation implements XmcdaRepository {
 
     final private ResourceLoader resourceLoader;
 
-    final private List<Criterion> criterionList = new ArrayList<>();
+    final private List<Criterion> criterionList = new CopyOnWriteArrayList<>();
 
-    final private List<CriterionValue> criterionValueList = new ArrayList<>();
+    final private List<CriterionValue> criterionValueList = new CopyOnWriteArrayList<>();
 
     public XmcdaRepositoryImplementation(ResourceLoader resourceLoader, CriterionInitializer criterionInitializer) {
         initializeRepository(criterionInitializer);
