@@ -1,4 +1,4 @@
-# NISQ-Analyzer
+# NISQ Analyzer
 
 [![Build Status](https://api.travis-ci.com/UST-QuAntiL/nisq-analyzer.svg?branch=master)](https://travis-ci.com/UST-QuAntiL/nisq-analyzer)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -131,6 +131,18 @@ For using the QPU and compiler selection mechanism use
 Get analysis results via `GET /nisq-analyzer/qpu-selection-results/jobs/{resId}`.  
 Start the execution of a certain compiled circuit via `POST /nisq-analyzer/qpu-selection-results/{resId}/execute`.  
 Get execution result of the circuit via `POST /nisq-analyzer/execution-results/{resultId}`.
+
+### Prioritization with MCDA Methods
+
+To prioritize compiled circuits based on given weights use
+`POST /nisq-analyzer/mcda-methods/{methodName}/prioritize`
+
+```
+{
+  "methodName": "electre-III"/"topsis"/"promethee-I",
+  "jobId": "QPU-SELECTION/ANALYSIS/COMPILER-SELECTION-JOB-ID"
+}
+```
 
 ## Haftungsausschluss
 
