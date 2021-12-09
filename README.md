@@ -139,7 +139,7 @@ To prioritize compiled circuits based on given weights use
 
 ```
 {
-  "methodName": "electre-III"/"topsis"/"promethee-I",
+  "methodName": "electre-III"/"topsis"/"promethee-II",
   "jobId": "QPU-SELECTION/ANALYSIS/COMPILER-SELECTION-JOB-ID"
 }
 ```

@@ -110,21 +110,32 @@ public class McdaConstants {
     public static final String WEB_SERVICE_DATA_INTERSECTION_DISTILLATION = "intersectionDistillation";
 
     public static final String WEB_SERVICE_NAME_TOPSIS_RANKING = "TOPSIS_ranking-PUT.py";
+
     public static final String WEB_SERVICE_NAME_TOPSIS_ALTERNATIVES = "TOPSIS_extremeAlternatives-PUT.py";
+
     public static final String WEB_SERVICE_NAME_TOPSIS_WEIGHTING = "TOPSIS_normalizationAndWeighting-PUT.py";
 
     public static final String WEB_SERVICE_NAME_ELECTREIII_CONCORDANCE = "ElectreConcordance-J-MCDA.py";
+
     public static final String WEB_SERVICE_NAME_ELECTREIII_DISCORDANCE = "ElectreDiscordances-J-MCDA.py";
+
     public static final String WEB_SERVICE_NAME_ELECTREIII_OUTRANKING = "ElectreOutranking-J-MCDA.py";
+
     public static final String WEB_SERVICE_NAME_ELECTREIII_RELATION = "cutRelation-ITTB.py";
+
     public static final String WEB_SERVICE_NAME_ELECTREIII_RANKING = "alternativesRankingViaQualificationDistillation-ITTB.py";
 
-    public static final String WEB_SERVICE_NAME_PROMOTHEEI_PREFERENCE = "PrometheePreference-J-MCDA.py";
-    public static final String WEB_SERVICE_NAME_PROMOTHEEI_FLOWS = "PrometheeFlows-J-MCDA.py";
+    public static final String WEB_SERVICE_NAME_PROMETHEEII_PREFERENCE = "PrometheePreference-J-MCDA.py";
+
+    public static final String WEB_SERVICE_NAME_PROMETHEEII_FLOWS = "PrometheeFlows-J-MCDA.py";
 
     public static final QName WEB_SERVICE_QNAMES_LABEL = new QName("", "label");
+
     public static final QName WEB_SERVICE_QNAMES_VALUE = new QName("", "value");
+
     public static final QName WEB_SERVICE_QNAMES_PARAMETER = new QName("", "parameter");
-    public static final QName WEB_SERVICE_QNAMES_ID = new QName("","id");
-    public static final QName WEB_SERVICE_QNAMES_REAL = new QName("","real");
+
+    public static final QName WEB_SERVICE_QNAMES_ID = new QName("", "id");
+
+    public static final QName WEB_SERVICE_QNAMES_REAL = new QName("", "real");
 }

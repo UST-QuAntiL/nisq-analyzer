@@ -53,13 +53,13 @@ import org.xmcda.v2.XMCDA;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Service implementing the Promethee I method to prioritize analysis results of the NISQ Analyzer.
+ * Service implementing the Promethee II method to prioritize analysis results of the NISQ Analyzer.
  */
 @Service
 @RequiredArgsConstructor
-public class PrometheeIMethod implements McdaMethod {
+public class PrometheeIIMethod implements McdaMethod {
 
-    private final static Logger LOG = LoggerFactory.getLogger(PrometheeIMethod.class);
+    private final static Logger LOG = LoggerFactory.getLogger(PrometheeIIMethod.class);
 
     private final JobDataExtractor jobDataExtractor;
 
@@ -76,7 +76,7 @@ public class PrometheeIMethod implements McdaMethod {
 
     @Override
     public String getName() {
-        return "promethee-I";
+        return "promethee-II";
     }
 
     @Override
@@ -86,7 +86,7 @@ public class PrometheeIMethod implements McdaMethod {
 
     @Override
     public void executeMcdaMethod(McdaJob mcdaJob) {
-        LOG.debug("Starting Promethee I MCDA method to prioritize job with ID: {}", mcdaJob.getJobId());
+        LOG.debug("Starting Promethee II MCDA method to prioritize job with ID: {}", mcdaJob.getJobId());
         McdaInformation mcdaInformation = jobDataExtractor.getJobInformationFromUuid(mcdaJob);
 
         // abort if job can not be found and therefore no information available
@@ -95,49 +95,49 @@ public class PrometheeIMethod implements McdaMethod {
             return;
         }
         try {
-            // invoke the preference service for Promothee-I
-            LOG.debug("Invoking preference service for Promothee-I!");
-            URL url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_PROMOTHEEI_PREFERENCE);
+            // invoke the preference service for Promethee-II
+            LOG.debug("Invoking preference service for Promethee-II!");
+            URL url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_PROMETHEEII_PREFERENCE);
             HashMap<String, String> bodyFields = new HashMap<>();
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_CRITERIA, createVersionedXMCDAString(mcdaInformation.getCriteria()));
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, createVersionedXMCDAString(mcdaInformation.getAlternatives()));
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PERFORMANCES, createVersionedXMCDAString(mcdaInformation.getPerformances()));
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_WEIGHTS, createVersionedXMCDAString(mcdaInformation.getWeights()));
             Map<String, String>
-                    resultsPreferences = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+                resultsPreferences = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
             LOG.debug("Invoked preference service successfully and retrieved {} results!", resultsPreferences.size());
 
             // check for required results
             if (!resultsPreferences.containsKey(McdaConstants.WEB_SERVICE_DATA_PREFERENCE)) {
                 setJobToFailed(mcdaJob,
-                        "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_PREFERENCE + " in the results but doesn´t! Aborting!");
+                    "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_PREFERENCE + " in the results but doesn´t! Aborting!");
                 return;
             }
 
-            // invoke the flows service for Promothee-I to calculate positive flows
-            LOG.debug("Invoking flows service for Promothee-I to calculate positive flows!");
-            url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_PROMOTHEEI_FLOWS);
+            // invoke the flows service for Promethee-II to calculate positive flows
+            LOG.debug("Invoking flows service for Promethee-II to calculate positive flows!");
+            url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_PROMETHEEII_FLOWS);
             bodyFields = new HashMap<>();
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_PREFERENCE, resultsPreferences.get(McdaConstants.WEB_SERVICE_DATA_PREFERENCE));
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_ALTERNATIVES, createVersionedXMCDAString(mcdaInformation.getAlternatives()));
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_FLOW_TYPE, createFlowTypeParameter("POSITIVE"));
             Map<String, String>
-                    resultsPositiveFlows = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+                resultsPositiveFlows = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
             LOG.debug("Invoked flows service successfully and retrieved {} results for positive flows!", resultsPositiveFlows.size());
 
-            // invoke the flows service for Promothee-I to calculate negative flows
-            LOG.debug("Invoking flows service for Promothee-I to calculate negative flows!");
-            url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_PROMOTHEEI_FLOWS);
+            // invoke the flows service for Promethee-II to calculate negative flows
+            LOG.debug("Invoking flows service for Promethee-II to calculate negative flows!");
+            url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_PROMETHEEII_FLOWS);
             bodyFields.put(McdaConstants.WEB_SERVICE_DATA_FLOW_TYPE, createFlowTypeParameter("NEGATIVE"));
             Map<String, String>
-                    resultsNegativeFlows = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
+                resultsNegativeFlows = mcdaWebServiceHandler.invokeMcdaOperation(url, McdaConstants.WEB_SERVICE_OPERATIONS_INVOKE, bodyFields);
             LOG.debug("Invoked flows service successfully and retrieved {} results for negative flows!", resultsNegativeFlows.size());
 
             // check for required results
             if (!resultsPositiveFlows.containsKey(McdaConstants.WEB_SERVICE_DATA_FLOWS) ||
-                    !resultsNegativeFlows.containsKey(McdaConstants.WEB_SERVICE_DATA_FLOWS)) {
+                !resultsNegativeFlows.containsKey(McdaConstants.WEB_SERVICE_DATA_FLOWS)) {
                 setJobToFailed(mcdaJob,
-                        "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_FLOWS + " in the results but doesn´t! Aborting!");
+                    "Invocation must contain " + McdaConstants.WEB_SERVICE_DATA_FLOWS + " in the results but doesn´t! Aborting!");
                 return;
             }
 
@@ -169,8 +169,8 @@ public class PrometheeIMethod implements McdaMethod {
     /**
      * Rank the results of the job by calculating the net flow and sorting them accordingly
      *
-     * @param positiveFlows the positive flows calculated by promothee
-     * @param negativeFlows the negative flows calculated by promothee
+     * @param positiveFlows the positive flows calculated by promethee
+     * @param negativeFlows the negative flows calculated by promethee
      * @return the ranked results based on the net flow
      */
     private List<McdaResult> rankResultsByFlows(XMCDA positiveFlows, XMCDA negativeFlows) {
