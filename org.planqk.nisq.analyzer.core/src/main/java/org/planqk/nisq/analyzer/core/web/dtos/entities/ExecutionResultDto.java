@@ -19,14 +19,14 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import java.util.Map;
 import java.util.UUID;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.springframework.hateoas.RepresentationModel;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Data transfer object for ExecutionResults ({@link ExecutionResult}).
@@ -49,6 +49,14 @@ public class ExecutionResultDto extends RepresentationModel<ExecutionResultDto> 
     @Setter
     private String result;
 
+    @Getter
+    @Setter
+    private int shots;
+
+    @Getter
+    @Setter
+    private double histogramIntersectionValue;
+
     public static final class Converter {
 
         public static ExecutionResultDto convert(final ExecutionResult object) {
@@ -57,6 +65,8 @@ public class ExecutionResultDto extends RepresentationModel<ExecutionResultDto> 
             dto.setStatus(object.getStatus());
             dto.setStatusCode(object.getStatusCode());
             dto.setResult(object.getResult());
+            dto.setShots(object.getShots());
+            dto.setHistogramIntersectionValue(object.getHistogramIntersectionValue());
             return dto;
         }
     }

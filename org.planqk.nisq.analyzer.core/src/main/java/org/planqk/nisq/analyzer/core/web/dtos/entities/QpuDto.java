@@ -21,12 +21,14 @@ package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
 import java.util.UUID;
 
+import org.planqk.nisq.analyzer.core.model.Qpu;
+import org.springframework.hateoas.RepresentationModel;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.planqk.nisq.analyzer.core.model.Qpu;
-import org.springframework.hateoas.RepresentationModel;
 
 /**
  * Data transfer object for the model class {@link Qpu}.
@@ -53,6 +55,36 @@ public class QpuDto extends RepresentationModel<QpuDto> {
 
     @Getter
     @Setter
+    @JsonProperty("avgT2Time")
+    private float t2;
+
+    @Getter
+    @Setter
+    @JsonProperty("avgReadoutError")
+    private float avgReadoutError;
+
+    @Getter
+    @Setter
+    @JsonProperty("avgSingleQubitGateError")
+    private float avgSingleQubitGateError;
+
+    @Getter
+    @Setter
+    @JsonProperty("avgMultiQubitGateError")
+    private float avgMultiQubitGateError;
+
+    @Getter
+    @Setter
+    @JsonProperty("avgSingleQubitGateTime")
+    private float avgSingleQubitGateTime;
+
+    @Getter
+    @Setter
+    @JsonProperty("avgMultiQubitGateTime")
+    private float avgMultiQubitGateTime;
+
+    @Getter
+    @Setter
     private float maxGateTime;
 
     @Getter
@@ -71,6 +103,12 @@ public class QpuDto extends RepresentationModel<QpuDto> {
             dto.setName(object.getName());
             dto.setNumberOfQubits(object.getQubitCount());
             dto.setT1(object.getT1());
+            dto.setT2(object.getT2());
+            dto.setAvgReadoutError(object.getAvgReadoutError());
+            dto.setAvgSingleQubitGateError(object.getAvgSingleQubitGateError());
+            dto.setAvgMultiQubitGateError(object.getAvgMultiQubitGateError());
+            dto.setAvgSingleQubitGateTime(object.getAvgSingleQubitGateTime());
+            dto.setAvgMultiQubitGateTime(object.getAvgMultiQubitGateTime());
             dto.setMaxGateTime(object.getMaxGateTime());
             dto.setQueueSize(object.getQueueSize());
             return dto;
@@ -91,6 +129,13 @@ public class QpuDto extends RepresentationModel<QpuDto> {
             // time unit has to be converted
             qpu.setT1(convert_micro_to_nano_seconds(object.getT1()));
 
+            qpu.setT2(convert_micro_to_nano_seconds(object.getT2()));
+
+            qpu.setAvgReadoutError(object.getAvgReadoutError());
+            qpu.setAvgSingleQubitGateError(object.getAvgSingleQubitGateError());
+            qpu.setAvgMultiQubitGateError(object.getAvgMultiQubitGateError());
+            qpu.setAvgSingleQubitGateTime(object.getAvgSingleQubitGateTime());
+            qpu.setAvgMultiQubitGateTime(object.getAvgMultiQubitGateTime());
             qpu.setMaxGateTime(object.getMaxGateTime());
             qpu.setProvider(provider);
             return qpu;

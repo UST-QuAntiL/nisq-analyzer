@@ -19,11 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
-import java.time.OffsetDateTime;
-import java.util.UUID;
-
 import org.planqk.nisq.analyzer.core.model.CompilationResult;
-import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
 
 import lombok.Data;
@@ -32,27 +28,13 @@ import lombok.EqualsAndHashCode;
 @Relation(itemRelation = "compilerAnalysisResult", collectionRelation = "compilerAnalysisResults")
 @EqualsAndHashCode(callSuper = false)
 @Data
-public class CompilerAnalysisResultDto extends RepresentationModel<CompilerAnalysisResultDto> {
-
-    UUID id;
-
-    String provider;
-
-    String qpu;
-
-    String compiler;
-
-    int analyzedDepth;
-
-    int analyzedWidth;
-
-    String circuitName;
+public class CompilerAnalysisResultDto extends CircuitResultDto {
 
     String initialCircuit;
 
-    String transpiledCircuit;
+    String circuitName;
 
-    OffsetDateTime time;
+    String transpiledCircuit;
 
     public static final class Converter {
 
@@ -64,9 +46,24 @@ public class CompilerAnalysisResultDto extends RepresentationModel<CompilerAnaly
             dto.setCompiler(object.getCompiler());
             dto.setAnalyzedDepth(object.getAnalyzedDepth());
             dto.setAnalyzedWidth(object.getAnalyzedWidth());
+            dto.setAnalyzedTotalNumberOfOperations(object.getAnalyzedTotalNumberOfOperations());
+            dto.setAnalyzedNumberOfSingleQubitGates(object.getAnalyzedNumberOfSingleQubitGates());
+            dto.setAnalyzedNumberOfMeasurementOperations(object.getAnalyzedNumberOfMeasurementOperations());
+            dto.setAnalyzedNumberOfMultiQubitGates(object.getAnalyzedNumberOfMultiQubitGates());
+            dto.setAnalyzedMultiQubitGateDepth(object.getAnalyzedMultiQubitGateDepth());
             dto.setCircuitName(object.getCircuitName());
             dto.setInitialCircuit(object.getInitialCircuit());
             dto.setTranspiledCircuit(object.getTranspiledCircuit());
+            dto.setAvgMultiQubitGateError(object.getAvgMultiQubitGateError());
+            dto.setAvgMultiQubitGateTime(object.getAvgMultiQubitGateTime());
+            dto.setAvgSingleQubitGateError(object.getAvgSingleQubitGateError());
+            dto.setAvgSingleQubitGateTime(object.getAvgSingleQubitGateTime());
+            dto.setAvgReadoutError(object.getAvgReadoutError());
+            dto.setMaxGateTime(object.getMaxGateTime());
+            dto.setT1(object.getT1());
+            dto.setT2(object.getT2());
+            dto.setNumberOfQubits(object.getQubitCount());
+            dto.setSimulator(object.isSimulator());
             dto.setTime(object.getTime());
             return dto;
         }

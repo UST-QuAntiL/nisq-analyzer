@@ -19,6 +19,8 @@
 
 package org.planqk.nisq.analyzer.core.connector.forest;
 
+import static org.planqk.nisq.analyzer.core.web.Utils.getBearerTokenFromRefreshToken;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -43,6 +45,7 @@ import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
+import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,8 +53,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
-import static org.planqk.nisq.analyzer.core.web.Utils.getBearerTokenFromRefreshToken;
 
 /**
  * Sdk connector which passes execution and analysis requests to a connected Forest service.
@@ -91,7 +92,8 @@ public class ForestSdkConnector implements SdkConnector {
     @Override
     public void executeTranspiledQuantumCircuit(String transpiledCircuit, String transpiledLanguage, String providerName, String qpuName,
                                                 Map<String, ParameterValue> parameters, ExecutionResult executionResult,
-                                                ExecutionResultRepository resultRepository) {
+                                                ExecutionResultRepository resultRepository,
+                                                QpuSelectionResultRepository qpuSelectionResultRepository) {
         LOG.debug("Executing circuit passed as file with provider '{}' and qpu '{}'.", providerName, qpuName);
         ForestRequest request = new ForestRequest(transpiledCircuit, qpuName, parameters);
         executeQuantumCircuit(request, executionResult, resultRepository);
@@ -118,6 +120,7 @@ public class ForestSdkConnector implements SdkConnector {
                         executionResult.setStatus(ExecutionResultStatus.FINISHED);
                         executionResult.setStatusCode("Execution successfully completed.");
                         executionResult.setResult(result.getResult().toString());
+                        executionResult.setShots(result.getShots());
                         resultRepository.save(executionResult);
                     }
 

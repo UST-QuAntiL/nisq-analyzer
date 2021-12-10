@@ -43,6 +43,30 @@ public class Qpu extends HasId {
 
     @Getter
     @Setter
+    private float t2;
+
+    @Getter
+    @Setter
+    private float avgReadoutError;
+
+    @Getter
+    @Setter
+    private float avgSingleQubitGateError;
+
+    @Getter
+    @Setter
+    private float avgMultiQubitGateError;
+
+    @Getter
+    @Setter
+    private float avgSingleQubitGateTime;
+
+    @Getter
+    @Setter
+    private float avgMultiQubitGateTime;
+
+    @Getter
+    @Setter
     private float maxGateTime;
 
     @Getter

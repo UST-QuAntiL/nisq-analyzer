@@ -19,8 +19,6 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import java.time.OffsetDateTime;
-
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 
@@ -37,19 +35,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CompilationResult extends HasId {
-
-    private String provider;
-
-    private String qpu;
-
-    private String compiler;
-
-    private int analyzedDepth;
-
-    private int analyzedWidth;
-
-    private String circuitName;
+public class CompilationResult extends CircuitResult {
 
     @Lob
     private String initialCircuit;
@@ -60,6 +46,4 @@ public class CompilationResult extends HasId {
     private String transpiledLanguage;
 
     private String token;
-
-    private OffsetDateTime time;
 }

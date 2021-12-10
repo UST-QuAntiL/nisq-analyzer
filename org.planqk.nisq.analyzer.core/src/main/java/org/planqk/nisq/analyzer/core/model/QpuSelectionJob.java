@@ -19,7 +19,6 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
@@ -39,11 +38,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class QpuSelectionJob extends HasId {
-
-    private boolean ready;
-
-    private OffsetDateTime time;
+public class QpuSelectionJob extends Job {
 
     private String circuitName;
 

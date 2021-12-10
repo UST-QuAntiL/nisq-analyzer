@@ -38,9 +38,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CompilationJob extends HasId {
-
-    private boolean ready;
+public class CompilationJob extends Job {
 
     @OneToMany(cascade = CascadeType.PERSIST)
     private List<CompilationResult> jobResults = new ArrayList<>();

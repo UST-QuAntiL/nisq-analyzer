@@ -1,4 +1,4 @@
-# NISQ-Analyzer
+# NISQ Analyzer
 
 [![Build Status](https://api.travis-ci.com/UST-QuAntiL/nisq-analyzer.svg?branch=master)](https://travis-ci.com/UST-QuAntiL/nisq-analyzer)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -30,8 +30,8 @@ docker-compose -f docker-compose.yml -f ../qiskit-service/docker-compose.yml pul
 docker-compose -f docker-compose.yml -f ../qiskit-service/docker-compose.yml up
 ```
 
-Now the NISQ Analyzer is available on http://localhost:8081/.  
-If you also started the Qiskit Service, it is available on http://localhost:5000/.
+Now the NISQ Analyzer is available on http://localhost:5010/.  
+If you also started the Qiskit Service, it is available on http://localhost:5013/.
 	
 ## Running on Tomcat
 
@@ -49,7 +49,7 @@ Suitable sample data in JSON format can be found in [nisq-analyzer-content](http
 
 ## Usage via API
 
-Use the [HAL Browser](http://localhost:8081/nisq-analyzer/browser/index.html#http://localhost:8081/nisq-analyzer/) or [Swagger-UI](http://localhost:8081/nisq-analyzer/swagger-ui/index.html?configUrl=/nisq-analyzer/v3/api-docs/swagger-config#/).
+Use the [HAL Browser](http://localhost:5010/nisq-analyzer/browser/index.html#http://localhost:5010/nisq-analyzer/) or [Swagger-UI](http://localhost:5010/nisq-analyzer/swagger-ui/index.html?configUrl=/nisq-analyzer/v3/api-docs/swagger-config#/).
 
 ### Data Creation  
 1. create a SDK via `POST /nisq-analyzer/sdks/`
@@ -131,6 +131,18 @@ For using the QPU and compiler selection mechanism use
 Get analysis results via `GET /nisq-analyzer/qpu-selection-results/jobs/{resId}`.  
 Start the execution of a certain compiled circuit via `POST /nisq-analyzer/qpu-selection-results/{resId}/execute`.  
 Get execution result of the circuit via `POST /nisq-analyzer/execution-results/{resultId}`.
+
+### Prioritization with MCDA Methods
+
+To prioritize compiled circuits based on given weights use
+`POST /nisq-analyzer/mcda-methods/{methodName}/prioritize`
+
+```
+{
+  "methodName": "electre-III"/"topsis"/"promethee-II",
+  "jobId": "QPU-SELECTION/ANALYSIS/COMPILER-SELECTION-JOB-ID"
+}
+```
 
 ## Haftungsausschluss
 

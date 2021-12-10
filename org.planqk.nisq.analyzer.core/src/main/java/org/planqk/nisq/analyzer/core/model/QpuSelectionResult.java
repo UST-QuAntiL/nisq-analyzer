@@ -19,7 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import java.time.OffsetDateTime;
+import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Lob;
 
@@ -36,28 +36,16 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class QpuSelectionResult extends HasId {
-
-    private String provider;
-
-    private String qpu;
+public class QpuSelectionResult extends CircuitResult {
 
     private int queueSize;
-
-    private OffsetDateTime time;
-
-    private String circuitName;
 
     @Lob
     private String transpiledCircuit;
 
     private String transpiledLanguage;
 
-    private String usedCompiler;
-
-    private int analyzedDepth;
-
-    private int analyzedWidth;
-
     private String token;
+
+    private UUID qpuSelectionJobId;
 }

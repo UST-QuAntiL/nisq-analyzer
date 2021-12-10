@@ -20,7 +20,7 @@
 package org.planqk.nisq.analyzer.core;
 
 /**
- * Constants for the Quality API classes.
+ * Constants for the NISQ Analyzer API classes.
  */
 public class Constants {
 
@@ -37,6 +37,10 @@ public class Constants {
     public static final String QPU_SELECTION_RESULTS = "qpu-selection-results";
     public static final String EXECUTION_RESULTS = "execution-results";
     public static final String JOBS = "jobs";
+    public static final String MCDA_METHODS = "mcda-methods";
+    public static final String CRITERIA = "criteria";
+    public static final String CRITERIA_VALUE = "value";
+    public static final String MCDA_PRIORITIZE = "prioritize";
 
     // link names
     public static final String USED_SDK = "used-sdk";

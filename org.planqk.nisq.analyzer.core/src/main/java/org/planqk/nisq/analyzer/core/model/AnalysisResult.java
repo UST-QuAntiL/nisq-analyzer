@@ -19,10 +19,8 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.UUID;
-
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
@@ -40,22 +38,13 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AnalysisResult extends HasId {
-    private UUID implementedAlgorithm;
+public class AnalysisResult extends CircuitResult {
 
-    // Reference to the QPU instance which is stored in the QProv database
-    private String qpu;
-    private String provider;
-    private String compiler;
+    private UUID implementedAlgorithm;
 
     @ManyToOne
     private Implementation implementation;
 
     @ElementCollection
     private Map<String, String> inputParameters;
-
-    private OffsetDateTime time;
-
-    private int analyzedDepth;
-    private int analyzedWidth;
 }
