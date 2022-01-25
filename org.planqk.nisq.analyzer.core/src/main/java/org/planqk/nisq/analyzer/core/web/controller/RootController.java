@@ -184,7 +184,8 @@ public class RootController {
     public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitFile(@RequestParam boolean simulatorsAllowed,
                                                                   @RequestParam List<String> allowedProviders, @RequestParam String circuitLanguage,
                                                                   @RequestParam Map<String,String> tokens, @RequestParam("circuit") MultipartFile circuitCode,
-                                                                  @RequestParam(required = false) String circuitName) {
+                                                                  @RequestParam(required = false) String circuitName,
+                                                                    @RequestParam List<String> compilers) {
         LOG.debug("Post to select QPU for given quantum circuit with language: {}", circuitLanguage);
 
         // get temp file for passed circuit code
@@ -207,7 +208,7 @@ public class RootController {
         new Thread(() -> {
             nisqAnalyzerService
                     .performQpuSelectionForCircuit(job, allowedProviders, circuitLanguage, circuitFile,
-                            tokens, simulatorsAllowed, circuitName);
+                            tokens, simulatorsAllowed, circuitName, compilers);
         }).start();
 
         // send back QPU selection job to track the progress
@@ -219,7 +220,7 @@ public class RootController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit loaded from the given URL")
     @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitUrl(@RequestBody QpuSelectionDto params) {
+    public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitUrl(@RequestParam List<String> compilers,@RequestBody QpuSelectionDto params) {
         LOG.debug("Post to select QPU for quantum circuit at URL '{}', with language '{}', and allowed providers '{}'!", params.getCircuitUrl(), params.getCircuitLanguage(), params.getAllowedProviders());
 
         // get file from passed URL
@@ -242,7 +243,7 @@ public class RootController {
         new Thread(() -> {
             nisqAnalyzerService
                     .performQpuSelectionForCircuit(job, params.getAllowedProviders(), params.getCircuitLanguage(), circuitFile,
-                            params.getTokens(), params.isSimulatorsAllowed(), params.getCircuitName());
+                            params.getTokens(), params.isSimulatorsAllowed(), params.getCircuitName(), compilers);
         }).start();
 
         // send back QPU selection job to track the progress
@@ -270,7 +271,7 @@ public class RootController {
         new Thread(() -> {
             nisqAnalyzerService
                     .performCompilerSelection(job, providerName.toLowerCase(), qpuName.toLowerCase(), circuitLanguage.toLowerCase(), circuitFile,
-                            circuitName, null, token);
+                            circuitName,null, token);
         }).start();
 
         // send back compilation job
@@ -302,7 +303,7 @@ public class RootController {
             nisqAnalyzerService
                     .performCompilerSelection(job, compilerSelectionDto.getProviderName().toLowerCase(),
                             compilerSelectionDto.getQpuName().toLowerCase(),
-                            compilerSelectionDto.getCircuitLanguage().toLowerCase(), circuitFile, compilerSelectionDto.getCircuitName(), null,
+                            compilerSelectionDto.getCircuitLanguage().toLowerCase(), circuitFile, compilerSelectionDto.getCircuitName(),null,
                             compilerSelectionDto.getToken());
         }).start();
 
@@ -310,5 +311,22 @@ public class RootController {
         CompilationJobDto dto = CompilationJobDto.Converter.convert(job);
         dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJob(job.getId())).withSelfRel());
         return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content)},
+            description = "Retrieve compilers")
+    @GetMapping("/" + Constants.COMPILERS)
+    public HttpEntity<List<String>> getCompilers(@RequestParam String provider) {
+        LOG.debug("Get to retrieve compilers for provider {} received.", provider);
+
+        if (Objects.isNull(provider)) {
+            LOG.error("Provider have to be provided to get compilers!");
+            return new ResponseEntity("Provider have to be provided to get compilers!", HttpStatus.BAD_REQUEST);
+        }
+
+        // determine and return required selection parameters
+        List<String> compilers = nisqAnalyzerService.getCompilers(provider);
+
+        return new ResponseEntity<>(compilers, HttpStatus.OK);
     }
 }

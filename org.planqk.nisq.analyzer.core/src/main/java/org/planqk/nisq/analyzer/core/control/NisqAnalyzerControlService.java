@@ -431,7 +431,7 @@ public class NisqAnalyzerControlService {
      * @param circuitName     user defined name to (partly) distinguish circuits
      */
     public void performQpuSelectionForCircuit(QpuSelectionJob job, List<String> allowedProviders, String circuitLanguage, File circuitCode,
-                                              Map<String,String> tokens, boolean simulatorsAllowed, String circuitName) {
+                                              Map<String,String> tokens, boolean simulatorsAllowed, String circuitName, List<String> compilers) {
 
         // make name of providers case-insensitive
         TreeMap<String, String> caseInsensitiveTokens = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -473,10 +473,11 @@ public class NisqAnalyzerControlService {
 
                 // we currently restrict the set of compilers to use to reduce the runtime
                 List<String> compilersToUse = Arrays.asList(Constants.QISKIT, Constants.PYTKET, Constants.FOREST);
-
+                System.out.println(compilersToUse);
+                System.out.println(compilers);
                 // perform compiler selection for the given QPU and circuit
                 List<CompilationResult> compilationResults =
-                        selectCompiler(provider.getName(), qpu.getName(), circuitLanguage, circuitCode, circuitName, compilersToUse, token);
+                        selectCompiler(provider.getName(), qpu.getName(), circuitLanguage, circuitCode, circuitName, compilers, token);
                 LOG.debug("Retrieved {} compilation results!", compilationResults.size());
 
                 // add results to the database and the job
@@ -783,5 +784,16 @@ public class NisqAnalyzerControlService {
         LOG.debug("Checking if {} required parameters are available in the input map with {} provided parameters!", requiredParameters.size(),
                 providedParameterNames.size());
         return requiredParameters.stream().allMatch(param -> providedParameterNames.contains(param.getName()));
+    }
+
+    public List<String> getCompilers(String provider){
+        List<String> compilersToUse = new ArrayList<>();
+        if(provider.equals("IBMQ")){
+            compilersToUse = Arrays.asList(Constants.QISKIT, Constants.PYTKET);
+        }
+        else if(provider.equals("Rigetti")){
+           compilersToUse = Arrays.asList(Constants.PYTKET, Constants.FOREST);
+        }
+        return  compilersToUse;
     }
 }
