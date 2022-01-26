@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -778,18 +777,24 @@ public class NisqAnalyzerControlService {
      */
     private boolean parametersAvailable(Set<Parameter> requiredParameters, Set<String> providedParameterNames) {
         LOG.debug("Checking if {} required parameters are available in the input map with {} provided parameters!", requiredParameters.size(),
-                providedParameterNames.size());
+            providedParameterNames.size());
         return requiredParameters.stream().allMatch(param -> providedParameterNames.contains(param.getName()));
     }
 
-    public List<String> getCompilers(String provider){
-        List<String> compilersToUse = new ArrayList<>();
-        if(provider.equalsIgnoreCase(Constants.IBMQ)){
-            compilersToUse = Arrays.asList(Constants.QISKIT, Constants.PYTKET);
-        }
-        else if(provider.equalsIgnoreCase(Constants.RIGETTI)){
-           compilersToUse = Arrays.asList(Constants.PYTKET, Constants.FOREST);
-        }
-        return  compilersToUse;
+    /**
+     * Check if all required parameters are contained in the provided parameters
+     *
+     * @param provider the provider
+     * @return compilers supporting the given provider
+     */
+    public List<String> getCompilers(String provider) {
+
+        // collect all SDK connectors that support the given provider
+        List<SdkConnector> connectors =
+            connectorList.stream().filter(connector -> connector.supportedProviders().contains(provider.toLowerCase())).collect(
+                Collectors.toList());
+
+        // return a list of all supporting compilers
+        return connectors.stream().flatMap(connector -> connector.supportedSdks().stream()).distinct().collect(Collectors.toList());
     }
 }

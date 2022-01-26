@@ -179,13 +179,14 @@ public class RootController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
-            @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit passed in as file")
+        @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit passed in as file")
     @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitFile(@RequestParam boolean simulatorsAllowed,
                                                                   @RequestParam List<String> allowedProviders, @RequestParam String circuitLanguage,
-                                                                  @RequestParam Map<String,String> tokens, @RequestParam("circuit") MultipartFile circuitCode,
+                                                                  @RequestParam Map<String, String> tokens,
+                                                                  @RequestParam("circuit") MultipartFile circuitCode,
                                                                   @RequestParam(required = false) String circuitName,
-                                                                    @RequestParam List<String> compilers) {
+                                                                  @RequestParam(required = false) List<String> compilers) {
         LOG.debug("Post to select QPU for given quantum circuit with language: {}", circuitLanguage);
 
         // get temp file for passed circuit code

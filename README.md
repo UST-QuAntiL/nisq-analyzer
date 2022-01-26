@@ -124,10 +124,14 @@ For using the QPU and compiler selection mechanism use
   "compilers": ["NAME-OF-COMPILER/SDK", "NAME-OF-COMPILER/SDK"]
 }
 ```
-**Note**: The `refreshToken` is only needed when you want to execute implementations that are hosted on the PlanQK platform.
+**Note**: The `refreshToken` is only needed when you want to execute implementations that are hosted on the PlanQK
+platform.
 **Note**: The `circuitName` is optional.
 **Note**: Instead of the URL, also a file can be uploaded containing the quantum circuit.  
-**Note**: The `allowedProviders` field is optional, and if it is not set, all providers are included in the QPU & compiler selection.
+**Note**: The `allowedProviders` field is optional, and if it is not set, all providers are included in the QPU &
+compiler selection.
+**Note**: The `compilers` field is optional, and if it is not set, all SDKs and their compilers are included in the QPU
+& compiler selection.
 
 Get analysis results via `GET /nisq-analyzer/qpu-selection-results/jobs/{resId}`.  
 Start the execution of a certain compiled circuit via `POST /nisq-analyzer/qpu-selection-results/{resId}/execute`.  
