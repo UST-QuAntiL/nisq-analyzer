@@ -470,11 +470,7 @@ public class NisqAnalyzerControlService {
                     LOG.debug("No suited access token for this provider available. Skipping!");
                     continue;
                 }
-
-                // we currently restrict the set of compilers to use to reduce the runtime
-                List<String> compilersToUse = Arrays.asList(Constants.QISKIT, Constants.PYTKET, Constants.FOREST);
-                System.out.println(compilersToUse);
-                System.out.println(compilers);
+                
                 // perform compiler selection for the given QPU and circuit
                 List<CompilationResult> compilationResults =
                         selectCompiler(provider.getName(), qpu.getName(), circuitLanguage, circuitCode, circuitName, compilers, token);
