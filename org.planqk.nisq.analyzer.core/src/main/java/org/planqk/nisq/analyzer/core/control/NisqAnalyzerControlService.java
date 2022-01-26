@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -470,7 +471,7 @@ public class NisqAnalyzerControlService {
                     LOG.debug("No suited access token for this provider available. Skipping!");
                     continue;
                 }
-                
+
                 // perform compiler selection for the given QPU and circuit
                 List<CompilationResult> compilationResults =
                         selectCompiler(provider.getName(), qpu.getName(), circuitLanguage, circuitCode, circuitName, compilers, token);
@@ -784,10 +785,10 @@ public class NisqAnalyzerControlService {
 
     public List<String> getCompilers(String provider){
         List<String> compilersToUse = new ArrayList<>();
-        if(provider.equals("IBMQ")){
+        if(provider.equalsIgnoreCase(Constants.IBMQ)){
             compilersToUse = Arrays.asList(Constants.QISKIT, Constants.PYTKET);
         }
-        else if(provider.equals("Rigetti")){
+        else if(provider.equalsIgnoreCase(Constants.RIGETTI)){
            compilersToUse = Arrays.asList(Constants.PYTKET, Constants.FOREST);
         }
         return  compilersToUse;
