@@ -120,7 +120,8 @@ For using the QPU and compiler selection mechanism use
   "circuitLanguage": "LANGUAGE-OF-CIRCUIT",
   "circuitUrl": "URL-OF-RAW-CIRCUIT",
   "circuitName": "NAME-OF-CIRCUIT",
-  "refreshToken": "YOUR-PLANQK-REFRESH-TOKEN"
+  "refreshToken": "YOUR-PLANQK-REFRESH-TOKEN",
+  "compilers": ["NAME-OF-COMPILER/SDK", "NAME-OF-COMPILER/SDK"]
 }
 ```
 **Note**: The `refreshToken` is only needed when you want to execute implementations that are hosted on the PlanQK platform.
