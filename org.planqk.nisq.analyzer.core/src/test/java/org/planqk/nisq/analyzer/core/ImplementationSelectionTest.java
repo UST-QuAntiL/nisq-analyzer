@@ -19,14 +19,8 @@
 
 package org.planqk.nisq.analyzer.core;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -39,7 +33,6 @@ import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-
 
 public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
 
@@ -60,8 +53,8 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
 
         Mockito.when(qProvService.getProviders()).thenReturn(Arrays.asList(ibmq));
         Mockito.when(qProvService.getQPUs(ibmq)).thenReturn(Arrays.asList(
-                createDummyQPU("IBMQ", "ibmq_16_melbourne", 15, 1696, 54502.2906f),
-                createDummySimulator("IBMQ", "ibmq_qasm_simulator", 32)
+            createDummyQPU("IBMQ", "ibmq_santiago", 5, 1696, 54502.2906f),
+            createDummySimulator("IBMQ", "ibmq_qasm_simulator", 32)
         ));
     }
 
@@ -83,15 +76,16 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         assertContainsImpl(job, "shor-general-pytket");
 
         assertContainsImplForQpu(job, "shor15-qiskit", "ibmq_qasm_simulator");
-        assertContainsImplForQpu(job, "shor15-qiskit", "ibmq_16_melbourne");
+        assertContainsImplForQpu(job, "shor15-qiskit", "ibmq_santiago");
         assertContainsImplForQpu(job, "shor15-pytket", "ibmq_qasm_simulator");
-        assertContainsImplForQpu(job, "shor15-pytket", "ibmq_16_melbourne");
+        assertContainsImplForQpu(job, "shor15-pytket", "ibmq_santiago");
         assertContainsImplForQpu(job, "shor-general-qiskit", "ibmq_qasm_simulator");
-        assertNotContainsImplForQpu(job, "shor-general-qiskit", "ibmq_16_melbourne");
+        assertNotContainsImplForQpu(job, "shor-general-qiskit", "ibmq_santiago");
         assertContainsImplForQpu(job, "shor-general-pytket", "ibmq_qasm_simulator");
-        assertNotContainsImplForQpu(job, "shor-general-pytket", "ibmq_16_melbourne");
+        assertNotContainsImplForQpu(job, "shor-general-pytket", "ibmq_santiago");
     }
 
+    @Ignore("Ignored by default as access to the PlanQK platform is required")
     @Test
     public void testSelectionShor15PlanQK() {
         AnalysisJob job = analysisJobRepository.save(new AnalysisJob());
@@ -102,7 +96,7 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         assertContainsImpl(job, "shor15-qiskit-PlanQK");
 
         assertContainsImplForQpu(job, "shor15-qiskit-PlanQK", "ibmq_qasm_simulator");
-        assertContainsImplForQpu(job, "shor15-qiskit-PlanQK", "ibmq_16_melbourne");
+        assertContainsImplForQpu(job, "shor15-qiskit-PlanQK", "ibmq_santiago");
     }
 
     @Ignore("Ignored by default due to long expected runtime")
@@ -118,9 +112,9 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         assertContainsImpl(job, "shor-general-pytket");
 
         assertContainsImplForQpu(job, "shor-general-qiskit", "ibmq_qasm_simulator");
-        assertNotContainsImplForQpu(job, "shor-general-qiskit", "ibmq_16_melbourne");
+        assertNotContainsImplForQpu(job, "shor-general-qiskit", "ibmq_santiago");
         assertContainsImplForQpu(job, "shor-general-pytket", "ibmq_qasm_simulator");
-        assertNotContainsImplForQpu(job, "shor-general-pytket", "ibmq_16_melbourne");
+        assertNotContainsImplForQpu(job, "shor-general-pytket", "ibmq_santiago");
     }
 
     @Ignore("Ignored by default due to long expected runtime")
@@ -145,7 +139,7 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         assertContainsImpl(job, "grover-general-truthtable-qiskit");
 
         assertContainsImplForQpu(job, "grover-general-truthtable-qiskit", "ibmq_qasm_simulator");
-        assertNotContainsImplForQpu(job, "grover-general-truthtable-qiskit", "ibmq_16_melbourne");
+        assertNotContainsImplForQpu(job, "grover-general-truthtable-qiskit", "ibmq_santiago");
     }
 
     @Test
@@ -157,7 +151,7 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         assertContainsImpl(job, "grover-general-truthtable-qiskit");
 
         assertContainsImplForQpu(job, "grover-general-truthtable-qiskit", "ibmq_qasm_simulator");
-        assertNotContainsImplForQpu(job, "grover-general-truthtable-qiskit", "ibmq_16_melbourne");
+        assertNotContainsImplForQpu(job, "grover-general-truthtable-qiskit", "ibmq_santiago");
     }
 
     @Test
@@ -169,7 +163,7 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         assertContainsImpl(job, "grover-general-truthtable-qiskit");
 
         assertContainsImplForQpu(job, "grover-general-truthtable-qiskit", "ibmq_qasm_simulator");
-        assertContainsImplForQpu(job, "grover-general-truthtable-qiskit", "ibmq_16_melbourne");
+        assertContainsImplForQpu(job, "grover-general-truthtable-qiskit", "ibmq_santiago");
     }
 
     @Test
@@ -181,9 +175,9 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         assertContainsImpl(job, "grover-general-sat-qiskit");
 
         assertContainsImplForQpu(job, "grover-fix-sat-qiskit", "ibmq_qasm_simulator");
-        assertNotContainsImplForQpu(job, "grover-fix-sat-qiskit", "ibmq_16_melbourne");
+        assertNotContainsImplForQpu(job, "grover-fix-sat-qiskit", "ibmq_santiago");
         assertContainsImplForQpu(job, "grover-general-sat-qiskit", "ibmq_qasm_simulator");
-        assertNotContainsImplForQpu(job, "grover-general-sat-qiskit", "ibmq_16_melbourne");
+        assertNotContainsImplForQpu(job, "grover-general-sat-qiskit", "ibmq_santiago");
     }
 
     @Test
@@ -195,8 +189,8 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         assertContainsImpl(job, "grover-general-sat-qiskit");
 
         assertNotContainsImplForQpu(job, "grover-fix-sat-qiskit", "ibmq_qasm_simulator");
-        assertNotContainsImplForQpu(job, "grover-fix-sat-qiskit", "ibmq_16_melbourne");
+        assertNotContainsImplForQpu(job, "grover-fix-sat-qiskit", "ibmq_santiago");
         assertContainsImplForQpu(job, "grover-general-sat-qiskit", "ibmq_qasm_simulator");
-        assertContainsImplForQpu(job, "grover-general-sat-qiskit", "ibmq_16_melbourne");
+        assertContainsImplForQpu(job, "grover-general-sat-qiskit", "ibmq_santiago");
     }
 }
