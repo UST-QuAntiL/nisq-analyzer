@@ -79,10 +79,10 @@ public class JobDataExtractor {
     /**
      * Get the required information to run MCDA methods from different kinds of NISQ Analyzer jobs
      *
-     * @param mcdaJob    the MCDA related to the prioritization
+     * @param mcdaJob the MCDA related to the prioritization
      * @return the retrieved job information
      */
-    public McdaInformation getJobInformationFromUuid(McdaJob mcdaJob) {
+    public <T> T getJobInformationFromUuid(McdaJob mcdaJob) {
         LOG.debug("Retrieving job information about job with ID: {}", mcdaJob.getJobId());
 
         Optional<QpuSelectionJob> qpuSelectionJobOptional = qpuSelectionJobRepository.findById(mcdaJob.getJobId());
@@ -134,7 +134,7 @@ public class JobDataExtractor {
         return null;
     }
 
-    private McdaInformation getFromCircuitResults(List<CircuitResult> circuitResults, String mcdaMethod) {
+    private <T> T getFromCircuitResults(List<CircuitResult> circuitResults, String mcdaMethod) {
 
         // retrieve required information for the alternatives and performances
         Alternatives alternatives = new Alternatives();
@@ -168,15 +168,18 @@ public class JobDataExtractor {
                     performanceList.add(createPerformanceForQpuCriterion(qpuOptional.get(), result, criterion));
                 } else {
                     LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
-                            criterion.getName());
+                        criterion.getName());
                 }
             }
             performances.getAlternativePerformances().add(alternativePerformances);
         }
         LOG.debug("Retrieved job information contains {} alternatives and {} performances!", alternatives.getDescriptionOrAlternative().size(),
-                performances.getAlternativePerformances().size());
-
-        return wrapMcdaInformation(alternatives, performances, mcdaMethod);
+            performances.getAlternativePerformances().size());
+        if (mcdaMethod.equals("electre-III")) {
+            return (T) wrapMcdaInformation(alternatives, performances, mcdaMethod);
+        } else {
+            return (T) performances;
+        }
     }
 
     /**

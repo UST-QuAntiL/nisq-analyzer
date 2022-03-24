@@ -19,8 +19,6 @@
 
 package org.planqk.nisq.analyzer.core.prioritization.topsis;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,18 +31,24 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.model.McdaResult;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
-import org.planqk.nisq.analyzer.core.prioritization.McdaConstants;
-import org.planqk.nisq.analyzer.core.prioritization.McdaInformation;
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
-import org.planqk.nisq.analyzer.core.prioritization.McdaWebServiceHandler;
 import org.planqk.nisq.analyzer.core.prioritization.XmlUtils;
+import org.planqk.nisq.analyzer.core.prioritization.restMcda.McdaCompiledCircuitJob;
+import org.planqk.nisq.analyzer.core.prioritization.restMcda.McdaCriteriaPerformances;
+import org.planqk.nisq.analyzer.core.prioritization.restMcda.McdaCriterionWeight;
+import org.planqk.nisq.analyzer.core.prioritization.restMcda.McdaRankRestRequest;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaResultRepository;
+import org.planqk.nisq.analyzer.core.repository.xmcda.XmcdaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.xmcda.v2.AlternativeValue;
+import org.xmcda.v2.CriteriaValues;
+import org.xmcda.v2.Criterion;
+import org.xmcda.v2.PerformanceTable;
+import org.xmcda.v2.Scale;
+import org.xmcda.v2.Value;
 
 import lombok.RequiredArgsConstructor;
 
@@ -63,11 +67,11 @@ public class TopsisMethod implements McdaMethod {
 
     private final McdaResultRepository mcdaResultRepository;
 
-    private final McdaWebServiceHandler mcdaWebServiceHandler;
+    private final XmcdaRepository xmcdaRepository;
 
     private final XmlUtils xmlUtils;
 
-    @Value("${org.planqk.nisq.analyzer.mcda.url}")
+    @org.springframework.beans.factory.annotation.Value("${org.planqk.nisq.analyzer.mcda.url}")
     private String baseURL;
 
     @Override
@@ -83,7 +87,7 @@ public class TopsisMethod implements McdaMethod {
     @Override
     public void executeMcdaMethod(McdaJob mcdaJob) {
         LOG.debug("Starting TOPSIS MCDA method to prioritize job with ID: {}", mcdaJob.getJobId());
-        McdaInformation mcdaInformation = jobDataExtractor.getJobInformationFromUuid(mcdaJob);
+        PerformanceTable mcdaInformation = jobDataExtractor.getJobInformationFromUuid(mcdaJob);
 
         // abort if job can not be found and therefore no information available
         if (Objects.isNull(mcdaInformation)) {
@@ -91,7 +95,48 @@ public class TopsisMethod implements McdaMethod {
             return;
         }
 
-        try {
+        //try {
+        List<McdaCompiledCircuitJob> circuits = new ArrayList<>();
+        List<McdaCriteriaPerformances> criteriaPerformancesList = new ArrayList<>();
+
+        mcdaInformation.getAlternativePerformances().forEach(compiledCircuit -> {
+            McdaCriteriaPerformances mcdaCriteriaPerformances = new McdaCriteriaPerformances(
+                compiledCircuit.getAlternativeID(),
+                compiledCircuit.getPerformance().get(0).getValue().getInteger(),
+                compiledCircuit.getPerformance().get(1).getValue().getInteger(),
+                compiledCircuit.getPerformance().get(2).getValue().getInteger(),
+                compiledCircuit.getPerformance().get(3).getValue().getInteger(),
+                compiledCircuit.getPerformance().get(4).getValue().getInteger(),
+                compiledCircuit.getPerformance().get(5).getValue().getInteger(),
+                compiledCircuit.getPerformance().get(6).getValue().getInteger(),
+                compiledCircuit.getPerformance().get(7).getValue().getReal().floatValue(),
+                compiledCircuit.getPerformance().get(8).getValue().getReal().floatValue(),
+                compiledCircuit.getPerformance().get(9).getValue().getReal().floatValue(),
+                compiledCircuit.getPerformance().get(10).getValue().getReal().floatValue(),
+                compiledCircuit.getPerformance().get(11).getValue().getReal().floatValue(),
+                compiledCircuit.getPerformance().get(12).getValue().getReal().floatValue(),
+                compiledCircuit.getPerformance().get(13).getValue().getReal().floatValue(),
+                compiledCircuit.getPerformance().get(14).getValue().getInteger());
+            criteriaPerformancesList.add(mcdaCriteriaPerformances);
+        });
+        circuits.add(new McdaCompiledCircuitJob(mcdaJob.getJobId(), criteriaPerformancesList));
+
+        CriteriaValues criteriaValues = new CriteriaValues();
+        Map<String, McdaCriterionWeight> metricWeights = new HashMap<>();
+
+        criteriaValues.getCriterionValue().addAll(xmcdaRepository.findValuesByMcdaMethod(mcdaJob.getMethod()));
+        criteriaValues.getCriterionValue().forEach(criterionValue -> {
+            Value value = (Value) criterionValue.getValueOrValues().get(0);
+            Criterion criterion = xmcdaRepository.findById(criterionValue.getCriterionID()).get();
+            Scale optimium = (Scale) criterion.getActiveOrScaleOrCriterionFunction().get(1);
+
+            metricWeights.put(criterion.getName(), new McdaCriterionWeight(value.getReal().floatValue(),
+                optimium.getQuantitative().getPreferenceDirection().value().equalsIgnoreCase("min")));
+        });
+
+        McdaRankRestRequest request = new McdaRankRestRequest("topsis", metricWeights, null, circuits);
+
+        /*
             // invoke the normalization and weighting service for TOPSIS
             LOG.debug("Invoking normalization and weighting service for TOPSIS!");
             URL url = new URL((baseURL.endsWith("/") ? baseURL : baseURL + "/") + McdaConstants.WEB_SERVICE_NAME_TOPSIS_WEIGHTING);
@@ -166,7 +211,7 @@ public class TopsisMethod implements McdaMethod {
             mcdaJobRepository.save(mcdaJob);
         } catch (MalformedURLException e) {
             setJobToFailed(mcdaJob, "Unable to create URL for invoking the web services!");
-        }
+        }*/
     }
 
     private List<McdaResult> sortAlternatives(List<AlternativeValue> alternativeValueList) {
