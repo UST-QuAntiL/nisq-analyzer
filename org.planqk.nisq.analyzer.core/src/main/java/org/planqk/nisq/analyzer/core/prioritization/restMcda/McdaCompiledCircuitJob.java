@@ -19,7 +19,6 @@
 
 package org.planqk.nisq.analyzer.core.prioritization.restMcda;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import javax.persistence.CascadeType;
@@ -36,6 +35,8 @@ public class McdaCompiledCircuitJob {
     @Setter
     private UUID id;
 
+    @Getter
+    @Setter
     @OneToMany(cascade = CascadeType.PERSIST)
-    private List<McdaCriteriaPerformances> compiledCircuits = new ArrayList<>();
+    private List<McdaCriteriaPerformances> compiledCircuits;
 }

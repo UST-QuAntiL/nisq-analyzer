@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.prioritization.restMcda;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,5 +33,6 @@ public class McdaCriterionWeight {
 
     @Getter
     @Setter
+    @JsonProperty("isCost")
     boolean isCost;
 }
