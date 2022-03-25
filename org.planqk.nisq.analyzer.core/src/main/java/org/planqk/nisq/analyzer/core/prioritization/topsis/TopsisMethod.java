@@ -19,12 +19,14 @@
 
 package org.planqk.nisq.analyzer.core.prioritization.topsis;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
@@ -43,6 +45,8 @@ import org.planqk.nisq.analyzer.core.repository.xmcda.XmcdaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 import org.xmcda.v2.AlternativeValue;
 import org.xmcda.v2.CriteriaValues;
 import org.xmcda.v2.Criterion;
@@ -73,6 +77,15 @@ public class TopsisMethod implements McdaMethod {
 
     @org.springframework.beans.factory.annotation.Value("${org.planqk.nisq.analyzer.mcda.url}")
     private String baseURL;
+
+    @org.springframework.beans.factory.annotation.Value("${org.planqk.nisq.analyzer.prioritization.hostname}")
+    private String hostname;
+
+    @org.springframework.beans.factory.annotation.Value("${org.planqk.nisq.analyzer.prioritization.port}")
+    private int port;
+
+    @org.springframework.beans.factory.annotation.Value("${org.planqk.nisq.analyzer.prioritization.version}")
+    private String version;
 
     @Override
     public String getName() {
@@ -123,18 +136,36 @@ public class TopsisMethod implements McdaMethod {
 
         CriteriaValues criteriaValues = new CriteriaValues();
         Map<String, McdaCriterionWeight> metricWeights = new HashMap<>();
+        Map<String, McdaCriterionWeight> bordaCountMetrics = new HashMap<>();
 
         criteriaValues.getCriterionValue().addAll(xmcdaRepository.findValuesByMcdaMethod(mcdaJob.getMethod()));
         criteriaValues.getCriterionValue().forEach(criterionValue -> {
             Value value = (Value) criterionValue.getValueOrValues().get(0);
-            Criterion criterion = xmcdaRepository.findById(criterionValue.getCriterionID()).get();
-            Scale optimium = (Scale) criterion.getActiveOrScaleOrCriterionFunction().get(1);
+            Optional<Criterion> crit = xmcdaRepository.findById(criterionValue.getCriterionID());
+            if (crit.isPresent()) {
+                Criterion criterion = crit.get();
+                Scale optimum = (Scale) criterion.getActiveOrScaleOrCriterionFunction().get(1);
 
-            metricWeights.put(criterion.getName(), new McdaCriterionWeight(value.getReal().floatValue(),
-                optimium.getQuantitative().getPreferenceDirection().value().equalsIgnoreCase("min")));
+                if (criterion.getName().equals("queue-size")) {
+                    bordaCountMetrics.put(criterion.getName(), new McdaCriterionWeight(0.0f,
+                        optimum.getQuantitative().getPreferenceDirection().value().equalsIgnoreCase("min")));
+                } else {
+                    metricWeights.put(criterion.getName(), new McdaCriterionWeight(value.getReal().floatValue(),
+                        optimum.getQuantitative().getPreferenceDirection().value().equalsIgnoreCase("min")));
+                }
+            }
         });
 
-        McdaRankRestRequest request = new McdaRankRestRequest("topsis", metricWeights, null, circuits);
+        McdaRankRestRequest request = new McdaRankRestRequest("topsis", metricWeights, bordaCountMetrics, circuits);
+
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            URI resultLocation =
+                restTemplate.postForLocation(URI.create(String.format("http://%s:%d/plugins/es-optimizer@%s/rank", hostname, port, version)),
+                    request);
+        } catch (RestClientException e) {
+            setJobToFailed(mcdaJob, "Connection to Prioritization Service failed.");
+        }
 
         /*
             // invoke the normalization and weighting service for TOPSIS
