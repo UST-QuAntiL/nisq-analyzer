@@ -39,6 +39,8 @@ import org.planqk.nisq.analyzer.core.prioritization.restMcda.McdaCompiledCircuit
 import org.planqk.nisq.analyzer.core.prioritization.restMcda.McdaCriteriaPerformances;
 import org.planqk.nisq.analyzer.core.prioritization.restMcda.McdaCriterionWeight;
 import org.planqk.nisq.analyzer.core.prioritization.restMcda.McdaRankRestRequest;
+import org.planqk.nisq.analyzer.core.prioritization.restMcda.RankResultLocationResponse;
+import org.planqk.nisq.analyzer.core.prioritization.restMcda.RankResultResponse;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaResultRepository;
 import org.planqk.nisq.analyzer.core.repository.xmcda.XmcdaRepository;
@@ -160,9 +162,46 @@ public class TopsisMethod implements McdaMethod {
 
         RestTemplate restTemplate = new RestTemplate();
         try {
-            URI resultLocation =
+            URI resultLocationRedirect =
                 restTemplate.postForLocation(URI.create(String.format("http://%s:%d/plugins/es-optimizer@%s/rank", hostname, port, version)),
                     request);
+
+            if (resultLocationRedirect != null) {
+                RankResultLocationResponse rankResultLocationResponse =
+                    restTemplate.getForObject(resultLocationRedirect, RankResultLocationResponse.class);
+
+                while (!rankResultLocationResponse.getLog().equalsIgnoreCase("finished")) {
+                    // Wait for next poll
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException e) {
+                        // pass
+                    }
+                    rankResultLocationResponse =
+                        restTemplate.getForObject(resultLocationRedirect, RankResultLocationResponse.class);
+                }
+
+                try {
+                    if (rankResultLocationResponse.getStatus().equalsIgnoreCase("success")) {
+                        RankResultResponse rankResultResponse =
+                            restTemplate.getForObject(URI.create(rankResultLocationResponse.getOutputs().get(0).getHref()),
+                                RankResultResponse.class);
+
+                        List<McdaResult> mcdaResultList = new ArrayList<>();
+                        rankResultResponse.getScores().forEach((id, score) -> {
+                            McdaResult result = new McdaResult(UUID.fromString(id), rankResultResponse.getRanking().indexOf(id) + 1, (double) score);
+                            result = mcdaResultRepository.save(result);
+                            mcdaResultList.add(result);
+                        });
+                        mcdaJob.setRankedResults(mcdaResultList);
+                        mcdaJob.setState(ExecutionResultStatus.FINISHED.toString());
+                        mcdaJob.setReady(true);
+                        mcdaJobRepository.save(mcdaJob);
+                    }
+                } catch (RestClientException e) {
+                    setJobToFailed(mcdaJob, "Cannot get ranking result from Prioritization Service.");
+                }
+            }
         } catch (RestClientException e) {
             setJobToFailed(mcdaJob, "Connection to Prioritization Service failed.");
         }
