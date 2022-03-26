@@ -48,6 +48,8 @@ import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.xmcda.XmcdaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -313,16 +315,15 @@ public class PrioritizationService {
 
                 try {
                     if (prioritizationServiceResultLocationResponse.getStatus().equalsIgnoreCase("success")) {
-                        RankResultResponse rankResultResponse =
-                            restTemplate.getForObject(URI.create(prioritizationServiceResultLocationResponse.getOutputs().get(0).getHref()),
-                                RankResultResponse.class);
+                        ParameterizedTypeReference<HashMap<String, WeightLearningResponse>> responseType =
+                            new ParameterizedTypeReference<HashMap<String, WeightLearningResponse>>() {
+                            };
 
-                        List<McdaResult> mcdaResultList = new ArrayList<>();
-                        rankResultResponse.getScores().forEach((id, score) -> {
-                            McdaResult result = new McdaResult(UUID.fromString(id), rankResultResponse.getRanking().indexOf(id) + 1, (double) score);
-                            result = mcdaResultRepository.save(result);
-                            mcdaResultList.add(result);
-                        });
+                        RequestEntity<Void> request =
+                            RequestEntity.get(URI.create(prioritizationServiceResultLocationResponse.getOutputs().get(0).getHref())).build();
+
+                        Map<String, WeightLearningResponse> learnedWeightsResponse = restTemplate.exchange(request, responseType).getBody();
+
                         mcdaWeightLearningJob.setState(ExecutionResultStatus.FINISHED.toString());
                         mcdaWeightLearningJob.setReady(true);
                         mcdaWeightLearningJobRepository.save(mcdaWeightLearningJob);
@@ -331,9 +332,7 @@ public class PrioritizationService {
                     setWeightLearningJobToFailed(mcdaWeightLearningJob, "Cannot get weight learning result from Prioritization Service.");
                 }
             }
-        } catch (
-
-            RestClientException e) {
+        } catch (RestClientException e) {
             setWeightLearningJobToFailed(mcdaWeightLearningJob, "Connection to Prioritization Service failed.");
         }
     }
