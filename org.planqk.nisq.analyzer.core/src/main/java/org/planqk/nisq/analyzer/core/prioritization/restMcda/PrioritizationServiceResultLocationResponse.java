@@ -19,6 +19,8 @@
 
 package org.planqk.nisq.analyzer.core.prioritization.restMcda;
 
+import java.util.ArrayList;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,21 +28,17 @@ import lombok.Setter;
 
 @AllArgsConstructor
 @NoArgsConstructor
-public class RankResultLocationOutputs {
+public class PrioritizationServiceResultLocationResponse {
 
     @Getter
     @Setter
-    private String contentType;
+    private String log;
 
     @Getter
     @Setter
-    private String dataType;
+    private ArrayList<PrioritizationServiceResultLocationOutputs> outputs;
 
     @Getter
     @Setter
-    private String href;
-
-    @Getter
-    @Setter
-    private String name;
+    private String status;
 }

@@ -39,4 +39,6 @@ public class McdaWeightLearningJob extends Job {
     private String mcdaMethod;
 
     private String weightLearningMethod;
+
+    private String state;
 }

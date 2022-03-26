@@ -385,7 +385,6 @@ public class XmcdaCriteriaController {
             LOG.error("MCDA method with name {} not supported to learn weights.", methodName);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        McdaMethod mcdaMethod = optional.get();
 
         // check if weighting method is supported
         if (!weightLearningMethod.matches("cobyla|genetic-algorithm|evolution-strategy")) {
@@ -397,6 +396,7 @@ public class XmcdaCriteriaController {
         McdaWeightLearningJob mcdaWeightLearningJob = new McdaWeightLearningJob();
         mcdaWeightLearningJob.setTime(OffsetDateTime.now());
         mcdaWeightLearningJob.setMcdaMethod(methodName);
+        mcdaWeightLearningJob.setState(ExecutionResultStatus.INITIALIZED.toString());
         mcdaWeightLearningJob.setWeightLearningMethod(weightLearningMethod);
         mcdaWeightLearningJob.setReady(false);
 

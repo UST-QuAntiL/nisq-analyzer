@@ -31,7 +31,7 @@ import lombok.Setter;
 
 @AllArgsConstructor
 @NoArgsConstructor
-public class McdaRankRestRequest {
+public class McdaWeightLearningRequest {
 
     @Getter
     @Setter
@@ -39,11 +39,11 @@ public class McdaRankRestRequest {
 
     @Getter
     @Setter
-    private Map<String, McdaCriterionWeight> metricWeights;
+    private String learningMethod;
 
     @Getter
     @Setter
-    private Map<String, McdaCriterionWeight> bordaCountMetrics;
+    private Map<String, McdaCriterionWeight> metricWeights;
 
     @Getter
     @Setter
