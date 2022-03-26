@@ -34,6 +34,7 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.model.McdaResult;
 import org.planqk.nisq.analyzer.core.model.McdaWeightLearningJob;
+import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
@@ -142,11 +143,13 @@ public class PrioritizationService {
 
         criteriaValues.getCriterionValue().addAll(xmcdaRepository.findValuesByMcdaMethod(mcdaJob.getMethod()));
         criteriaValues.getCriterionValue().forEach(criterionValue -> {
+            //get metric weight
             Value value = (Value) criterionValue.getValueOrValues().get(0);
             Optional<Criterion> crit = xmcdaRepository.findById(criterionValue.getCriterionID());
             if (crit.isPresent()) {
                 Criterion criterion = crit.get();
                 Scale optimum = (Scale) criterion.getActiveOrScaleOrCriterionFunction().get(1);
+                LOG.debug("Used weight for metric {} to rank with {}: {}", criterion.getName(), mcdaJob.getMethod(), value.getReal());
 
                 //TODO AND only if bordaCount should be applied, otherwise e.g. user-defined weights
                 if (criterion.getName().equals("queue-size")) {
@@ -323,6 +326,27 @@ public class PrioritizationService {
                             RequestEntity.get(URI.create(prioritizationServiceResultLocationResponse.getOutputs().get(0).getHref())).build();
 
                         Map<String, WeightLearningResponse> learnedWeightsResponse = restTemplate.exchange(request, responseType).getBody();
+
+                        learnedWeightsResponse.forEach((String criterion, WeightLearningResponse weight) -> {
+                            // find existing entity that should be updated
+                            Optional<Criterion> mcdaCriterionOptional =
+                                xmcdaRepository.findByCriterionName(criterion);
+
+                            Criterion mcdaCrition = mcdaCriterionOptional.get();
+
+                            Optional<CriterionValue> mcdaCriterionValueOptional =
+                                xmcdaRepository.findByCriterionIdAndMethod(mcdaCrition.getId(), mcdaWeightLearningJob.getMcdaMethod());
+
+                            CriterionValue criterionValue = mcdaCriterionValueOptional.get();
+                            Value value = (Value) criterionValue.getValueOrValues().get(0);
+                            LOG.debug("Previous weight of {} ({}) for {}: {}", criterion, mcdaCrition.getId(), mcdaWeightLearningJob.getMcdaMethod(),
+                                value.getReal());
+                            value.setReal((double) weight.getNormalizedWeight());
+                            LOG.debug("Updated weight of {} ({}) for {} using {}: {}", criterion, mcdaCrition.getId(),
+                                mcdaWeightLearningJob.getMcdaMethod(), mcdaWeightLearningJob.getWeightLearningMethod(),
+                                value.getReal());
+                            xmcdaRepository.updateCriterionValue(criterionValue);
+                        });
 
                         mcdaWeightLearningJob.setState(ExecutionResultStatus.FINISHED.toString());
                         mcdaWeightLearningJob.setReady(true);
