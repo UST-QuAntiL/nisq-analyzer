@@ -28,23 +28,42 @@ public class Constants {
     public static final String IMPLEMENTATIONS = "implementations";
     public static final String SDKS = "sdks";
     public static final String EXECUTION = "execute";
+
     public static final String SELECTION = "selection";
+
     public static final String COMPILER_SELECTION = "compiler-selection";
+
     public static final String QPU_SELECTION = "qpu-selection";
+
     public static final String SELECTION_PARAMS = "selection-params";
+
     public static final String ANALYSIS_RESULTS = "analysis-results";
+
     public static final String COMPILER_RESULTS = "compiler-results";
+
     public static final String QPU_SELECTION_RESULTS = "qpu-selection-results";
+
     public static final String EXECUTION_RESULTS = "execution-results";
+
     public static final String JOBS = "jobs";
+
     public static final String MCDA_METHODS = "mcda-methods";
+
+    public static final String WEIGHT_LEARNING_METHODS = "weight-learning-methods";
+
     public static final String CRITERIA = "criteria";
+
     public static final String CRITERIA_VALUE = "value";
+
     public static final String MCDA_PRIORITIZE = "prioritize";
+
+    public static final String MCDA_LEARN_WEIGHTS = "learning-weights";
+
     public static final String COMPILERS = "compilers";
 
     // link names
     public static final String USED_SDK = "used-sdk";
+
     public static final String INPUT_PARAMS = "input-parameters";
     public static final String OUTPUT_PARAMS = "output-parameters";
     public static final String RESULTS_LINK = "results";

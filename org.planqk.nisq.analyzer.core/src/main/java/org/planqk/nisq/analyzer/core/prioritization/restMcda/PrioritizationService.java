@@ -31,9 +31,11 @@ import java.util.UUID;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.model.McdaResult;
+import org.planqk.nisq.analyzer.core.model.McdaWeightLearningJob;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaResultRepository;
+import org.planqk.nisq.analyzer.core.repository.McdaWeightLearningJobRepository;
 import org.planqk.nisq.analyzer.core.repository.xmcda.XmcdaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +59,8 @@ public class PrioritizationService {
     private final JobDataExtractor jobDataExtractor;
 
     private final McdaJobRepository mcdaJobRepository;
+
+    private final McdaWeightLearningJobRepository mcdaWeightLearningJobRepository;
 
     private final McdaResultRepository mcdaResultRepository;
 
@@ -181,6 +185,11 @@ public class PrioritizationService {
         } catch (RestClientException e) {
             setJobToFailed(mcdaJob, "Connection to Prioritization Service failed.");
         }
+    }
+
+    public void learnWeights(McdaWeightLearningJob mcdaWeightLearningJob) {
+        mcdaWeightLearningJob.setReady(true);
+        mcdaWeightLearningJobRepository.save(mcdaWeightLearningJob);
     }
 
     private void setJobToFailed(McdaJob mcdaJob, String errorMessage) {
