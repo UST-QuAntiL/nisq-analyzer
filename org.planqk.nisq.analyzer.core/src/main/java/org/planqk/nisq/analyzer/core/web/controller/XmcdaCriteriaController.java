@@ -293,9 +293,10 @@ public class XmcdaCriteriaController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
-            @ApiResponse(responseCode = "500", content = @Content)}, description = "Run the MCDA method on the NISQ Analyzer job passed as parameter")
+        @ApiResponse(responseCode = "500", content = @Content)}, description = "Run the MCDA method on the NISQ Analyzer job passed as parameter")
     @PostMapping(value = "/{methodName}/" + Constants.MCDA_PRIORITIZE)
-    public HttpEntity<EntityModel<McdaJob>> prioritizeCompiledCircuitsOfJob(@PathVariable String methodName, @RequestParam UUID jobId) {
+    public HttpEntity<EntityModel<McdaJob>> prioritizeCompiledCircuitsOfJob(@PathVariable String methodName, @RequestParam UUID jobId,
+                                                                            @RequestParam Boolean useBordaCount) {
         LOG.debug("Creating new job to run prioritization with MCDA method {} and NISQ Analyzer job with ID: {}", methodName, jobId);
 
         // check if method is supported
@@ -306,10 +307,16 @@ public class XmcdaCriteriaController {
         }
         McdaMethod mcdaMethod = optional.get();
 
+        if (methodName.equals("electre-III") && useBordaCount) {
+            LOG.error("MCDA method with name {} does not support Borda Count.", methodName);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
         // create job object and pass to corresponding MCDA plugin
         McdaJob mcdaJob = new McdaJob();
         mcdaJob.setTime(OffsetDateTime.now());
         mcdaJob.setMethod(methodName);
+        mcdaJob.setUseBordaCount(useBordaCount);
         mcdaJob.setReady(false);
         mcdaJob.setJobId(jobId);
         mcdaJob.setState(ExecutionResultStatus.INITIALIZED.toString());
@@ -487,7 +494,8 @@ public class XmcdaCriteriaController {
                                                                                                          @RequestParam UUID jobId,
                                                                                                          @RequestParam float stepSize,
                                                                                                          @RequestParam float upperBound,
-                                                                                                         @RequestParam float lowerBound) {
+                                                                                                         @RequestParam float lowerBound,
+                                                                                                         @RequestParam Boolean useBordaCount) {
         LOG.debug("Creating new job to run sensitivity analysis with MCDA method {} and NISQ Analyzer job with ID: {}", methodName, jobId);
 
         // check if method is supported
@@ -503,6 +511,7 @@ public class XmcdaCriteriaController {
         mcdaSensitivityAnalysisJob.setTime(OffsetDateTime.now());
         mcdaSensitivityAnalysisJob.setMethod(methodName);
         mcdaSensitivityAnalysisJob.setReady(false);
+        mcdaSensitivityAnalysisJob.setUseBordaCount(useBordaCount);
         mcdaSensitivityAnalysisJob.setJobId(jobId);
         mcdaSensitivityAnalysisJob.setStepSize(stepSize);
         mcdaSensitivityAnalysisJob.setUpperBound(upperBound);

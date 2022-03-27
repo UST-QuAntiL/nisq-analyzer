@@ -167,8 +167,7 @@ public class PrioritizationService {
                 Scale optimum = (Scale) criterion.getActiveOrScaleOrCriterionFunction().get(1);
                 LOG.debug("Used weight for metric {} to rank with {}: {}", criterion.getName(), mcdaJob.getMethod(), value.getReal());
 
-                //TODO AND only if bordaCount should be applied, otherwise e.g. user-defined weights
-                if (criterion.getName().equals("queue-size")) {
+                if (mcdaJob.isUseBordaCount() && criterion.getName().equals("queue-size")) {
                     bordaCountMetrics.put(criterion.getName(), new McdaCriterionWeight(0.0f,
                         optimum.getQuantitative().getPreferenceDirection().value().equalsIgnoreCase("min")));
                 } else {
@@ -459,8 +458,7 @@ public class PrioritizationService {
                 LOG.debug("Initial weight for metric {} to rank with {}: {}", criterion.getName(), mcdaSensitivityAnalysisJob.getMethod(),
                     value.getReal());
 
-                //TODO AND only if bordaCount should be applied, otherwise e.g. user-defined weights
-                if (criterion.getName().equals("queue-size")) {
+                if (mcdaSensitivityAnalysisJob.isUseBordaCount() && criterion.getName().equals("queue-size")) {
                     bordaCountMetrics.put(criterion.getName(), new McdaCriterionWeight(0.0f,
                         optimum.getQuantitative().getPreferenceDirection().value().equalsIgnoreCase("min")));
                 } else {

@@ -44,6 +44,8 @@ public class McdaJob extends Job {
 
     private String state;
 
+    private boolean useBordaCount;
+    
     private UUID jobId;
 
     private JobType jobType;
