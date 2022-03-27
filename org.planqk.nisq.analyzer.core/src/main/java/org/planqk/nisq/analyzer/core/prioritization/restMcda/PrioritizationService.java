@@ -27,16 +27,24 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
+import org.planqk.nisq.analyzer.core.model.AnalysisJob;
+import org.planqk.nisq.analyzer.core.model.CircuitResult;
+import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
+import org.planqk.nisq.analyzer.core.model.JobType;
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.model.McdaResult;
 import org.planqk.nisq.analyzer.core.model.McdaSensitivityAnalysisJob;
 import org.planqk.nisq.analyzer.core.model.McdaWeightLearningJob;
+import org.planqk.nisq.analyzer.core.model.Qpu;
+import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
+import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
@@ -95,6 +103,8 @@ public class PrioritizationService {
     private final McdaResultRepository mcdaResultRepository;
 
     private final XmcdaRepository xmcdaRepository;
+
+    private final QProvService qProvService;
 
     @org.springframework.beans.factory.annotation.Value("${org.planqk.nisq.analyzer.prioritization.hostname}")
     private String hostname;
@@ -367,6 +377,104 @@ public class PrioritizationService {
     }
 
     public void analyzeSensitivity(McdaSensitivityAnalysisJob mcdaSensitivityAnalysisJob) {
+        LOG.debug("Using {} MCDA method to analyze sensitivity of job with ID: {}", mcdaSensitivityAnalysisJob.getMethod(),
+            mcdaSensitivityAnalysisJob.getJobId());
+
+        // get compiled circuits metric values
+        List<McdaCriteriaPerformances> compiledCircuits = new ArrayList<>();
+
+        Optional<QpuSelectionJob> qpuSelectionJobOptional = qpuSelectionJobRepository.findById(mcdaSensitivityAnalysisJob.getJobId());
+        if (qpuSelectionJobOptional.isPresent()) {
+            QpuSelectionJob job = qpuSelectionJobOptional.get();
+            if (!job.isReady()) {
+                LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
+            } else {
+                mcdaSensitivityAnalysisJob.setJobType(JobType.QPU_SELECTION);
+                mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
+                LOG.debug("Retrieving information from QPU selection job!");
+                List<CircuitResult> results = job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
+                compiledCircuits = getCircuitResults(results);
+            }
+        } else {
+            LOG.debug("{} is no QpuSelectionJob", mcdaSensitivityAnalysisJob.getJobId());
+
+            Optional<AnalysisJob> analysisJobOptional = analysisJobRepository.findById(mcdaSensitivityAnalysisJob.getJobId());
+            if (analysisJobOptional.isPresent()) {
+                AnalysisJob job = analysisJobOptional.get();
+                if (!job.isReady()) {
+                    LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
+                } else {
+                    mcdaSensitivityAnalysisJob.setJobType(JobType.ANALYSIS);
+                    mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
+                    LOG.debug("Retrieving information from analysis job!");
+                    List<CircuitResult> results =
+                        job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
+                    compiledCircuits = getCircuitResults(results);
+                }
+            } else {
+                LOG.debug("{} is no AnalysisJob", mcdaSensitivityAnalysisJob.getJobId());
+
+                Optional<CompilationJob> compilationJobOptional = compilationJobRepository.findById(mcdaSensitivityAnalysisJob.getJobId());
+                if (compilationJobOptional.isPresent()) {
+                    CompilationJob job = compilationJobOptional.get();
+                    if (!job.isReady()) {
+                        LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
+                    } else {
+                        mcdaSensitivityAnalysisJob.setJobType(JobType.COMPILATION);
+                        mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
+                        LOG.debug("Retrieving information from compilation job!");
+                        List<CircuitResult> results =
+                            job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
+                        compiledCircuits = getCircuitResults(results);
+                    }
+                } else {
+                    LOG.debug("{} is no CompilationJob", mcdaSensitivityAnalysisJob.getJobId());
+                    LOG.error("Unable to find QPU selection, analysis, or compilation job for ID: {}", mcdaSensitivityAnalysisJob.getJobId());
+                    setSensitivityAnalysisJobToFailed(mcdaSensitivityAnalysisJob,
+                        "Unable to retrieve information about job with ID: " + mcdaSensitivityAnalysisJob.getJobId());
+                }
+            }
+        }
+
+        List<McdaCompiledCircuitJob> circuits = new ArrayList<>();
+        circuits.add(new McdaCompiledCircuitJob(mcdaSensitivityAnalysisJob.getJobId(), compiledCircuits));
+
+        // get metrics and their weights
+        CriteriaValues criteriaValues = new CriteriaValues();
+        Map<String, McdaCriterionWeight> metricWeights = new HashMap<>();
+        Map<String, McdaCriterionWeight> bordaCountMetrics = new HashMap<>();
+
+        criteriaValues.getCriterionValue().addAll(xmcdaRepository.findValuesByMcdaMethod(mcdaSensitivityAnalysisJob.getMethod()));
+        criteriaValues.getCriterionValue().forEach(criterionValue -> {
+            //get metric weight
+            Value value = (Value) criterionValue.getValueOrValues().get(0);
+            Optional<Criterion> crit = xmcdaRepository.findById(criterionValue.getCriterionID());
+            if (crit.isPresent()) {
+                Criterion criterion = crit.get();
+                Scale optimum = (Scale) criterion.getActiveOrScaleOrCriterionFunction().get(1);
+                LOG.debug("Used weight for metric {} to rank with {}: {}", criterion.getName(), mcdaSensitivityAnalysisJob.getMethod(),
+                    value.getReal());
+
+                //TODO AND only if bordaCount should be applied, otherwise e.g. user-defined weights
+                if (criterion.getName().equals("queue-size")) {
+                    bordaCountMetrics.put(criterion.getName(), new McdaCriterionWeight(0.0f,
+                        optimum.getQuantitative().getPreferenceDirection().value().equalsIgnoreCase("min")));
+                } else {
+                    metricWeights.put(criterion.getName(), new McdaCriterionWeight(value.getReal().floatValue(),
+                        optimum.getQuantitative().getPreferenceDirection().value().equalsIgnoreCase("min")));
+                }
+            }
+        });
+
+        String mcdaMethodName = mcdaSensitivityAnalysisJob.getMethod();
+
+        if (mcdaMethodName.equals("promethee-II")) {
+            mcdaMethodName = "promethee_ii";
+        }
+
+        //McdaSensitivityAnalysisRestRequest request = new McdaSensitivityAnalysisRestRequest(mcdaMethodName, mcdaSensitivityAnalysisJob.getStepSize(),
+        //    mcdaSensitivityAnalysisJob.getUpperBound(), mcdaSensitivityAnalysisJob.getLowerBound(), metricWeights, bordaCountMetrics, circuits);
+
         mcdaSensitivityAnalysisJob.setReady(true);
         mcdaSensitivityAnalysisJob.setState(ExecutionResultStatus.FINISHED.toString());
         mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
@@ -384,5 +492,48 @@ public class PrioritizationService {
         mcdaWeightLearningJob.setState(ExecutionResultStatus.FAILED.toString());
         mcdaWeightLearningJob.setReady(true);
         mcdaWeightLearningJobRepository.save(mcdaWeightLearningJob);
+    }
+
+    private void setSensitivityAnalysisJobToFailed(McdaSensitivityAnalysisJob mcdaSensitivityAnalysisJob, String errorMessage) {
+        LOG.error(errorMessage);
+        mcdaSensitivityAnalysisJob.setState(ExecutionResultStatus.FAILED.toString());
+        mcdaSensitivityAnalysisJob.setReady(true);
+        mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
+    }
+
+    private List<McdaCriteriaPerformances> getCircuitResults(List<CircuitResult> results) {
+        List<McdaCriteriaPerformances> mcdaCriteriaPerformancesList = new ArrayList<>();
+
+        results.forEach(result -> {
+            // get QPU object containing required performances data
+            Optional<Qpu> qpuOptional = qProvService.getQpuByName(result.getQpu(), result.getProvider());
+            if (qpuOptional.isPresent()) {
+                McdaCriteriaPerformances mcdaCriteriaPerformances = new McdaCriteriaPerformances();
+                mcdaCriteriaPerformances.setId(result.getId().toString());
+                mcdaCriteriaPerformances.setHistogramIntersection(0.0f);
+                mcdaCriteriaPerformances.setAnalyzedWidth(result.getAnalyzedWidth());
+                mcdaCriteriaPerformances.setAnalyzedDepth(result.getAnalyzedDepth());
+                mcdaCriteriaPerformances.setAnalyzedMultiQubitGateDepth(result.getAnalyzedMultiQubitGateDepth());
+                mcdaCriteriaPerformances.setAnalyzedTotalNumberOfOperations(result.getAnalyzedTotalNumberOfOperations());
+                mcdaCriteriaPerformances.setAnalyzedNumberOfSingleQubitGates(result.getAnalyzedNumberOfSingleQubitGates());
+                mcdaCriteriaPerformances.setAnalyzedNumberOfMultiQubitGates(result.getAnalyzedNumberOfMultiQubitGates());
+                mcdaCriteriaPerformances.setAnalyzedNumberOfMeasurementOperations(
+                    result.getAnalyzedNumberOfMeasurementOperations());
+                mcdaCriteriaPerformances.setAvgSingleQubitGateError(result.getAvgSingleQubitGateError());
+                mcdaCriteriaPerformances.setAvgMultiQubitGateError(result.getAvgMultiQubitGateError());
+                mcdaCriteriaPerformances.setAvgSingleQubitGateTime(result.getAvgSingleQubitGateTime());
+                mcdaCriteriaPerformances.setAvgMultiQubitGateTime(result.getAvgMultiQubitGateTime());
+                mcdaCriteriaPerformances.setAvgReadoutError(result.getAvgReadoutError());
+                mcdaCriteriaPerformances.setT1(result.getT1());
+                mcdaCriteriaPerformances.setT2(result.getT2());
+                mcdaCriteriaPerformances.setQueueSize(qpuOptional.get().getQueueSize());
+
+                mcdaCriteriaPerformancesList.add(mcdaCriteriaPerformances);
+            } else {
+                LOG.error("Unable to retrieve QPU with name {} at provider {}. Skipping result with ID: {}", result.getQpu(), result.getProvider(),
+                    result.getId());
+            }
+        });
+        return mcdaCriteriaPerformancesList;
     }
 }

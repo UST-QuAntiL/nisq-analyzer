@@ -17,39 +17,34 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
+package org.planqk.nisq.analyzer.core.prioritization.restMcda;
 
-import java.util.UUID;
-import javax.persistence.Entity;
+import java.util.List;
+import java.util.Map;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-/**
- * Object to represent a MCDA sensitivity analysis job running the sensitivity analysis for a certain analysis or compilation job
- */
-@EqualsAndHashCode(callSuper = true)
-@Entity
-@Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class McdaSensitivityAnalysisJob extends Job {
-
-    private String method;
-
-    private String state;
-
-    private UUID jobId;
-
-    private JobType jobType;
-
+@NoArgsConstructor
+public class McdaSensitivityAnalysisRestRequest extends McdaRankRestRequest {
+    @Getter
+    @Setter
     private float stepSize;
 
+    @Getter
+    @Setter
     private float upperBound;
 
-    private float lowerBound;
+    @Getter
+    @Setter
+    private float mcdaMethod;
 
-    private String plotFileLocation;
+    public McdaSensitivityAnalysisRestRequest(String mcdaMethodName, float stepSize, float upperBound, float lowerBound,
+                                              Map<String, McdaCriterionWeight> metricWeights, Map<String, McdaCriterionWeight> bordaCountMetrics,
+                                              List<McdaCompiledCircuitJob> circuits) {
+        
+    }
 }
