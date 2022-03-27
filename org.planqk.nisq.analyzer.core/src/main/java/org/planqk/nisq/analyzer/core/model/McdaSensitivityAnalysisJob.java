@@ -19,8 +19,11 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
+import java.util.List;
 import java.util.UUID;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -52,4 +55,7 @@ public class McdaSensitivityAnalysisJob extends Job {
     private float lowerBound;
 
     private String plotFileLocation;
+
+    @OneToMany(cascade = CascadeType.PERSIST)
+    private List<McdaResult> originalRanking;
 }

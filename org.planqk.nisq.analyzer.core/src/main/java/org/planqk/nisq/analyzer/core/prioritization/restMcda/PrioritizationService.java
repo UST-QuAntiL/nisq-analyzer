@@ -512,12 +512,17 @@ public class PrioritizationService {
                             restTemplate.getForObject(URI.create(prioritizationServiceResultLocationResponse.getOutputs().get(0).getHref()),
                                 SensitivityAnalysisResultResponse.class);
 
-                        /*List<McdaResult> mcdaResultList = new ArrayList<>();
-                        rankResultResponse.getScores().forEach((id, score) -> {
-                            McdaResult result = new McdaResult(UUID.fromString(id), rankResultResponse.getRanking().indexOf(id) + 1, (double) score);
-                            result = mcdaResultRepository.save(result);
-                            mcdaResultList.add(result);
-                        });*/
+                        List<McdaResult> mcdaResultList = new ArrayList<>();
+
+                        //FIXME as soon as scores are provided by the Prioritization Service for sensitivity analysis
+                        ////////////////////////
+//                        sensitivityAnalysisResultResponse.getScores().forEach((id, score) -> {
+//                            McdaResult result = new McdaResult(UUID.fromString(id), sensitivityAnalysisResultResponse.getOriginalRanking().indexOf(id) + 1, (double) score);
+//                            result = mcdaResultRepository.save(result);
+//                            mcdaResultList.add(result);
+//                        });
+                        ////////////////////////
+                        mcdaSensitivityAnalysisJob.setOriginalRanking(mcdaResultList);
                         mcdaSensitivityAnalysisJob.setState(ExecutionResultStatus.FINISHED.toString());
                         mcdaSensitivityAnalysisJob.setReady(true);
                         mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
