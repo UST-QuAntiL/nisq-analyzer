@@ -117,6 +117,8 @@ public class PrioritizationService {
 
     public void executeMcdaMethod(McdaJob mcdaJob) {
         LOG.debug("Starting {} MCDA method to prioritize job with ID: {}", mcdaJob.getMethod(), mcdaJob.getJobId());
+        mcdaJob.setState(ExecutionResultStatus.RUNNING.toString());
+        mcdaJobRepository.save(mcdaJob);
         PerformanceTable mcdaInformation = jobDataExtractor.getJobInformationFromUuid(mcdaJob);
 
         // abort if job can not be found and therefore no information available
@@ -379,6 +381,8 @@ public class PrioritizationService {
     public void analyzeSensitivity(McdaSensitivityAnalysisJob mcdaSensitivityAnalysisJob) {
         LOG.debug("Using {} MCDA method to analyze sensitivity of job with ID: {}", mcdaSensitivityAnalysisJob.getMethod(),
             mcdaSensitivityAnalysisJob.getJobId());
+        mcdaSensitivityAnalysisJob.setState(ExecutionResultStatus.RUNNING.toString());
+        mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
 
         // get compiled circuits metric values
         List<McdaCriteriaPerformances> compiledCircuits = new ArrayList<>();
@@ -515,6 +519,7 @@ public class PrioritizationService {
                         List<McdaResult> mcdaResultList = new ArrayList<>();
 
                         //FIXME as soon as scores are provided by the Prioritization Service for sensitivity analysis
+                        // set scores and position of initial ranking which is stored in the Job
                         ////////////////////////
 //                        sensitivityAnalysisResultResponse.getScores().forEach((id, score) -> {
 //                            McdaResult result = new McdaResult(UUID.fromString(id), sensitivityAnalysisResultResponse.getOriginalRanking().indexOf(id) + 1, (double) score);
