@@ -452,7 +452,7 @@ public class PrioritizationService {
             if (crit.isPresent()) {
                 Criterion criterion = crit.get();
                 Scale optimum = (Scale) criterion.getActiveOrScaleOrCriterionFunction().get(1);
-                LOG.debug("Used weight for metric {} to rank with {}: {}", criterion.getName(), mcdaSensitivityAnalysisJob.getMethod(),
+                LOG.debug("Initial weight for metric {} to rank with {}: {}", criterion.getName(), mcdaSensitivityAnalysisJob.getMethod(),
                     value.getReal());
 
                 //TODO AND only if bordaCount should be applied, otherwise e.g. user-defined weights
@@ -472,12 +472,64 @@ public class PrioritizationService {
             mcdaMethodName = "promethee_ii";
         }
 
-        //McdaSensitivityAnalysisRestRequest request = new McdaSensitivityAnalysisRestRequest(mcdaMethodName, mcdaSensitivityAnalysisJob.getStepSize(),
-        //    mcdaSensitivityAnalysisJob.getUpperBound(), mcdaSensitivityAnalysisJob.getLowerBound(), metricWeights, bordaCountMetrics, circuits);
+        McdaSensitivityAnalysisRestRequest request = new McdaSensitivityAnalysisRestRequest();
+        request.setMcdaMethod(mcdaMethodName);
+        request.setStepSize(mcdaSensitivityAnalysisJob.getStepSize());
+        request.setUpperBound(mcdaSensitivityAnalysisJob.getUpperBound());
+        request.setLowerBound(mcdaSensitivityAnalysisJob.getLowerBound());
+        request.setMetricWeights(metricWeights);
+        request.setBordaCountMetrics(bordaCountMetrics);
+        request.setCircuits(circuits);
 
-        mcdaSensitivityAnalysisJob.setReady(true);
-        mcdaSensitivityAnalysisJob.setState(ExecutionResultStatus.FINISHED.toString());
-        mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            URI resultLocationRedirect =
+                restTemplate.postForLocation(
+                    URI.create(String.format("http://%s:%d/plugins/es-optimizer@%s/rank-sensitivity", hostname, port, version)),
+                    request);
+
+            if (resultLocationRedirect != null) {
+                PrioritizationServiceResultLocationResponse prioritizationServiceResultLocationResponse =
+                    restTemplate.getForObject(resultLocationRedirect, PrioritizationServiceResultLocationResponse.class);
+
+                while (!prioritizationServiceResultLocationResponse.getLog().equalsIgnoreCase("finished")) {
+                    // Wait for next poll
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException e) {
+                        // pass
+                    }
+                    prioritizationServiceResultLocationResponse =
+                        restTemplate.getForObject(resultLocationRedirect, PrioritizationServiceResultLocationResponse.class);
+                }
+
+                try {
+                    if (prioritizationServiceResultLocationResponse.getStatus().equalsIgnoreCase("success")) {
+                        //get location where html plot is stored
+                        String plotFileLocation = prioritizationServiceResultLocationResponse.getOutputs().get(1).getHref();
+                        mcdaSensitivityAnalysisJob.setPlotFileLocation(plotFileLocation);
+                        SensitivityAnalysisResultResponse sensitivityAnalysisResultResponse =
+                            restTemplate.getForObject(URI.create(prioritizationServiceResultLocationResponse.getOutputs().get(0).getHref()),
+                                SensitivityAnalysisResultResponse.class);
+
+                        /*List<McdaResult> mcdaResultList = new ArrayList<>();
+                        rankResultResponse.getScores().forEach((id, score) -> {
+                            McdaResult result = new McdaResult(UUID.fromString(id), rankResultResponse.getRanking().indexOf(id) + 1, (double) score);
+                            result = mcdaResultRepository.save(result);
+                            mcdaResultList.add(result);
+                        });*/
+                        mcdaSensitivityAnalysisJob.setState(ExecutionResultStatus.FINISHED.toString());
+                        mcdaSensitivityAnalysisJob.setReady(true);
+                        mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
+                    }
+                } catch (RestClientException e) {
+                    setSensitivityAnalysisJobToFailed(mcdaSensitivityAnalysisJob,
+                        "Cannot get sensitivity analysis result from Prioritization Service.");
+                }
+            }
+        } catch (RestClientException e) {
+            setSensitivityAnalysisJobToFailed(mcdaSensitivityAnalysisJob, "Connection to Prioritization Service failed.");
+        }
     }
 
     private void setJobToFailed(McdaJob mcdaJob, String errorMessage) {

@@ -19,21 +19,41 @@
 
 package org.planqk.nisq.analyzer.core.prioritization.restMcda;
 
+import java.util.ArrayList;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@AllArgsConstructor
 @NoArgsConstructor
-public class McdaSensitivityAnalysisRestRequest extends McdaRankRestRequest {
-    @Getter
-    @Setter
-    private float stepSize;
+public class SensitivityAnalysisResultResponse {
 
     @Getter
     @Setter
-    private float upperBound;
+    @JsonProperty("original_ranking")
+    private ArrayList<Integer> originalRanking;
 
     @Getter
     @Setter
-    private float lowerBound;
+    @JsonProperty("decreasing_factors")
+    private ArrayList<Float> decreasingFactors;
+
+    @Getter
+    @Setter
+    @JsonProperty("disturbed_ranks_decreased")
+    private ArrayList<ArrayList<Integer>> disturbedRanksDecreased;
+
+    @Getter
+    @Setter
+    @JsonProperty("increasing_factors")
+    private ArrayList<Float> increasingFactors;
+
+    @Getter
+    @Setter
+    @JsonProperty("disturbed_ranks_increased")
+    private ArrayList<ArrayList<Integer>> disturbedRanksIncreased;
 }
