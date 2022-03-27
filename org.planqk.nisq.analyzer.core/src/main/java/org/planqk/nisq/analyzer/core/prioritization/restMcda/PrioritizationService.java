@@ -33,6 +33,7 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.model.McdaResult;
+import org.planqk.nisq.analyzer.core.model.McdaSensitivityAnalysisJob;
 import org.planqk.nisq.analyzer.core.model.McdaWeightLearningJob;
 import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
@@ -43,6 +44,7 @@ import org.planqk.nisq.analyzer.core.repository.CompilerAnalysisResultRepository
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaResultRepository;
+import org.planqk.nisq.analyzer.core.repository.McdaSensitivityAnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaWeightLearningJobRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
@@ -87,6 +89,8 @@ public class PrioritizationService {
     private final ExecutionResultRepository executionResultRepository;
 
     private final McdaWeightLearningJobRepository mcdaWeightLearningJobRepository;
+
+    private final McdaSensitivityAnalysisJobRepository mcdaSensitivityAnalysisJobRepository;
 
     private final McdaResultRepository mcdaResultRepository;
 
@@ -293,6 +297,7 @@ public class PrioritizationService {
         mcdaWeightLearningRequest.setLearningMethod(mcdaWeightLearningJob.getWeightLearningMethod());
         mcdaWeightLearningRequest.setMcdaMethod(mcdaMethodName);
         mcdaWeightLearningRequest.setCircuits(circuits);
+        LOG.debug("Using {} jobs to learn weights", circuits.size());
         mcdaWeightLearningRequest.setMetricWeights(metricWeights);
 
         RestTemplate restTemplate = new RestTemplate();
@@ -359,6 +364,12 @@ public class PrioritizationService {
         } catch (RestClientException e) {
             setWeightLearningJobToFailed(mcdaWeightLearningJob, "Connection to Prioritization Service failed.");
         }
+    }
+
+    public void analyzeSensitivity(McdaSensitivityAnalysisJob mcdaSensitivityAnalysisJob) {
+        mcdaSensitivityAnalysisJob.setReady(true);
+        mcdaSensitivityAnalysisJob.setState(ExecutionResultStatus.FINISHED.toString());
+        mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
     }
 
     private void setJobToFailed(McdaJob mcdaJob, String errorMessage) {

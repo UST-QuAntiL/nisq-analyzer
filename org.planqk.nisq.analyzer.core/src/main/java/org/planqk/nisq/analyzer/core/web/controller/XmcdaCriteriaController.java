@@ -34,11 +34,13 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.JobType;
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.model.McdaResult;
+import org.planqk.nisq.analyzer.core.model.McdaSensitivityAnalysisJob;
 import org.planqk.nisq.analyzer.core.model.McdaWeightLearningJob;
 import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
 import org.planqk.nisq.analyzer.core.prioritization.restMcda.PrioritizationService;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
+import org.planqk.nisq.analyzer.core.repository.McdaSensitivityAnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaWeightLearningJobRepository;
 import org.planqk.nisq.analyzer.core.repository.xmcda.XmcdaRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaCriterionDto;
@@ -89,6 +91,8 @@ public class XmcdaCriteriaController {
     final private XmcdaRepository xmcdaRepository;
 
     final private McdaJobRepository mcdaJobRepository;
+
+    final private McdaSensitivityAnalysisJobRepository mcdaSensitivityAnalysisJobRepository;
 
     final private McdaWeightLearningJobRepository mcdaWeightLearningJobRepository;
 
@@ -413,6 +417,82 @@ public class XmcdaCriteriaController {
             linkTo(methodOn(XmcdaCriteriaController.class).getWeightLearningJob(methodName, weightLearningMethod,
                 storedMcdaWeightLearningJob.getId())).withSelfRel());
         return new ResponseEntity<>(mcdaWeightLearningJobDto, HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+        description = "Retrieve the sensitivity analysis job for the given method")
+    @GetMapping("/{methodName}/" + Constants.MCDA_SENSITIVITY_ANALYZES + "/" + Constants.JOBS + "/{jobId}")
+    public HttpEntity<EntityModel<McdaSensitivityAnalysisJob>> getSensitivityAnalysisJob(@PathVariable String methodName, @PathVariable UUID jobId) {
+        LOG.debug("Retrieving sensitivity analysis job with ID: {}", jobId);
+
+        // check if method is supported
+        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst()
+            .filter(mcdaMethod -> !mcdaMethod.getName().equals("electre-III"));
+        if (!optional.isPresent()) {
+            LOG.error("MCDA method with name {} not supported for sensitivity analyzes.", methodName);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        // search for job
+        Optional<McdaSensitivityAnalysisJob> jobOptional = mcdaSensitivityAnalysisJobRepository.findById(jobId);
+        if (!jobOptional.isPresent()) {
+            LOG.error("Job with ID {} not found.", jobId);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        McdaSensitivityAnalysisJob job = jobOptional.get();
+        if (!job.getMethod().equals(methodName)) {
+            LOG.error("Job with ID {} does not belong to method: {}", jobId, methodName);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        EntityModel<McdaSensitivityAnalysisJob> mcdaSensitivityAnalysisJobDto = new EntityModel<>(job);
+        //addLinksToRelatedResults(mcdaSensitivityAnalysisJobDto, job); TODO maybe add link to job, therefore jobType is required to call right endpoint
+        mcdaSensitivityAnalysisJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getSensitivityAnalysisJob(methodName, jobId)).withSelfRel());
+        return new ResponseEntity<>(mcdaSensitivityAnalysisJobDto, HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
+        @ApiResponse(responseCode = "500", content = @Content)}, description = "Run the MCDA method on the NISQ Analyzer job passed as parameter")
+    @PostMapping(value = "/{methodName}/" + Constants.MCDA_SENSITIVITY_ANALYZES + "/" + Constants.MCDA_ANALYZE_SENSITIVITY)
+    public HttpEntity<EntityModel<McdaSensitivityAnalysisJob>> analyzeSensitivityOfCompiledCircuitsOfJob(@PathVariable String methodName,
+                                                                                                         @RequestParam UUID jobId,
+                                                                                                         @RequestParam float stepSize,
+                                                                                                         @RequestParam float upperBound,
+                                                                                                         @RequestParam float lowerBound) {
+        LOG.debug("Creating new job to run sensitivity analysis with MCDA method {} and NISQ Analyzer job with ID: {}", methodName, jobId);
+
+        // check if method is supported
+        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst()
+            .filter(mcdaMethod -> !mcdaMethod.getName().equals("electre-III"));
+        if (!optional.isPresent()) {
+            LOG.error("MCDA method with name {} not supported for sensitivity analyzes.", methodName);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        // create job object
+        McdaSensitivityAnalysisJob mcdaSensitivityAnalysisJob = new McdaSensitivityAnalysisJob();
+        mcdaSensitivityAnalysisJob.setTime(OffsetDateTime.now());
+        mcdaSensitivityAnalysisJob.setMethod(methodName);
+        mcdaSensitivityAnalysisJob.setReady(false);
+        mcdaSensitivityAnalysisJob.setJobId(jobId);
+        mcdaSensitivityAnalysisJob.setStepSize(stepSize);
+        mcdaSensitivityAnalysisJob.setUpperBound(upperBound);
+        mcdaSensitivityAnalysisJob.setLowerBound(lowerBound);
+        mcdaSensitivityAnalysisJob.setState(ExecutionResultStatus.INITIALIZED.toString());
+
+        // store object to generate UUID
+        McdaSensitivityAnalysisJob storedMcdaSensitivityAnalysisJob = mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
+
+        new Thread(() -> {
+            prioritizationService.analyzeSensitivity(storedMcdaSensitivityAnalysisJob);
+        }).start();
+
+        // return dto with link to poll for updates
+        EntityModel<McdaSensitivityAnalysisJob> mcdaSensitivityAnalysisJobDto = new EntityModel<>(storedMcdaSensitivityAnalysisJob);
+        mcdaSensitivityAnalysisJobDto.add(linkTo(
+            methodOn(XmcdaCriteriaController.class).getSensitivityAnalysisJob(methodName, storedMcdaSensitivityAnalysisJob.getId())).withSelfRel());
+        return new ResponseEntity<>(mcdaSensitivityAnalysisJobDto, HttpStatus.OK);
     }
 
     private McdaMethodDto createMcdaMethodDto(McdaMethod method) {

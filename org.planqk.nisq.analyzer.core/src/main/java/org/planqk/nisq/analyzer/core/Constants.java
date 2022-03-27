@@ -59,14 +59,21 @@ public class Constants {
 
     public static final String MCDA_LEARN_WEIGHTS = "learning-weights";
 
+    public static final String MCDA_ANALYZE_SENSITIVITY = "analyze-sensitivity";
+
+    public static final String MCDA_SENSITIVITY_ANALYZES = "sensitivity-analyzes";
+
     public static final String COMPILERS = "compilers";
 
     // link names
     public static final String USED_SDK = "used-sdk";
 
     public static final String INPUT_PARAMS = "input-parameters";
+
     public static final String OUTPUT_PARAMS = "output-parameters";
+
     public static final String RESULTS_LINK = "results";
+
     public static final String EXECUTED_ALGORITHM_LINK = "executed-algorithm";
     public static final String USED_ANALYSIS_RESULT = "analysis-result";
     public static final String USED_COMPILATION_RESULT = "compilation-result";
