@@ -420,6 +420,34 @@ public class XmcdaCriteriaController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
+        description = "Retrieve all sensitivity analysis jobs for the given method")
+    @GetMapping("/{methodName}/" + Constants.MCDA_SENSITIVITY_ANALYZES + "/" + Constants.JOBS)
+    public HttpEntity<CollectionModel<EntityModel<McdaSensitivityAnalysisJob>>> getSensitivityAnalysisJobs(@PathVariable String methodName) {
+        LOG.debug("Retrieving all sensitivity analysis jobs for MCDA method with name: {}", methodName);
+
+        // check if method is supported
+        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst()
+            .filter(mcdaMethod -> !mcdaMethod.getName().equals("electre-III"));
+        if (!optional.isPresent()) {
+            LOG.error("MCDA method with name {} not supported for sensitivity analyzes.", methodName);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        // get all related jobs
+        List<EntityModel<McdaSensitivityAnalysisJob>> jobs = new ArrayList<>();
+        for (McdaSensitivityAnalysisJob mcdaJob : mcdaSensitivityAnalysisJobRepository.findByMethod(methodName)) {
+            EntityModel<McdaSensitivityAnalysisJob> mcdaJobDto = new EntityModel<>(mcdaJob);
+            //addLinksToRelatedResults(mcdaJobDto, mcdaJob); TODO
+            mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getSensitivityAnalysisJob(methodName, mcdaJob.getJobId())).withSelfRel());
+            jobs.add(mcdaJobDto);
+        }
+
+        CollectionModel<EntityModel<McdaSensitivityAnalysisJob>> dto = new CollectionModel<>(jobs);
+        dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getSensitivityAnalysisJobs(methodName)).withSelfRel());
+        return new ResponseEntity<>(dto, HttpStatus.OK);
+    }
+
+    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
         description = "Retrieve the sensitivity analysis job for the given method")
     @GetMapping("/{methodName}/" + Constants.MCDA_SENSITIVITY_ANALYZES + "/" + Constants.JOBS + "/{jobId}")
     public HttpEntity<EntityModel<McdaSensitivityAnalysisJob>> getSensitivityAnalysisJob(@PathVariable String methodName, @PathVariable UUID jobId) {
