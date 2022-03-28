@@ -516,15 +516,15 @@ public class PrioritizationService {
 
                         List<McdaResult> mcdaResultList = new ArrayList<>();
 
-                        //FIXME as soon as scores are provided by the Prioritization Service for sensitivity analysis
-                        // set scores and position of initial ranking which is stored in the Job
-                        ////////////////////////
-//                        sensitivityAnalysisResultResponse.getScores().forEach((id, score) -> {
-//                            McdaResult result = new McdaResult(UUID.fromString(id), sensitivityAnalysisResultResponse.getOriginalRanking().indexOf(id) + 1, (double) score);
-//                            result = mcdaResultRepository.save(result);
-//                            mcdaResultList.add(result);
-//                        });
-                        ////////////////////////
+                        List<McdaCriteriaPerformances> compiledCircuitsCopy = compiledCircuits;
+                        compiledCircuits.forEach(circuit -> {
+                            McdaResult result = new McdaResult(UUID.fromString(circuit.getId()),
+                                sensitivityAnalysisResultResponse.getOriginalRanking().get(compiledCircuitsCopy.indexOf(circuit)) + 1,
+                                sensitivityAnalysisResultResponse.getOriginalScores().get(compiledCircuitsCopy.indexOf(circuit)));
+                            result = mcdaResultRepository.save(result);
+                            mcdaResultList.add(result);
+                        });
+
                         mcdaSensitivityAnalysisJob.setOriginalRanking(mcdaResultList);
                         mcdaSensitivityAnalysisJob.setState(ExecutionResultStatus.FINISHED.toString());
                         mcdaSensitivityAnalysisJob.setReady(true);

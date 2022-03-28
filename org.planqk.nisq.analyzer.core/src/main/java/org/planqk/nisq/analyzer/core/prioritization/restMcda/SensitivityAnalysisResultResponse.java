@@ -34,6 +34,11 @@ public class SensitivityAnalysisResultResponse {
 
     @Getter
     @Setter
+    @JsonProperty("original_scores")
+    private ArrayList<Float> originalScores;
+
+    @Getter
+    @Setter
     @JsonProperty("original_ranking")
     private ArrayList<Integer> originalRanking;
 
