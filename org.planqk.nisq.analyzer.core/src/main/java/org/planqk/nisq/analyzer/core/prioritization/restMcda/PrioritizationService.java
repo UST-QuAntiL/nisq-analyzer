@@ -46,16 +46,13 @@ import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
 import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
-import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
-import org.planqk.nisq.analyzer.core.repository.CompilerAnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaResultRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaSensitivityAnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaWeightLearningJobRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
-import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.xmcda.XmcdaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,12 +84,6 @@ public class PrioritizationService {
     private final AnalysisJobRepository analysisJobRepository;
 
     private final CompilationJobRepository compilationJobRepository;
-
-    private final QpuSelectionResultRepository qpuSelectionResultRepository;
-
-    private final AnalysisResultRepository analysisResultRepository;
-
-    private final CompilerAnalysisResultRepository compilerAnalysisResultRepository;
 
     private final ExecutionResultRepository executionResultRepository;
 
