@@ -44,6 +44,11 @@ public class SensitivityAnalysisResultResponse {
 
     @Getter
     @Setter
+    @JsonProperty("original_borda_count_ranking")
+    private ArrayList<Integer> originalBordaCountRanking;
+
+    @Getter
+    @Setter
     @JsonProperty("decreasing_factors")
     private ArrayList<Float> decreasingFactors;
 
@@ -54,6 +59,11 @@ public class SensitivityAnalysisResultResponse {
 
     @Getter
     @Setter
+    @JsonProperty("disturbed_borda_ranks_decreased")
+    private ArrayList<ArrayList<ArrayList<Integer>>> disturbedBordaRanksDecreased;
+
+    @Getter
+    @Setter
     @JsonProperty("increasing_factors")
     private ArrayList<Float> increasingFactors;
 
@@ -61,4 +71,9 @@ public class SensitivityAnalysisResultResponse {
     @Setter
     @JsonProperty("disturbed_ranks_increased")
     private ArrayList<ArrayList<Integer>> disturbedRanksIncreased;
+
+    @Getter
+    @Setter
+    @JsonProperty("disturbed_borda_ranks_increased")
+    private ArrayList<ArrayList<ArrayList<Integer>>> disturbedBordaRanksIncreased;
 }

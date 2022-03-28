@@ -204,11 +204,21 @@ public class PrioritizationService {
                                 RankResultResponse.class);
 
                         List<McdaResult> mcdaResultList = new ArrayList<>();
-                        rankResultResponse.getScores().forEach((id, score) -> {
-                            McdaResult result = new McdaResult(UUID.fromString(id), rankResultResponse.getRanking().indexOf(id) + 1, (double) score);
-                            result = mcdaResultRepository.save(result);
-                            mcdaResultList.add(result);
-                        });
+                        if (mcdaJob.isUseBordaCount()) {
+                            rankResultResponse.getScores().forEach((id, score) -> {
+                                McdaResult result =
+                                    new McdaResult(UUID.fromString(id), rankResultResponse.getBordaCountRanking().indexOf(id) + 1, (double) score);
+                                result = mcdaResultRepository.save(result);
+                                mcdaResultList.add(result);
+                            });
+                        } else {
+                            rankResultResponse.getScores().forEach((id, score) -> {
+                                McdaResult result =
+                                    new McdaResult(UUID.fromString(id), rankResultResponse.getRanking().indexOf(id) + 1, (double) score);
+                                result = mcdaResultRepository.save(result);
+                                mcdaResultList.add(result);
+                            });
+                        }
                         mcdaJob.setRankedResults(mcdaResultList);
                         mcdaJob.setState(ExecutionResultStatus.FINISHED.toString());
                         mcdaJob.setReady(true);
@@ -501,6 +511,8 @@ public class PrioritizationService {
                         //get location where html plot is stored
                         String plotFileLocation = prioritizationServiceResultLocationResponse.getOutputs().get(1).getHref();
                         mcdaSensitivityAnalysisJob.setPlotFileLocation(plotFileLocation);
+
+                        //get location where sensitivity analysis result is stored
                         SensitivityAnalysisResultResponse sensitivityAnalysisResultResponse =
                             restTemplate.getForObject(URI.create(prioritizationServiceResultLocationResponse.getOutputs().get(0).getHref()),
                                 SensitivityAnalysisResultResponse.class);
@@ -508,13 +520,23 @@ public class PrioritizationService {
                         List<McdaResult> mcdaResultList = new ArrayList<>();
 
                         List<McdaCriteriaPerformances> compiledCircuitsCopy = compiledCircuits;
-                        compiledCircuits.forEach(circuit -> {
-                            McdaResult result = new McdaResult(UUID.fromString(circuit.getId()),
-                                sensitivityAnalysisResultResponse.getOriginalRanking().get(compiledCircuitsCopy.indexOf(circuit)) + 1,
-                                sensitivityAnalysisResultResponse.getOriginalScores().get(compiledCircuitsCopy.indexOf(circuit)));
-                            result = mcdaResultRepository.save(result);
-                            mcdaResultList.add(result);
-                        });
+                        if (mcdaSensitivityAnalysisJob.isUseBordaCount()) {
+                            compiledCircuits.forEach(circuit -> {
+                                McdaResult result = new McdaResult(UUID.fromString(circuit.getId()),
+                                    sensitivityAnalysisResultResponse.getOriginalBordaCountRanking().get(compiledCircuitsCopy.indexOf(circuit)) + 1,
+                                    sensitivityAnalysisResultResponse.getOriginalScores().get(compiledCircuitsCopy.indexOf(circuit)));
+                                result = mcdaResultRepository.save(result);
+                                mcdaResultList.add(result);
+                            });
+                        } else {
+                            compiledCircuits.forEach(circuit -> {
+                                McdaResult result = new McdaResult(UUID.fromString(circuit.getId()),
+                                    sensitivityAnalysisResultResponse.getOriginalRanking().get(compiledCircuitsCopy.indexOf(circuit)) + 1,
+                                    sensitivityAnalysisResultResponse.getOriginalScores().get(compiledCircuitsCopy.indexOf(circuit)));
+                                result = mcdaResultRepository.save(result);
+                                mcdaResultList.add(result);
+                            });
+                        }
 
                         mcdaSensitivityAnalysisJob.setOriginalRanking(mcdaResultList);
                         mcdaSensitivityAnalysisJob.setState(ExecutionResultStatus.FINISHED.toString());

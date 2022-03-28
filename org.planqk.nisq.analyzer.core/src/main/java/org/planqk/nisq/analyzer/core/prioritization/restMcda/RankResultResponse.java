@@ -22,6 +22,8 @@ package org.planqk.nisq.analyzer.core.prioritization.restMcda;
 import java.util.ArrayList;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,4 +40,9 @@ public class RankResultResponse {
     @Getter
     @Setter
     private ArrayList<String> ranking;
+
+    @Getter
+    @Setter
+    @JsonProperty("borda_count_ranking")
+    private ArrayList<String> bordaCountRanking;
 }
