@@ -57,15 +57,21 @@ public class Constants {
     public static final String OPENQASM = "openqasm";
     public static final String QUIL = "quil";
     public static final String PYQUIL = "pyquil";
+    public static final String CIRQ_JSON = "cirq-json";
+    public static final String QSHARP = "qsharp";
+    public static final String BRAKET = "braket";
+
 
     // provider
     public static final String IBMQ = "ibmq";
     public static final String RIGETTI = "rigetti";
+    public static final String GOOGLE = "cirq-google";
 
     // sdks
     public static final String QISKIT = "qiskit";
     public static final String PYTKET = "pytket";
     public static final String FOREST = "forest";
+    public static final String CIRQ = "cirq";
 
     // parameter
     public static final String TOKEN_PARAMETER = "token";
