@@ -94,6 +94,6 @@ public class TranslatorService {
      * @return the list of supported languages
      */
     public List<String> getSupportedLanguages() {
-        return Arrays.asList(Constants.QISKIT, Constants.OPENQASM, Constants.QUIL, Constants.PYQUIL, Constants.CIRQ, Constants.BRAKET, Constants.QSHARP);
+        return Arrays.asList(Constants.QISKIT, Constants.OPENQASM, Constants.QUIL, Constants.PYQUIL, Constants.CIRQ_JSON , Constants.BRAKET, Constants.QSHARP);
     }
 }

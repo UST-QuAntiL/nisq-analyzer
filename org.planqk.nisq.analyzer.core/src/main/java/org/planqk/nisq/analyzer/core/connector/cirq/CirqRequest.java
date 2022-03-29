@@ -54,9 +54,9 @@ public class CirqRequest {
 
     @Getter
     @Setter
-    @JsonProperty(value = "transpiled-cirq")
+    @JsonProperty(value = "transpiled-cirq-json")
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String transpiled_quil;
+    private String transpiled_cirq;
 
     @Getter
     @Setter
@@ -84,8 +84,8 @@ public class CirqRequest {
         this.input_params = input_params;
     }
 
-    public CirqRequest(String transpiled_quil, String qpu_name, Map<String, ParameterValue> input_params) {
-        this.transpiled_quil = transpiled_quil;
+    public CirqRequest(String transpiled_cirq, String qpu_name, Map<String, ParameterValue> input_params) {
+        this.transpiled_cirq = transpiled_cirq;
         this.qpu_name = qpu_name;
         this.input_params = input_params;
     }

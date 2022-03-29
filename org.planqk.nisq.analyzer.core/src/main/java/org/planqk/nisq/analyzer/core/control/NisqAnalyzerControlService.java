@@ -465,7 +465,7 @@ public class NisqAnalyzerControlService {
                 }
 
                 String token = caseInsensitiveTokens.get(provider.getName());
-                if (Objects.isNull(token)) {
+                if (Objects.isNull(token) && !provider.getName().equals(Constants.GOOGLE)) {
                     LOG.debug("No suited access token for this provider available. Skipping!");
                     continue;
                 }

@@ -107,7 +107,7 @@ public class CirqSdkConnector implements SdkConnector {
 
             // change the result status
             executionResult.setStatus(ExecutionResultStatus.RUNNING);
-            executionResult.setStatusCode("Pending for execution on Forest Service ...");
+            executionResult.setStatusCode("Pending for execution on Cirq Service ...");
             resultRepository.save(executionResult);
 
             // poll the Forest service frequently
@@ -131,16 +131,16 @@ public class CirqSdkConnector implements SdkConnector {
                         // pass
                     }
                 } catch (RestClientException e) {
-                    LOG.error("Polling result from Forest Service failed.");
+                    LOG.error("Polling result from Cirq Service failed.");
                     executionResult.setStatus(ExecutionResultStatus.FAILED);
-                    executionResult.setStatusCode("Polling result from Forest Service failed.");
+                    executionResult.setStatusCode("Polling result from Cirq Service failed.");
                     resultRepository.save(executionResult);
                 }
             }
         } catch (RestClientException e) {
-            LOG.error("Connection to Forest Service failed.");
+            LOG.error("Connection to Cirq Service failed.");
             executionResult.setStatus(ExecutionResultStatus.FAILED);
-            executionResult.setStatusCode("Connection to Forest Service failed.");
+            executionResult.setStatusCode("Connection to Cirq Service failed.");
             resultRepository.save(executionResult);
         }
     }
@@ -148,7 +148,7 @@ public class CirqSdkConnector implements SdkConnector {
     @Override
     public CircuitInformation getCircuitProperties(Implementation implementation, String providerName, String qpuName,
                                                    Map<String, ParameterValue> parameters, String refreshToken) {
-        LOG.debug("Analysing quantum algorithm implementation with Forest Sdk connector plugin!");
+        LOG.debug("Analysing quantum algorithm implementation with Cirq Sdk connector plugin!");
         String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
         CirqRequest request = new CirqRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, parameters, bearerToken);
         return executeCircuitPropertiesRequest(request);

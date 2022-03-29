@@ -73,7 +73,7 @@ public class CircuitInformation {
 
     @Getter
     @Setter
-    @JsonAlias({"transpiled-qasm", "transpiled-quil", "transpiled-cirq"})
+    @JsonAlias({"transpiled-qasm", "transpiled-quil", "transpiled-cirq-json"})
     private String transpiledCircuit;
 
     @Getter
