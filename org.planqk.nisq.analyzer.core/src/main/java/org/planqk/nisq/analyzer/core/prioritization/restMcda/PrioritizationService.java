@@ -302,11 +302,20 @@ public class PrioritizationService {
             }
         });
         String mcdaMethodName = mcdaWeightLearningJob.getMcdaMethod();
+        String weightLearningMethodName = mcdaWeightLearningJob.getWeightLearningMethod();
+
         if (mcdaMethodName.equals("promethee-II")) {
             mcdaMethodName = "promethee_ii";
         }
+
+        if (weightLearningMethodName.equals("evolution-strategy")) {
+            weightLearningMethodName = "es";
+        } else if (weightLearningMethodName.equals("genetic-algorithm")) {
+            weightLearningMethodName = "ga";
+        }
+
         McdaWeightLearningRequest mcdaWeightLearningRequest = new McdaWeightLearningRequest();
-        mcdaWeightLearningRequest.setLearningMethod(mcdaWeightLearningJob.getWeightLearningMethod());
+        mcdaWeightLearningRequest.setLearningMethod(weightLearningMethodName);
         mcdaWeightLearningRequest.setMcdaMethod(mcdaMethodName);
         mcdaWeightLearningRequest.setCircuits(circuits);
         LOG.debug("Using {} jobs to learn weights", circuits.size());
