@@ -247,7 +247,7 @@ public class PrioritizationService {
         // collect all QpuSelectionJobs with executed Results
         qpuSelectionJobRepository.findAll().forEach(qpuSelectionJob -> {
             McdaCompiledCircuitJob mcdaCompiledCircuitJob = new McdaCompiledCircuitJob();
-            if (qpuSelectionJob.isReady()) {
+            if (qpuSelectionJob.isReady() && qpuSelectionJob.getJobResults().size() > 0) {
                 mcdaCompiledCircuitJob.setId(qpuSelectionJob.getId());
                 List<McdaCriteriaPerformances> compiledCircuits = new ArrayList<>();
                 qpuSelectionJob.getJobResults().forEach(qpuSelectionResult -> {
