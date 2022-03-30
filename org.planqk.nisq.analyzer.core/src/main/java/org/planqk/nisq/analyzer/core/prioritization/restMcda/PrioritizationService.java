@@ -331,7 +331,8 @@ public class PrioritizationService {
                 PrioritizationServiceResultLocationResponse prioritizationServiceResultLocationResponse =
                     restTemplate.getForObject(resultLocationRedirect, PrioritizationServiceResultLocationResponse.class);
 
-                while (!prioritizationServiceResultLocationResponse.getLog().equalsIgnoreCase("finished")) {
+                while (!prioritizationServiceResultLocationResponse.getLog().equalsIgnoreCase("finished") &&
+                    !prioritizationServiceResultLocationResponse.getStatus().equalsIgnoreCase("failure")) {
                     // Wait for next poll
                     try {
                         Thread.sleep(10000);
@@ -375,6 +376,10 @@ public class PrioritizationService {
                         });
 
                         mcdaWeightLearningJob.setState(ExecutionResultStatus.FINISHED.toString());
+                        mcdaWeightLearningJob.setReady(true);
+                        mcdaWeightLearningJobRepository.save(mcdaWeightLearningJob);
+                    } else {
+                        mcdaWeightLearningJob.setState(ExecutionResultStatus.FAILED.toString());
                         mcdaWeightLearningJob.setReady(true);
                         mcdaWeightLearningJobRepository.save(mcdaWeightLearningJob);
                     }
