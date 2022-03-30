@@ -256,7 +256,7 @@ public class PrioritizationService {
                             exeResult -> exeResult.getShots() > 0 && exeResult.getHistogramIntersectionValue() > 0 &&
                                 exeResult.getStatus().equals(ExecutionResultStatus.FINISHED))
                         .findFirst();
-                    if (executionResultOptional.isPresent()) {
+                    if (executionResultOptional.isPresent() && !qpuSelectionResult.getQpu().contains("simulator")) {  // TODO: add a better check if the result is from a simulator
                         ExecutionResult executionResult = executionResultOptional.get();
                         McdaCriteriaPerformances mcdaCriteriaPerformances = new McdaCriteriaPerformances();
                         mcdaCriteriaPerformances.setId(qpuSelectionResult.getId().toString());
