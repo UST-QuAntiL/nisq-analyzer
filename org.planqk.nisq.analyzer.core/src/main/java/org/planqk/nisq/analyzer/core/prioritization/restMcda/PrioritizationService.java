@@ -281,8 +281,8 @@ public class PrioritizationService {
                     }
                 });
                 mcdaCompiledCircuitJob.setCompiledCircuits(compiledCircuits);
+                circuits.add(mcdaCompiledCircuitJob);
             }
-            circuits.add(mcdaCompiledCircuitJob);
         });
 
         CriteriaValues criteriaValues = new CriteriaValues();
