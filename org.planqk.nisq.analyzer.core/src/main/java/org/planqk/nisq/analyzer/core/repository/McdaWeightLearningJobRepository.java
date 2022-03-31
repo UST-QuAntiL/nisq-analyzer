@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2022 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,39 +17,20 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
+package org.planqk.nisq.analyzer.core.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import org.planqk.nisq.analyzer.core.model.McdaWeightLearningJob;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-/**
- * Object to represent a MCDA method job running the prioritization for a certain analysis or compilation job
- */
-@EqualsAndHashCode(callSuper = true)
-@Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class McdaJob extends Job {
+@RepositoryRestResource(exported = false)
+public interface McdaWeightLearningJobRepository extends JpaRepository<McdaWeightLearningJob, UUID> {
 
-    private String method;
+    List<McdaWeightLearningJob> findByMcdaMethodAndWeightLearningMethod(String mcdaMethod, String weightLearningMethod);
 
-    private String state;
-
-    private boolean useBordaCount;
-    
-    private UUID jobId;
-
-    private JobType jobType;
-
-    @OneToMany(cascade = CascadeType.PERSIST)
-    private List<McdaResult> rankedResults;
+    Optional<McdaWeightLearningJob> findById(UUID id);
 }

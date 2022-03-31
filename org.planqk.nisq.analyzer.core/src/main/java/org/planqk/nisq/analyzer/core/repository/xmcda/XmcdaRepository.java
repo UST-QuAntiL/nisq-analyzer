@@ -54,10 +54,18 @@ public interface XmcdaRepository {
     Optional<Criterion> findById(String id);
 
     /**
+     * Find a criterion by the name of the criterion this value belongs to
+     *
+     * @param criterionName the name of the criterion
+     * @return the optional containing the criterion or an empty optional if no criterion value can be found
+     */
+    Optional<Criterion> findByCriterionName(String criterionName);
+
+    /**
      * Find a criterion value by the ID of the criterion and the MCDA method this value belongs to
      *
      * @param criterionId the ID of the criterion
-     * @param mcdaMethod the MCDA method to retrieve the criterion value for
+     * @param mcdaMethod  the MCDA method to retrieve the criterion value for
      * @return the optional containing the criterion value or an empty optional if no criterion value can be found
      */
     Optional<CriterionValue> findByCriterionIdAndMethod(String criterionId, String mcdaMethod);

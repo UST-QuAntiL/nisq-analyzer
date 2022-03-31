@@ -83,23 +83,30 @@ public class XmcdaRepositoryImplementation implements XmcdaRepository {
     public List<Criterion> findByMcdaMethod(String mcdaMethod) {
         return criterionList.stream()
                 .filter(criterion -> criterionValueList.stream().anyMatch(criterionValue -> criterionValue.getMcdaMethod().equals(mcdaMethod) &&
-                        criterionValue.getCriterionID().equals(criterion.getId())))
-                .collect(Collectors.toList());
+                    criterionValue.getCriterionID().equals(criterion.getId())))
+            .collect(Collectors.toList());
     }
 
     @Override
     public Optional<Criterion> findById(String id) {
         return criterionList.stream()
-                .filter(criterion -> criterion.getId().equals(id))
-                .findFirst();
+            .filter(criterion -> criterion.getId().equals(id))
+            .findFirst();
+    }
+
+    @Override
+    public Optional<Criterion> findByCriterionName(String criterionName) {
+        return criterionList.stream()
+            .filter(criterion -> criterion.getName().equals(criterionName))
+            .findFirst();
     }
 
     @Override
     public Optional<CriterionValue> findByCriterionIdAndMethod(String criterionId, String mcdaMethod) {
         return criterionValueList.stream()
-                .filter(criterionValue -> criterionValue.getCriterionID().equals(criterionId))
-                .filter(criterionValue -> criterionValue.getMcdaMethod().equals(mcdaMethod))
-                .findFirst();
+            .filter(criterionValue -> criterionValue.getCriterionID().equals(criterionId))
+            .filter(criterionValue -> criterionValue.getMcdaMethod().equals(mcdaMethod))
+            .findFirst();
     }
 
     @Override

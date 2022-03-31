@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2022 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,11 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
-import java.util.List;
-import java.util.UUID;
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.OneToMany;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,25 +27,18 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Object to represent a MCDA method job running the prioritization for a certain analysis or compilation job
+ * Object to represent a MCDA weight learning job running the weight learning based on all analyses jobs
  */
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class McdaJob extends Job {
+public class McdaWeightLearningJob extends Job {
 
-    private String method;
+    private String mcdaMethod;
+
+    private String weightLearningMethod;
 
     private String state;
-
-    private boolean useBordaCount;
-    
-    private UUID jobId;
-
-    private JobType jobType;
-
-    @OneToMany(cascade = CascadeType.PERSIST)
-    private List<McdaResult> rankedResults;
 }

@@ -85,7 +85,7 @@ public class ElectreIIIMethod implements McdaMethod {
 
     @Override
     public String getDescription() {
-        return "TODO";
+        return "Using the MCDA method ELECTRE III to rank alternatives.";
     }
 
     @Override

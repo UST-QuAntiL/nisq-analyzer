@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2022 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -31,25 +31,33 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Object to represent a MCDA method job running the prioritization for a certain analysis or compilation job
+ * Object to represent a MCDA sensitivity analysis job running the sensitivity analysis for a certain analysis or compilation job
  */
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class McdaJob extends Job {
+public class McdaSensitivityAnalysisJob extends Job {
 
     private String method;
 
     private String state;
 
     private boolean useBordaCount;
-    
+
     private UUID jobId;
 
     private JobType jobType;
 
+    private float stepSize;
+
+    private float upperBound;
+
+    private float lowerBound;
+
+    private String plotFileLocation;
+
     @OneToMany(cascade = CascadeType.PERSIST)
-    private List<McdaResult> rankedResults;
+    private List<McdaResult> originalRanking;
 }

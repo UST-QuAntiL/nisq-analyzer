@@ -138,4 +138,11 @@ public class McdaConstants {
     public static final QName WEB_SERVICE_QNAMES_ID = new QName("", "id");
 
     public static final QName WEB_SERVICE_QNAMES_REAL = new QName("", "real");
+
+    // supported weight learning methods
+    public static final String COBYLA = "COBYLA";
+
+    public static final String GENETIC_ALGORITHM = "genetic-algorithm";
+
+    public static final String EVOLUTION_STRATEGY = "evolution-strategy";
 }

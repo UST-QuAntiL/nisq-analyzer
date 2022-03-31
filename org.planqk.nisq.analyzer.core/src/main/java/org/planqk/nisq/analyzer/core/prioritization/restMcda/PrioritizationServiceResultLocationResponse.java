@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2022 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,39 +17,28 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
+package org.planqk.nisq.analyzer.core.prioritization.restMcda;
 
-import java.util.List;
-import java.util.UUID;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
+import java.util.ArrayList;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-/**
- * Object to represent a MCDA method job running the prioritization for a certain analysis or compilation job
- */
-@EqualsAndHashCode(callSuper = true)
-@Entity
-@Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class McdaJob extends Job {
+@NoArgsConstructor
+public class PrioritizationServiceResultLocationResponse {
 
-    private String method;
+    @Getter
+    @Setter
+    private String log;
 
-    private String state;
+    @Getter
+    @Setter
+    private ArrayList<PrioritizationServiceResultLocationOutputs> outputs;
 
-    private boolean useBordaCount;
-    
-    private UUID jobId;
-
-    private JobType jobType;
-
-    @OneToMany(cascade = CascadeType.PERSIST)
-    private List<McdaResult> rankedResults;
+    @Getter
+    @Setter
+    private String status;
 }
