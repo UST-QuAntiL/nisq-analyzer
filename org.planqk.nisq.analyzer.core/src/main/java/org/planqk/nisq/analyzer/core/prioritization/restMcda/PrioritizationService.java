@@ -527,6 +527,8 @@ public class PrioritizationService {
                     if (prioritizationServiceResultLocationResponse.getStatus().equalsIgnoreCase("success")) {
                         //get location where html plot is stored
                         String plotFileLocation = prioritizationServiceResultLocationResponse.getOutputs().get(1).getHref();
+                        //FIXME
+                        plotFileLocation = plotFileLocation.replaceFirst("qhana-plugin-runner:8080", "localhost:5005");
                         mcdaSensitivityAnalysisJob.setPlotFileLocation(plotFileLocation);
 
                         //get location where sensitivity analysis result is stored
