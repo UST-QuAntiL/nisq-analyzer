@@ -281,7 +281,7 @@ public class PrioritizationService {
                     }
                 });
 
-                if (compiledCircuits.size() > 0) {
+                if (compiledCircuits.size() > 1) {  // a minimum of 2 compiled circuits are required, otherwise ranking doesn't work
                     mcdaCompiledCircuitJob.setCompiledCircuits(compiledCircuits);
                     circuits.add(mcdaCompiledCircuitJob);
                 }
