@@ -40,6 +40,7 @@ import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.model.McdaResult;
 import org.planqk.nisq.analyzer.core.model.McdaSensitivityAnalysisJob;
 import org.planqk.nisq.analyzer.core.model.McdaWeightLearningJob;
+import org.planqk.nisq.analyzer.core.model.Provider;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
@@ -596,9 +597,15 @@ public class PrioritizationService {
     private List<McdaCriteriaPerformances> getCircuitResults(List<CircuitResult> results) {
         List<McdaCriteriaPerformances> mcdaCriteriaPerformancesList = new ArrayList<>();
 
+        List<Provider> providerList = qProvService.getProviders();
+
+        Map<String, List<Qpu>> providersAndQpusMap = new HashMap<>();
+        providerList.forEach(provider -> providersAndQpusMap.put(provider.getName(), qProvService.getQPUs(provider)));
+
         results.forEach(result -> {
             // get QPU object containing required performances data
-            Optional<Qpu> qpuOptional = qProvService.getQpuByName(result.getQpu(), result.getProvider());
+            Optional<Qpu> qpuOptional =
+                providersAndQpusMap.get(result.getProvider()).stream().filter(qpu -> qpu.getName().equals(result.getQpu())).findFirst();
             if (qpuOptional.isPresent()) {
                 McdaCriteriaPerformances mcdaCriteriaPerformances = new McdaCriteriaPerformances();
                 mcdaCriteriaPerformances.setId(result.getId().toString());

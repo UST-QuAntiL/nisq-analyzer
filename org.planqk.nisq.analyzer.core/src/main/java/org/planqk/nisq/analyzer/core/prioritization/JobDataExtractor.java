@@ -19,7 +19,9 @@
 
 package org.planqk.nisq.analyzer.core.prioritization;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -31,6 +33,7 @@ import org.planqk.nisq.analyzer.core.model.CircuitResult;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.model.JobType;
 import org.planqk.nisq.analyzer.core.model.McdaJob;
+import org.planqk.nisq.analyzer.core.model.Provider;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 import org.planqk.nisq.analyzer.core.qprov.QProvService;
@@ -140,13 +143,20 @@ public class JobDataExtractor {
         Alternatives alternatives = new Alternatives();
         PerformanceTable performances = new PerformanceTable();
         LOG.debug("Analysis job contains {} results for the ranking!", circuitResults.size());
+
+        List<Provider> providerList = qProvService.getProviders();
+
+        Map<String, List<Qpu>> providersAndQpusMap = new HashMap<>();
+        providerList.forEach(provider -> providersAndQpusMap.put(provider.getName(), qProvService.getQPUs(provider)));
+
         for (CircuitResult result : circuitResults) {
 
             // get QPU object containing required performances data
-            Optional<Qpu> qpuOptional = qProvService.getQpuByName(result.getQpu(), result.getProvider());
+            Optional<Qpu> qpuOptional =
+                providersAndQpusMap.get(result.getProvider()).stream().filter(qpu -> qpu.getName().equals(result.getQpu())).findFirst();
             if (!qpuOptional.isPresent()) {
                 LOG.error("Unable to retrieve QPU with name {} at provider {}. Skipping result with ID: {}", result.getQpu(), result.getProvider(),
-                        result.getId());
+                    result.getId());
                 continue;
             }
 
