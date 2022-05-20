@@ -3,6 +3,7 @@ package org.planqk.nisq.analyzer.core.web.controller;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -13,6 +14,7 @@ import javax.transaction.Transactional;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
@@ -167,7 +169,7 @@ public class AnalysisResultController {
             Map<String, ParameterValue> typedParams =
                     ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), analysisResult.getInputParameters());
             String refreshToken = "";
-
+            System.out.println("Retreiving token from analysisResultRepository for execution "+ typedParams);
             if (request != null && request.getRefreshToken() != null) {
                 refreshToken = request.getRefreshToken();
             }

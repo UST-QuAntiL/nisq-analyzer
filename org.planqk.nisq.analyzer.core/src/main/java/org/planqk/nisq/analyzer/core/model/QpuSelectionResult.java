@@ -45,7 +45,7 @@ public class QpuSelectionResult extends CircuitResult {
 
     private String transpiledLanguage;
 
-    private String token;
+//    private String token;
 
     private UUID qpuSelectionJobId;
 }

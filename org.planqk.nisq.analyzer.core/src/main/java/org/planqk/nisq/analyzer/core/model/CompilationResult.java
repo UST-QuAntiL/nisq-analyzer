@@ -45,5 +45,5 @@ public class CompilationResult extends CircuitResult {
 
     private String transpiledLanguage;
 
-    private String token;
+//    private String token;
 }

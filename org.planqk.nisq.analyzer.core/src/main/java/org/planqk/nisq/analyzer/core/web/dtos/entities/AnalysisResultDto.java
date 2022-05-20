@@ -52,7 +52,7 @@ public class AnalysisResultDto extends CircuitResultDto {
             dto.setAnalyzedNumberOfMeasurementOperations(object.getAnalyzedNumberOfMeasurementOperations());
             dto.setAnalyzedNumberOfMultiQubitGates(object.getAnalyzedNumberOfMultiQubitGates());
             dto.setAnalyzedMultiQubitGateDepth(object.getAnalyzedMultiQubitGateDepth());
-            dto.setInputParameters(object.getInputParameters());
+//            dto.setInputParameters(object.getInputParameters());
             dto.setAvgMultiQubitGateError(object.getAvgMultiQubitGateError());
             dto.setAvgMultiQubitGateTime(object.getAvgMultiQubitGateTime());
             dto.setAvgSingleQubitGateError(object.getAvgSingleQubitGateError());

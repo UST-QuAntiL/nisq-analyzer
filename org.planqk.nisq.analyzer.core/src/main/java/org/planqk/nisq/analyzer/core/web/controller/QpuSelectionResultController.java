@@ -56,6 +56,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -137,18 +138,16 @@ public class QpuSelectionResultController {
     @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
         @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute a compilation result")
     @PostMapping("/{resId}/" + Constants.EXECUTION)
-    public HttpEntity<ExecutionResultDto> executeQpuSelectionResult(@PathVariable UUID resId) {
+    public HttpEntity<ExecutionResultDto> executeQpuSelectionResult(@PathVariable UUID resId, @RequestParam(required = false) String token) {
         LOG.debug("Post to execute qpu-selection-result with id: {}", resId);
-
         Optional<QpuSelectionResult> result = qpuSelectionResultRepository.findById(resId);
         if (!result.isPresent()) {
             LOG.error("Unable to retrieve qpu-selection-result with id {} from the repository.", resId);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-
+        System.out.println("Token passed is " + token);
         // get stored token for the execution
         QpuSelectionResult qpuSelectionResult = result.get();
-
         // check if target machine is of Rigetti or IBMQ, consider accordingly qvm simulator or ibmq_qasm_simulator
         String simulator;
         if (Objects.equals(qpuSelectionResult.getProvider(), Constants.RIGETTI)) {
@@ -174,8 +173,8 @@ public class QpuSelectionResultController {
                 if (simulatorExecutionResults.size() == 0) {
 
                     Map<String, ParameterValue> simulatorParams = new HashMap<>();
-                    simulatorParams.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, simulatorQpuSelectionResult.getToken()));
-
+                    simulatorParams.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
+                    System.out.println("Saved token being used for execution " + simulatorParams);
                     ExecutionResult simulatorExecutionResult =
                         controlService.executeCompiledQpuSelectionCircuit(simulatorQpuSelectionResult, simulatorParams);
                     ExecutionResultDto simulatorDto = ExecutionResultDto.Converter.convert(simulatorExecutionResult);
@@ -195,7 +194,8 @@ public class QpuSelectionResultController {
         }
 
         Map<String, ParameterValue> params = new HashMap<>();
-        params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, qpuSelectionResult.getToken()));
+        params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
+        System.out.println("Saved token being used for execution " + params.get(Constants.TOKEN_PARAMETER).getRawValue());
 
         ExecutionResult executionResult = controlService.executeCompiledQpuSelectionCircuit(qpuSelectionResult, params);
         ExecutionResultDto dto = ExecutionResultDto.Converter.convert(executionResult);
@@ -206,7 +206,7 @@ public class QpuSelectionResultController {
     private QpuSelectionResultDto createDto(QpuSelectionResult result) {
         QpuSelectionResultDto dto = QpuSelectionResultDto.Converter.convert(result);
         dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionResult(result.getId())).withSelfRel());
-        dto.add(linkTo(methodOn(QpuSelectionResultController.class).executeQpuSelectionResult(result.getId())).withRel(Constants.EXECUTION));
+//        dto.add(linkTo(methodOn(QpuSelectionResultController.class).executeQpuSelectionResult(result.getId(),token)).withRel(Constants.EXECUTION));
         for (ExecutionResult executionResult : executionResultRepository.findByQpuSelectionResult(result)) {
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(executionResult.getId()))
                 .withRel(Constants.EXECUTION + "-" + executionResult.getId()));

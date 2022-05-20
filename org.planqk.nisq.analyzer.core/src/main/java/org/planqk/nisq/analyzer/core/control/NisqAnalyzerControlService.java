@@ -329,6 +329,7 @@ public class NisqAnalyzerControlService {
                         result.setImplementedAlgorithm(algorithm);
                         result.setTime(OffsetDateTime.now());
                         result.setInputParameters(inputParameters);
+                        System.out.println("Saving token to analysisResultRepository "+result.getInputParameters());
                         result.setQpu(qpu.getName());
                         result.setCircuitName(executableImpl.getName());
                         result.setProvider(provider.getName());
@@ -415,6 +416,7 @@ public class NisqAnalyzerControlService {
         // store updated result object
         LOG.debug("Results: " + job.getJobResults().size());
         job.setReady(true);
+        System.out.println("Saving token included in compilerAnalysisResults" +job);
         compilationJobRepository.save(job);
     }
 
@@ -493,7 +495,7 @@ public class NisqAnalyzerControlService {
                     qpuSelectionResult.setAnalyzedNumberOfMeasurementOperations(result.getAnalyzedNumberOfMeasurementOperations());
                     qpuSelectionResult.setAnalyzedNumberOfMultiQubitGates(result.getAnalyzedNumberOfMultiQubitGates());
                     qpuSelectionResult.setAnalyzedMultiQubitGateDepth(result.getAnalyzedMultiQubitGateDepth());
-                    qpuSelectionResult.setToken(result.getToken());
+//                    qpuSelectionResult.setToken(result.getToken());
                     qpuSelectionResult.setQpuSelectionJobId(job.getId());
                     qpuSelectionResult.setAvgMultiQubitGateError(qpu.getAvgMultiQubitGateError());
                     qpuSelectionResult.setAvgMultiQubitGateTime(qpu.getAvgMultiQubitGateTime());
@@ -651,7 +653,8 @@ public class NisqAnalyzerControlService {
                     compilationResult.setQubitCount(qpu.getQubitCount());
                     compilationResult.setSimulator(qpu.isSimulator());
                 }
-                compilationResult.setToken(token);
+//                Adding token to compilation result
+//                compilationResult.setToken(token);
                 compilerAnalysisResults.add(compilationResult);
             }
         }
