@@ -186,6 +186,7 @@ public class RootController {
                                                                   @RequestParam Map<String, String> tokens,
                                                                   @RequestParam("circuit") MultipartFile circuitCode,
                                                                   @RequestParam(required = false) String circuitName,
+                                                                  @RequestParam(required = false) String userId,
                                                                   @RequestParam(required = false) List<String> compilers) {
         LOG.debug("Post to select QPU for given quantum circuit with language: {}", circuitLanguage);
 
@@ -198,6 +199,7 @@ public class RootController {
         // create object for the QPU selection job and call asynchronously to update the job
         QpuSelectionJob job = new QpuSelectionJob();
         job.setTime(OffsetDateTime.now());
+        job.setUserId(userId);
 
         if (circuitName == null) {
             job.setCircuitName("temp");
@@ -214,7 +216,7 @@ public class RootController {
 
         // send back QPU selection job to track the progress
         QpuSelectionJobDto dto = QpuSelectionJobDto.Converter.convert(job);
-        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId())).withSelfRel());
+        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId(), job.getUserId())).withSelfRel());
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
@@ -233,6 +235,7 @@ public class RootController {
         // create object for the QPU selection job and call asynchronously to update the job
         QpuSelectionJob job = new QpuSelectionJob();
         job.setTime(OffsetDateTime.now());
+        job.setUserId(params.getUserId());
 
         if (params.getCircuitName() == null) {
             job.setCircuitName("temp");
@@ -249,7 +252,7 @@ public class RootController {
 
         // send back QPU selection job to track the progress
         QpuSelectionJobDto dto = QpuSelectionJobDto.Converter.convert(job);
-        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId())).withSelfRel());
+        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId(), job.getUserId())).withSelfRel());
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 

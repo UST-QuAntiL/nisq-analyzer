@@ -56,6 +56,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -82,20 +83,22 @@ public class QpuSelectionResultController {
     private final NisqAnalyzerControlService controlService;
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve all QPU selection results")
+        description = "Retrieve all QPU selection results")
     @GetMapping("/")
-    public HttpEntity<QpuSelectionResultListDto> getQpuSelectionResults() {
+    @Transactional
+    public HttpEntity<QpuSelectionResultListDto> getQpuSelectionResults(@RequestParam(value = "userId", required = false) String userId) {
         QpuSelectionResultListDto model = new QpuSelectionResultListDto();
-        model.add(qpuSelectionResultRepository.findAll().stream().map(this::createDto).collect(Collectors.toList()));
-        model.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionResults()).withSelfRel());
-        model.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJobs()).withRel(Constants.JOBS));
+        model.add(qpuSelectionResultRepository.findAllByUserId(userId).stream().map(this::createDto).collect(Collectors.toList()));
+        model.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionResults(userId)).withSelfRel().expand());
+        model.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJobs(userId)).withRel(Constants.JOBS).expand());
         return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve a single QPU selection result")
+        description = "Retrieve a single QPU selection result")
     @GetMapping("/{resId}")
-    public HttpEntity<QpuSelectionResultDto> getQpuSelectionResult(@PathVariable UUID resId) {
+    public HttpEntity<QpuSelectionResultDto> getQpuSelectionResult(@PathVariable UUID resId,
+                                                                   @RequestParam(value = "userId", required = false) String userId) {
         LOG.debug("Get to retrieve QPU selection result with id: {}.", resId);
 
         Optional<QpuSelectionResult> result = qpuSelectionResultRepository.findById(resId);
@@ -104,34 +107,48 @@ public class QpuSelectionResultController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(createDto(result.get()), HttpStatus.OK);
+        if ((result.get().getUserId() != null && result.get().getUserId().equals(userId))
+            || (result.get().getUserId() == null && userId == null)) {
+            return new ResponseEntity<>(createDto(result.get()), HttpStatus.OK);
+        } else {
+            LOG.error("Unable to retrieve QPU selection result with id {} for user {}.", resId, userId);
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve all QPU selection jobs")
+        description = "Retrieve all QPU selection jobs")
     @GetMapping("/" + Constants.JOBS)
     @Transactional
-    public HttpEntity<QpuSelectionJobListDto> getQpuSelectionJobs() {
+    public HttpEntity<QpuSelectionJobListDto> getQpuSelectionJobs(
+        @RequestParam(value = "userId", required = false) String userId) {
         QpuSelectionJobListDto model = new QpuSelectionJobListDto();
-        model.add(qpuSelectionJobRepository.findAll().stream().map(this::createJobDto).collect(Collectors.toList()));
-        model.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJobs()).withSelfRel());
+        model.add(qpuSelectionJobRepository.findAllByUserId(userId).stream().map(this::createJobDto).collect(Collectors.toList()));
+        model.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJobs(userId)).withSelfRel().expand());
         return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve a single QPU selection job")
+        description = "Retrieve a single QPU selection job")
     @GetMapping("/" + Constants.JOBS + "/{resId}")
     @Transactional
-    public HttpEntity<QpuSelectionJobDto> getQpuSelectionJob(@PathVariable UUID resId) {
+    public HttpEntity<QpuSelectionJobDto> getQpuSelectionJob(@PathVariable UUID resId,
+                                                             @RequestParam(value = "userId", required = false) String userId) {
         LOG.debug("Get to retrieve QPU selection job with id: {}.", resId);
 
         Optional<QpuSelectionJob> result = qpuSelectionJobRepository.findById(resId);
         if (!result.isPresent()) {
-            LOG.error("Unable to retrieve QPU selection result with id {} from the repository.", resId);
+            LOG.error("Unable to retrieve QPU selection job with id {} from the repository.", resId);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(createJobDto(result.get()), HttpStatus.OK);
+        if ((result.get().getUserId() != null && result.get().getUserId().equals(userId))
+            || (result.get().getUserId() == null && userId == null)) {
+            return new ResponseEntity<>(createJobDto(result.get()), HttpStatus.OK);
+        } else {
+            LOG.error("Unable to retrieve QPU selection result with id {} for user {}.", resId, userId);
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
@@ -205,7 +222,8 @@ public class QpuSelectionResultController {
 
     private QpuSelectionResultDto createDto(QpuSelectionResult result) {
         QpuSelectionResultDto dto = QpuSelectionResultDto.Converter.convert(result);
-        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionResult(result.getId())).withSelfRel());
+        dto.add(
+            linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionResult(result.getId(), result.getUserId())).withSelfRel().expand());
         dto.add(linkTo(methodOn(QpuSelectionResultController.class).executeQpuSelectionResult(result.getId())).withRel(Constants.EXECUTION));
         for (ExecutionResult executionResult : executionResultRepository.findByQpuSelectionResult(result)) {
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(executionResult.getId()))
@@ -216,7 +234,7 @@ public class QpuSelectionResultController {
 
     private QpuSelectionJobDto createJobDto(QpuSelectionJob job) {
         QpuSelectionJobDto dto = QpuSelectionJobDto.Converter.convert(job);
-        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId())).withSelfRel());
+        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId(), job.getUserId())).withSelfRel().expand());
         return dto;
     }
 }

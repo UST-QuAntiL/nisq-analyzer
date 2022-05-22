@@ -42,6 +42,7 @@ import org.planqk.nisq.analyzer.core.prioritization.restMcda.PrioritizationServi
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaSensitivityAnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaWeightLearningJobRepository;
+import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.xmcda.XmcdaRepository;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaCriterionDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.McdaCriterionListDto;
@@ -95,6 +96,8 @@ public class XmcdaCriteriaController {
     final private McdaSensitivityAnalysisJobRepository mcdaSensitivityAnalysisJobRepository;
 
     final private McdaWeightLearningJobRepository mcdaWeightLearningJobRepository;
+
+    final private QpuSelectionResultRepository qpuSelectionResultRepository;
 
     @Operation(responses = {@ApiResponse(responseCode = "200")}, description = "Get all supported prioritization methods")
     @GetMapping("/")
@@ -586,8 +589,10 @@ public class XmcdaCriteriaController {
                         mcdaResult.getResultId().toString()));
             }
             if (job.getJobType().equals(JobType.QPU_SELECTION)) {
-                mcdaJobDto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionResult(mcdaResult.getResultId())).withRel(
-                    mcdaResult.getResultId().toString()));
+                String qpuSelectionResultUserId = qpuSelectionResultRepository.findById(mcdaResult.getResultId()).get().getUserId();
+                mcdaJobDto.add(linkTo(
+                    methodOn(QpuSelectionResultController.class).getQpuSelectionResult(mcdaResult.getResultId(), qpuSelectionResultUserId)).withRel(
+                    mcdaResult.getResultId().toString()).expand());
             }
         }
     }

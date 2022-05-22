@@ -505,6 +505,7 @@ public class NisqAnalyzerControlService {
                     qpuSelectionResult.setMaxGateTime(qpu.getMaxGateTime());
                     qpuSelectionResult.setQubitCount(qpu.getQubitCount());
                     qpuSelectionResult.setSimulator(qpu.isSimulator());
+                    qpuSelectionResult.setUserId(job.getUserId());
 
                     qpuSelectionResult = qpuSelectionResultRepository.save(qpuSelectionResult);
                     job.getJobResults().add(qpuSelectionResult);
