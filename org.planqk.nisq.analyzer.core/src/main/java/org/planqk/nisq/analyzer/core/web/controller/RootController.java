@@ -159,7 +159,10 @@ public class RootController {
         AnalysisJob job = new AnalysisJob();
         job.setImplementedAlgorithm(params.getAlgorithmId());
         job.setTime(OffsetDateTime.now());
+        String token = params.getParameters().get("token");
+        params.getParameters().remove("token");
         job.setInputParameters(params.getParameters());
+        params.getParameters().put("token", token);
         analysisJobRepository.save(job);
 
         try {
@@ -168,8 +171,8 @@ public class RootController {
             }).start();
         } catch (UnsatisfiedLinkError e) {
             LOG.error(
-                    "UnsatisfiedLinkError while activating prolog rule. Please make sure prolog is installed and configured correctly to use the NISQ analyzer functionality!",
-                    e);
+                "UnsatisfiedLinkError while activating prolog rule. Please make sure prolog is installed and configured correctly to use the NISQ analyzer functionality!",
+                e);
             return new ResponseEntity("No prolog engine accessible from the server. Selection not possible!", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 

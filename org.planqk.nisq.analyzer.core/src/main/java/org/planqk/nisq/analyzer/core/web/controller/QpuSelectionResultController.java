@@ -154,7 +154,7 @@ public class QpuSelectionResultController {
     @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
         @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute a compilation result")
     @PostMapping("/{resId}/" + Constants.EXECUTION)
-    public HttpEntity<ExecutionResultDto> executeQpuSelectionResult(@PathVariable UUID resId) {
+    public HttpEntity<ExecutionResultDto> executeQpuSelectionResult(@PathVariable UUID resId, @RequestParam String token) {
         LOG.debug("Post to execute qpu-selection-result with id: {}", resId);
 
         Optional<QpuSelectionResult> result = qpuSelectionResultRepository.findById(resId);
@@ -191,7 +191,7 @@ public class QpuSelectionResultController {
                 if (simulatorExecutionResults.size() == 0) {
 
                     Map<String, ParameterValue> simulatorParams = new HashMap<>();
-                    simulatorParams.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, simulatorQpuSelectionResult.getToken()));
+                    simulatorParams.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
 
                     ExecutionResult simulatorExecutionResult =
                         controlService.executeCompiledQpuSelectionCircuit(simulatorQpuSelectionResult, simulatorParams);
@@ -212,7 +212,7 @@ public class QpuSelectionResultController {
         }
 
         Map<String, ParameterValue> params = new HashMap<>();
-        params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, qpuSelectionResult.getToken()));
+        params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
 
         ExecutionResult executionResult = controlService.executeCompiledQpuSelectionCircuit(qpuSelectionResult, params);
         ExecutionResultDto dto = ExecutionResultDto.Converter.convert(executionResult);
@@ -224,7 +224,7 @@ public class QpuSelectionResultController {
         QpuSelectionResultDto dto = QpuSelectionResultDto.Converter.convert(result);
         dto.add(
             linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionResult(result.getId(), result.getUserId())).withSelfRel().expand());
-        dto.add(linkTo(methodOn(QpuSelectionResultController.class).executeQpuSelectionResult(result.getId())).withRel(Constants.EXECUTION));
+        //dto.add(linkTo(methodOn(QpuSelectionResultController.class).executeQpuSelectionResult(result.getId(), null)).withRel(Constants.EXECUTION));
         for (ExecutionResult executionResult : executionResultRepository.findByQpuSelectionResult(result)) {
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(executionResult.getId()))
                 .withRel(Constants.EXECUTION + "-" + executionResult.getId()));

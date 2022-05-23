@@ -118,8 +118,9 @@ public class NisqAnalyzerControlService {
      * @return the ExecutionResult to track the current status and store the result
      * @throws RuntimeException is thrown in case the execution of the algorithm implementation fails
      */
-    public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result, Map<String, ParameterValue> inputParameters, String refreshToken)
-            throws RuntimeException {
+    public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result, Map<String, ParameterValue> inputParameters,
+                                                                 String refreshToken)
+        throws RuntimeException {
         final Implementation implementation = result.getImplementation();
         LOG.debug("Executing quantum algorithm implementation with Id: {} and name: {}", implementation.getId(), implementation.getName());
 
@@ -133,7 +134,7 @@ public class NisqAnalyzerControlService {
         }
 
         // Retrieve the QPU from Qiskit-Service
-        Optional<Qpu> qpu = qiskitSdkConnector.getQpuByName(result.getQpu(), result.getProvider(), inputParameters.get("token").toString());
+        Optional<Qpu> qpu = qiskitSdkConnector.getQpuByName(result.getQpu(), result.getProvider(), inputParameters.get("token").getRawValue());
         if (!qpu.isPresent()) {
             LOG.error("Unable to find qpu with name {}.", result.getQpu());
             throw new RuntimeException("Unable to find qpu with name " + result.getQpu());
@@ -147,8 +148,8 @@ public class NisqAnalyzerControlService {
 
         // execute implementation
         new Thread(() -> selectedSdkConnector
-                .executeQuantumAlgorithmImplementation(implementation, qpu.get(), inputParameters, executionResult,
-                        executionResultRepository, refreshToken)).start();
+            .executeQuantumAlgorithmImplementation(implementation, qpu.get(), inputParameters, executionResult,
+                executionResultRepository, refreshToken)).start();
 
         return executionResult;
     }
@@ -323,6 +324,8 @@ public class NisqAnalyzerControlService {
                     if (prologQueryEngine.isQpuSuitable(executableImpl.getId(), qpu.getId(), circuitInformation.getCircuitWidth(),
                             circuitInformation.getCircuitDepth())) {
 
+                        inputParameters.remove("token");
+
                         // qpu is suited candidate to execute the implementation
                         AnalysisResult result = new AnalysisResult();
                         result.setImplementation(executableImpl);
@@ -493,7 +496,6 @@ public class NisqAnalyzerControlService {
                     qpuSelectionResult.setAnalyzedNumberOfMeasurementOperations(result.getAnalyzedNumberOfMeasurementOperations());
                     qpuSelectionResult.setAnalyzedNumberOfMultiQubitGates(result.getAnalyzedNumberOfMultiQubitGates());
                     qpuSelectionResult.setAnalyzedMultiQubitGateDepth(result.getAnalyzedMultiQubitGateDepth());
-                    qpuSelectionResult.setToken(result.getToken());
                     qpuSelectionResult.setQpuSelectionJobId(job.getId());
                     qpuSelectionResult.setAvgMultiQubitGateError(qpu.getAvgMultiQubitGateError());
                     qpuSelectionResult.setAvgMultiQubitGateTime(qpu.getAvgMultiQubitGateTime());
@@ -652,7 +654,6 @@ public class NisqAnalyzerControlService {
                     compilationResult.setQubitCount(qpu.getQubitCount());
                     compilationResult.setSimulator(qpu.isSimulator());
                 }
-                compilationResult.setToken(token);
                 compilerAnalysisResults.add(compilationResult);
             }
         }

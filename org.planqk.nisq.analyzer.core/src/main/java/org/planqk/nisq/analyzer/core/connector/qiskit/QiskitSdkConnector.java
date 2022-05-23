@@ -99,10 +99,12 @@ public class QiskitSdkConnector implements SdkConnector {
 
     @Override
     public void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters,
-                                                      ExecutionResult executionResult, ExecutionResultRepository resultRepository, String refreshToken) {
+                                                      ExecutionResult executionResult, ExecutionResultRepository resultRepository,
+                                                      String refreshToken) {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
         String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
-        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters, bearerToken);
+        QiskitRequest request =
+            new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters, bearerToken);
         executeQuantumCircuit(request, executionResult, resultRepository, null);
     }
 
