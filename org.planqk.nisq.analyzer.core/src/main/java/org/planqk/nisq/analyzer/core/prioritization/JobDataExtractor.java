@@ -19,24 +19,20 @@
 
 package org.planqk.nisq.analyzer.core.prioritization;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import org.planqk.nisq.analyzer.core.connector.qiskit.QiskitSdkConnector;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.CircuitResult;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.model.JobType;
 import org.planqk.nisq.analyzer.core.model.McdaJob;
-import org.planqk.nisq.analyzer.core.model.Provider;
-import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
-import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
@@ -77,7 +73,7 @@ public class JobDataExtractor {
 
     private final XmcdaRepository xmcdaRepository;
 
-    private final QProvService qProvService;
+    private final QiskitSdkConnector qiskitSdkConnector;
 
     /**
      * Get the required information to run MCDA methods from different kinds of NISQ Analyzer jobs
@@ -144,21 +140,9 @@ public class JobDataExtractor {
         PerformanceTable performances = new PerformanceTable();
         LOG.debug("Analysis job contains {} results for the ranking!", circuitResults.size());
 
-        List<Provider> providerList = qProvService.getProviders();
-
-        Map<String, List<Qpu>> providersAndQpusMap = new HashMap<>();
-        providerList.forEach(provider -> providersAndQpusMap.put(provider.getName(), qProvService.getQPUs(provider)));
-
         for (CircuitResult result : circuitResults) {
 
-            // get QPU object containing required performances data
-            Optional<Qpu> qpuOptional =
-                providersAndQpusMap.get(result.getProvider()).stream().filter(qpu -> qpu.getName().equals(result.getQpu())).findFirst();
-            if (!qpuOptional.isPresent()) {
-                LOG.error("Unable to retrieve QPU with name {} at provider {}. Skipping result with ID: {}", result.getQpu(), result.getProvider(),
-                    result.getId());
-                continue;
-            }
+            int backendQueueSize = qiskitSdkConnector.getQueueSizeOfQpu(result.getQpu());
 
             // add alternative representing the analysis result
             String name = result.getQpu() + "-" + result.getCompiler() + "-" + result.getCircuitName();
@@ -175,7 +159,7 @@ public class JobDataExtractor {
                     performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
                 } else if (McdaConstants.QPU_CRITERION.contains(criterion.getName().toLowerCase())) {
                     LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName());
-                    performanceList.add(createPerformanceForQpuCriterion(qpuOptional.get(), result, criterion));
+                    performanceList.add(createPerformanceForQpuCriterion(backendQueueSize, result, criterion));
                 } else {
                     LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
                         criterion.getName());
@@ -273,7 +257,8 @@ public class JobDataExtractor {
         return performance;
     }
 
-    private AlternativeOnCriteriaPerformances.Performance createPerformanceForQpuCriterion(Qpu qpu, CircuitResult result, Criterion criterion) {
+    private AlternativeOnCriteriaPerformances.Performance createPerformanceForQpuCriterion(int backendQueueSize, CircuitResult result,
+                                                                                           Criterion criterion) {
         AlternativeOnCriteriaPerformances.Performance performance = new AlternativeOnCriteriaPerformances.Performance();
         performance.setCriterionID(criterion.getId());
         Value value = new Value();
@@ -308,7 +293,7 @@ public class JobDataExtractor {
                 }
                 break;
             case McdaConstants.QUEUE_SIZE:
-                value.setInteger(qpu.getQueueSize());
+                value.setInteger(backendQueueSize);
                 break;
             default:
                 LOG.error("Criterion with name {} not supported!", criterion.getName());

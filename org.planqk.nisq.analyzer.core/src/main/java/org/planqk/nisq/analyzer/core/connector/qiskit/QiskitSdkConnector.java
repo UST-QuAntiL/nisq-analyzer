@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
@@ -47,13 +48,20 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
+import org.planqk.nisq.analyzer.core.model.Provider;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.ProviderListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuDto;
+import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuListDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -75,14 +83,18 @@ public class QiskitSdkConnector implements SdkConnector {
 
     private URI executeAPIEndpoint;
 
+    private URI providerAPIEnpoint;
+
     public QiskitSdkConnector(
-            @Value("${org.planqk.nisq.analyzer.connector.qiskit.hostname}") String hostname,
-            @Value("${org.planqk.nisq.analyzer.connector.qiskit.port}") int port,
-            @Value("${org.planqk.nisq.analyzer.connector.qiskit.version}") String version
+        @Value("${org.planqk.nisq.analyzer.connector.qiskit.hostname}") String hostname,
+        @Value("${org.planqk.nisq.analyzer.connector.qiskit.port}") int port,
+        @Value("${org.planqk.nisq.analyzer.connector.qiskit.version}") String version
     ) {
         // compile the API endpoints
         transpileAPIEndpoint = URI.create(String.format("http://%s:%d/qiskit-service/api/%s/transpile", hostname, port, version));
         executeAPIEndpoint = URI.create(String.format("http://%s:%d/qiskit-service/api/%s/execute", hostname, port, version));
+
+        providerAPIEnpoint = URI.create(String.format("http://%s:%d/qiskit-service/api/%s/providers", hostname, port, version));
     }
 
     @Override
@@ -318,5 +330,67 @@ public class QiskitSdkConnector implements SdkConnector {
     @Override
     public String getName() {
         return this.getClass().getSimpleName().toLowerCase().replace("sdkconnector", "");
+    }
+
+    public List<Provider> getProviders() {
+
+        // Query the Qiskit-Service API for providers
+        RestTemplate restTemplate = new RestTemplate();
+
+        try {
+            ProviderListDto result = restTemplate.getForObject(providerAPIEnpoint, ProviderListDto.class);
+
+            if (result != null) {
+                return ProviderListDto.Converter.convert(result);
+            } else {
+                return new ArrayList<>();
+            }
+        } catch (RestClientException e) {
+            return new ArrayList<>();
+        }
+    }
+
+    public List<Qpu> getQPUs(Provider provider, String token) {
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("token", token);
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<QpuListDto> response =
+            restTemplate.exchange(URI.create(String.format(providerAPIEnpoint + "/%s/qpus", provider.getId())), HttpMethod.GET, entity,
+                QpuListDto.class);
+
+        QpuListDto qpuListDto = response.getBody();
+
+        return qpuListDto.getQpuDtoList().stream().map(dto -> QpuDto.Converter.convert(dto, provider.getName())).collect(Collectors.toList());
+    }
+
+    public Optional<Qpu> getQpuByName(String name, String provider, String token) {
+        Optional<Provider> prov = getProviders().stream().filter(p -> p.getName().equals(provider)).findFirst();
+        if (prov.isPresent()) {
+            return getQPUs(prov.get(), token).stream().filter(q -> q.getName().equals(name)).findFirst();
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public Integer getQueueSizeOfQpu(String qpuName) {
+        URI ibmqQueueSizeUrl = URI.create(String.format("https://api.quantum-computing.ibm.com/api/Backends/%s/queue/status?", qpuName));
+        RestTemplate restTemplate = new RestTemplate();
+
+        try {
+            IbmqQpuQueue ibmqQpuQueue = restTemplate.getForObject(ibmqQueueSizeUrl, IbmqQpuQueue.class);
+
+            if (ibmqQpuQueue != null) {
+                return ibmqQpuQueue.getLengthQueue();
+            } else {
+                return 0;
+            }
+        } catch (RestClientException e) {
+            return 0;
+        }
     }
 }
