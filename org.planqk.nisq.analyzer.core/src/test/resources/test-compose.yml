@@ -8,45 +8,13 @@ services:
     image: quantil-db
     environment:
       # specifies user:pw for each container
-      POSTGRES_USERS: 'planqk:planqk|nisq:nisq|qprov:qprov'
+      POSTGRES_USERS: 'planqk:planqk|nisq:nisq'
       # specifies db name for each container
-      POSTGRES_DATABASES: 'planqk:planqk|nisq:nisq|qprov:qprov'
+      POSTGRES_DATABASES: 'planqk:planqk|nisq:nisq'
       ATLAS_DB: planqk
       NISQ_DB: nisq
-      QPROV_DB: qprov
     ports:
       - '5060:5060'
-    networks:
-      - default
-  qprov:
-    image: planqk/qprov:latest
-    environment:
-      POSTGRES_HOSTNAME: db
-      POSTGRES_PORT: 5060
-      POSTGRES_USER: qprov
-      POSTGRES_PASSWORD: qprov
-      POSTGRES_DB: qprov
-    ports:
-      - "5020:5020"
-    networks:
-      - default
-  qprov-collector-ibm:
-    image: planqk/qprov-collector:latest
-    environment:
-      POSTGRES_HOSTNAME: db
-      POSTGRES_PORT: 5060
-      POSTGRES_USER: qprov
-      POSTGRES_PASSWORD: qprov
-      POSTGRES_DB: qprov
-      QPROV_IBMQ_TOKEN: ''
-      QPROV_IBMQ_EXECUTE_CIRCUITS: 'false'
-      QPROV_IBMQ_AUTO_COLLECT: 'true'
-      QPROV_IBMQ_AUTO_COLLECT_INTERVAL: 60
-      QPROV_IBMQ_AUTO_COLLECT_INTERVAL_CIRCUITS: 180
-      QISKIT_SERVICE_HOSTNAME: qiskit-service
-      QISKIT_SERVICE_PORT: 5013
-    ports:
-      - "5021:5021"
     networks:
       - default
 

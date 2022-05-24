@@ -19,23 +19,17 @@
 
 package org.planqk.nisq.analyzer.core;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
+import org.planqk.nisq.analyzer.core.connector.qiskit.QiskitSdkConnector;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.Provider;
-import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -44,7 +38,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
 
     @MockBean
-    private QProvService qProvService;
+    private QiskitSdkConnector qiskitSdkConnector;
 
     @Autowired
     protected AnalysisJobRepository analysisJobRepository;
@@ -53,21 +47,21 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
     protected NisqAnalyzerControlService nisqAnalyzerControlService;
 
     @Before
-    public void setUpQProvMock(){
+    public void setUpQiskitQpusMock() {
 
         Provider ibmq = new Provider();
         ibmq.setName("IBMQ");
 
-        Mockito.when(qProvService.getProviders()).thenReturn(Arrays.asList(ibmq));
-        Mockito.when(qProvService.getQPUs(ibmq)).thenReturn(Arrays.asList(
-                createDummyQPU("IBMQ", "ibmq_16_melbourne", 15, 1696, 54502.2906f),
-                createDummySimulator("IBMQ", "ibmq_qasm_simulator", 32)
+        Mockito.when(qiskitSdkConnector.getProviders()).thenReturn(Arrays.asList(ibmq));
+        Mockito.when(qiskitSdkConnector.getQPUs(ibmq, System.getenv("token"))).thenReturn(Arrays.asList(
+            createDummyQPU("IBMQ", "ibmq_16_melbourne", 15, 1696, 54502.2906f),
+            createDummySimulator("IBMQ", "ibmq_qasm_simulator", 32)
         ));
     }
 
     @Test
-    public void testQProvMocking(){
-        Assertions.assertTrue(qProvService.getProviders().stream().allMatch(p -> p.getName().equals("IBMQ")));
+    public void testQiskitQpusMocking() {
+        Assertions.assertTrue(qiskitSdkConnector.getProviders().stream().allMatch(p -> p.getName().equals("IBMQ")));
     }
 
     @Ignore("Ignored by default due to long expected runtime")

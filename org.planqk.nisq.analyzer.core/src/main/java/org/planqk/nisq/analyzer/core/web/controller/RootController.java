@@ -159,7 +159,10 @@ public class RootController {
         AnalysisJob job = new AnalysisJob();
         job.setImplementedAlgorithm(params.getAlgorithmId());
         job.setTime(OffsetDateTime.now());
+        String token = params.getParameters().get("token");
+        params.getParameters().remove("token");
         job.setInputParameters(params.getParameters());
+        params.getParameters().put("token", token);
         analysisJobRepository.save(job);
 
         try {
@@ -168,8 +171,8 @@ public class RootController {
             }).start();
         } catch (UnsatisfiedLinkError e) {
             LOG.error(
-                    "UnsatisfiedLinkError while activating prolog rule. Please make sure prolog is installed and configured correctly to use the NISQ analyzer functionality!",
-                    e);
+                "UnsatisfiedLinkError while activating prolog rule. Please make sure prolog is installed and configured correctly to use the NISQ analyzer functionality!",
+                e);
             return new ResponseEntity("No prolog engine accessible from the server. Selection not possible!", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
@@ -186,6 +189,7 @@ public class RootController {
                                                                   @RequestParam Map<String, String> tokens,
                                                                   @RequestParam("circuit") MultipartFile circuitCode,
                                                                   @RequestParam(required = false) String circuitName,
+                                                                  @RequestParam(required = false) String userId,
                                                                   @RequestParam(required = false) List<String> compilers) {
         LOG.debug("Post to select QPU for given quantum circuit with language: {}", circuitLanguage);
 
@@ -198,6 +202,7 @@ public class RootController {
         // create object for the QPU selection job and call asynchronously to update the job
         QpuSelectionJob job = new QpuSelectionJob();
         job.setTime(OffsetDateTime.now());
+        job.setUserId(userId);
 
         if (circuitName == null) {
             job.setCircuitName("temp");
@@ -214,7 +219,7 @@ public class RootController {
 
         // send back QPU selection job to track the progress
         QpuSelectionJobDto dto = QpuSelectionJobDto.Converter.convert(job);
-        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId())).withSelfRel());
+        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId(), job.getUserId())).withSelfRel());
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
@@ -233,6 +238,7 @@ public class RootController {
         // create object for the QPU selection job and call asynchronously to update the job
         QpuSelectionJob job = new QpuSelectionJob();
         job.setTime(OffsetDateTime.now());
+        job.setUserId(params.getUserId());
 
         if (params.getCircuitName() == null) {
             job.setCircuitName("temp");
@@ -249,7 +255,7 @@ public class RootController {
 
         // send back QPU selection job to track the progress
         QpuSelectionJobDto dto = QpuSelectionJobDto.Converter.convert(job);
-        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId())).withSelfRel());
+        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId(), job.getUserId())).withSelfRel());
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 

@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.repository;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
@@ -27,4 +28,5 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 @RepositoryRestResource(exported = false)
 public interface QpuSelectionResultRepository extends JpaRepository<QpuSelectionResult, UUID> {
+    List<QpuSelectionResult> findAllByUserId(String userId);
 }

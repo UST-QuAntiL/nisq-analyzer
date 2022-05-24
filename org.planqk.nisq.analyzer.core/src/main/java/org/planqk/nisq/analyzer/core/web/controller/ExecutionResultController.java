@@ -142,8 +142,8 @@ public class ExecutionResultController {
         }
         if (Objects.nonNull(executionResult.getQpuSelectionResult())) {
             dto.add(linkTo(methodOn(QpuSelectionResultController.class)
-                .getQpuSelectionResult(executionResult.getQpuSelectionResult().getId()))
-                .withRel(Constants.USED_QPU_SELECTION_RESULT));
+                .getQpuSelectionResult(executionResult.getQpuSelectionResult().getId(), executionResult.getQpuSelectionResult().getUserId()))
+                .withRel(Constants.USED_QPU_SELECTION_RESULT).expand());
         }
         return dto;
     }
