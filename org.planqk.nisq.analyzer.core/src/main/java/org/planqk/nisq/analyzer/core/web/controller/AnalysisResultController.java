@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -151,6 +152,7 @@ public class AnalysisResultController {
     @PostMapping("/{resId}/" + Constants.EXECUTION)
     public HttpEntity<ExecutionResultDto> executeAnalysisResult(
             @PathVariable UUID resId,
+            @RequestParam String token,
             @RequestBody(required = false) ExecuteAnalysisResultRequestDto request) {
         LOG.debug("Post to execute analysis result with id: {}", resId);
 
@@ -164,10 +166,11 @@ public class AnalysisResultController {
 
         try {
             Implementation implementation = analysisResult.getImplementation();
-
+            Map<String, String> inputParams = analysisResult.getInputParameters();
+            inputParams.put("token",token);
             // Retrieve the type of the parameter from the algorithm definition
             Map<String, ParameterValue> typedParams =
-                    ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), analysisResult.getInputParameters());
+                    ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), inputParams);
             String refreshToken = "";
             System.out.println("Retreiving token from analysisResultRepository for execution "+ typedParams);
             if (request != null && request.getRefreshToken() != null) {

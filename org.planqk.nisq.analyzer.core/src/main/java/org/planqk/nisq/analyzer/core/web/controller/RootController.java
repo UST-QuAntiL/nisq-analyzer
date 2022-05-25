@@ -155,6 +155,11 @@ public class RootController {
             return new ResponseEntity("Parameter set for the selection is null.", HttpStatus.BAD_REQUEST);
         }
         LOG.debug("Received {} parameters for the selection.", params.getParameters().size());
+        Map<String, String> jobParams = params.getParameters();
+        jobParams.put("token","");
+        jobParams.entrySet().stream().forEach((entry) -> {
+            LOG.info("Passed parameters set for job Key = {}, Value = {}",entry.getKey(),entry.getValue());
+        });
 
         AnalysisJob job = new AnalysisJob();
         job.setImplementedAlgorithm(params.getAlgorithmId());

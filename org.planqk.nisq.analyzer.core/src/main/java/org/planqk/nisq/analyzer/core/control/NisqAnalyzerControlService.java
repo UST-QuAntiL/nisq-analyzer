@@ -324,6 +324,7 @@ public class NisqAnalyzerControlService {
                             circuitInformation.getCircuitDepth())) {
 
                         // qpu is suited candidate to execute the implementation
+                        inputParameters.put("token","");
                         AnalysisResult result = new AnalysisResult();
                         result.setImplementation(executableImpl);
                         result.setImplementedAlgorithm(algorithm);
