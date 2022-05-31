@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2022 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,33 +17,39 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
+package org.planqk.nisq.analyzer.core.connector.qiskit;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-/**
- * Object to represent a QPU selection job for a certain quantum circuit
- */
-@EqualsAndHashCode(callSuper = true)
-@Entity
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class QpuSelectionJob extends Job {
+@ToString
+public class IbmqQpuQueue {
 
-    private String circuitName;
+    @Getter
+    @Setter
+    private boolean state;
 
-    private String userId;
+    @Getter
+    @Setter
+    private String status;
 
-    @OneToMany(cascade = CascadeType.PERSIST)
-    private List<QpuSelectionResult> jobResults = new ArrayList<>();
+    @Getter
+    @Setter
+    private String message;
+
+    @Getter
+    @Setter
+    private int lengthQueue;
+
+    @Getter
+    @Setter
+    @JsonProperty("backend_version")
+    private String backendVersion;
 }

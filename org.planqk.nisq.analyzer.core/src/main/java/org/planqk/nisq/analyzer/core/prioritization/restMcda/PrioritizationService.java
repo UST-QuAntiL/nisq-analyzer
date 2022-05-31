@@ -30,6 +30,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
+import org.planqk.nisq.analyzer.core.connector.qiskit.QiskitSdkConnector;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.CircuitResult;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
@@ -40,11 +41,9 @@ import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.model.McdaResult;
 import org.planqk.nisq.analyzer.core.model.McdaSensitivityAnalysisJob;
 import org.planqk.nisq.analyzer.core.model.McdaWeightLearningJob;
-import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
-import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
@@ -95,7 +94,7 @@ public class PrioritizationService {
 
     private final XmcdaRepository xmcdaRepository;
 
-    private final QProvService qProvService;
+    private final QiskitSdkConnector qiskitSdkConnector;
 
     @org.springframework.beans.factory.annotation.Value("${org.planqk.nisq.analyzer.prioritization.hostname}")
     private String hostname;
@@ -595,36 +594,31 @@ public class PrioritizationService {
 
     private List<McdaCriteriaPerformances> getCircuitResults(List<CircuitResult> results) {
         List<McdaCriteriaPerformances> mcdaCriteriaPerformancesList = new ArrayList<>();
-
+        
         results.forEach(result -> {
-            // get QPU object containing required performances data
-            Optional<Qpu> qpuOptional = qProvService.getQpuByName(result.getQpu(), result.getProvider());
-            if (qpuOptional.isPresent()) {
-                McdaCriteriaPerformances mcdaCriteriaPerformances = new McdaCriteriaPerformances();
-                mcdaCriteriaPerformances.setId(result.getId().toString());
-                mcdaCriteriaPerformances.setHistogramIntersection(0.0f);
-                mcdaCriteriaPerformances.setAnalyzedWidth(result.getAnalyzedWidth());
-                mcdaCriteriaPerformances.setAnalyzedDepth(result.getAnalyzedDepth());
-                mcdaCriteriaPerformances.setAnalyzedMultiQubitGateDepth(result.getAnalyzedMultiQubitGateDepth());
-                mcdaCriteriaPerformances.setAnalyzedTotalNumberOfOperations(result.getAnalyzedTotalNumberOfOperations());
-                mcdaCriteriaPerformances.setAnalyzedNumberOfSingleQubitGates(result.getAnalyzedNumberOfSingleQubitGates());
-                mcdaCriteriaPerformances.setAnalyzedNumberOfMultiQubitGates(result.getAnalyzedNumberOfMultiQubitGates());
-                mcdaCriteriaPerformances.setAnalyzedNumberOfMeasurementOperations(
-                    result.getAnalyzedNumberOfMeasurementOperations());
-                mcdaCriteriaPerformances.setAvgSingleQubitGateError(result.getAvgSingleQubitGateError());
-                mcdaCriteriaPerformances.setAvgMultiQubitGateError(result.getAvgMultiQubitGateError());
-                mcdaCriteriaPerformances.setAvgSingleQubitGateTime(result.getAvgSingleQubitGateTime());
-                mcdaCriteriaPerformances.setAvgMultiQubitGateTime(result.getAvgMultiQubitGateTime());
-                mcdaCriteriaPerformances.setAvgReadoutError(result.getAvgReadoutError());
-                mcdaCriteriaPerformances.setT1(result.getT1());
-                mcdaCriteriaPerformances.setT2(result.getT2());
-                mcdaCriteriaPerformances.setQueueSize(qpuOptional.get().getQueueSize());
+            int backendQueueSize = qiskitSdkConnector.getQueueSizeOfQpu(result.getQpu());
 
-                mcdaCriteriaPerformancesList.add(mcdaCriteriaPerformances);
-            } else {
-                LOG.error("Unable to retrieve QPU with name {} at provider {}. Skipping result with ID: {}", result.getQpu(), result.getProvider(),
-                    result.getId());
-            }
+            McdaCriteriaPerformances mcdaCriteriaPerformances = new McdaCriteriaPerformances();
+            mcdaCriteriaPerformances.setId(result.getId().toString());
+            mcdaCriteriaPerformances.setHistogramIntersection(0.0f);
+            mcdaCriteriaPerformances.setAnalyzedWidth(result.getAnalyzedWidth());
+            mcdaCriteriaPerformances.setAnalyzedDepth(result.getAnalyzedDepth());
+            mcdaCriteriaPerformances.setAnalyzedMultiQubitGateDepth(result.getAnalyzedMultiQubitGateDepth());
+            mcdaCriteriaPerformances.setAnalyzedTotalNumberOfOperations(result.getAnalyzedTotalNumberOfOperations());
+            mcdaCriteriaPerformances.setAnalyzedNumberOfSingleQubitGates(result.getAnalyzedNumberOfSingleQubitGates());
+            mcdaCriteriaPerformances.setAnalyzedNumberOfMultiQubitGates(result.getAnalyzedNumberOfMultiQubitGates());
+            mcdaCriteriaPerformances.setAnalyzedNumberOfMeasurementOperations(
+                result.getAnalyzedNumberOfMeasurementOperations());
+            mcdaCriteriaPerformances.setAvgSingleQubitGateError(result.getAvgSingleQubitGateError());
+            mcdaCriteriaPerformances.setAvgMultiQubitGateError(result.getAvgMultiQubitGateError());
+            mcdaCriteriaPerformances.setAvgSingleQubitGateTime(result.getAvgSingleQubitGateTime());
+            mcdaCriteriaPerformances.setAvgMultiQubitGateTime(result.getAvgMultiQubitGateTime());
+            mcdaCriteriaPerformances.setAvgReadoutError(result.getAvgReadoutError());
+            mcdaCriteriaPerformances.setT1(result.getT1());
+            mcdaCriteriaPerformances.setT2(result.getT2());
+            mcdaCriteriaPerformances.setQueueSize(backendQueueSize);
+
+            mcdaCriteriaPerformancesList.add(mcdaCriteriaPerformances);
         });
         return mcdaCriteriaPerformancesList;
     }

@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import javax.transaction.Transactional;
 
 import org.planqk.nisq.analyzer.core.Constants;
@@ -135,9 +134,9 @@ public class CompilerAnalysisResultController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
-            @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute a compilation result")
+        @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute a compilation result")
     @PostMapping("/{resId}/" + Constants.EXECUTION)
-    public HttpEntity<ExecutionResultDto> executeCompilationResult(@PathVariable UUID resId, @RequestParam(required = false) String token) {
+    public HttpEntity<ExecutionResultDto> executeCompilationResult(@PathVariable UUID resId, @RequestParam String token) {
         LOG.debug("Post to execute compilation result with id: {}", resId);
 
         Optional<CompilationResult> result = compilerAnalysisResultRepository.findById(resId);

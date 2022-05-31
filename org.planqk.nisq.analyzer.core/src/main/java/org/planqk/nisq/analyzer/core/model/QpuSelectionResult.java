@@ -48,4 +48,6 @@ public class QpuSelectionResult extends CircuitResult {
 //    private String token;
 
     private UUID qpuSelectionJobId;
+
+    private String userId;
 }

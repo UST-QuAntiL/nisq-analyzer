@@ -42,6 +42,8 @@ public class QpuSelectionResultDto extends CircuitResultDto {
 
     UUID qpuSelectionJobId;
 
+    private String userId;
+
     public static final class Converter {
 
         public static QpuSelectionResultDto convert(final QpuSelectionResult object) {
@@ -55,6 +57,7 @@ public class QpuSelectionResultDto extends CircuitResultDto {
             dto.setTranspiledCircuit(object.getTranspiledCircuit());
             dto.setTranspiledLanguage(object.getTranspiledLanguage());
             dto.setQpuSelectionJobId(object.getQpuSelectionJobId());
+            dto.setUserId(object.getUserId());
             dto.setCompiler(object.getCompiler());
             dto.setAnalyzedDepth(object.getAnalyzedDepth());
             dto.setAnalyzedWidth(object.getAnalyzedWidth());

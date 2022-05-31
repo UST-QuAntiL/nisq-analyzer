@@ -24,16 +24,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+import org.springframework.lang.NonNull;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.lang.NonNull;
 
 /**
  * Entity representing an implementation of a certain quantum algorithm.
@@ -61,6 +61,10 @@ public class Implementation extends HasId {
     @Getter
     @Setter
     private UUID implementedAlgorithm;
+
+    @Getter
+    @Setter
+    private String algorithmName;
 
     @Getter
     @Setter
