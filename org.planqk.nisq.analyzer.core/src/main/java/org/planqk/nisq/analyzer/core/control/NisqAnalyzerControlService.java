@@ -233,6 +233,7 @@ public class NisqAnalyzerControlService {
         throws UnsatisfiedLinkError {
         LOG.debug("Performing implementation and QPU selection for algorithm with Id: {}", algorithm);
 
+        String token = inputParameters.get("token");
         // check all implementation if they can handle the given set of input parameters
         List<Implementation> implementations = implementationRepository.findByImplementedAlgorithm(algorithm);
 
@@ -256,7 +257,7 @@ public class NisqAnalyzerControlService {
         for (Provider provider : qiskitSdkConnector.getProviders()) {
 
             // Get available QPUs
-            List<Qpu> qpus = qiskitSdkConnector.getQPUs(provider, inputParameters.get("token"));
+            List<Qpu> qpus = qiskitSdkConnector.getQPUs(provider, token);
 
             // Rebuild the Prolog files for the QPU candidates
             rebuildQPUPrologFiles(qpus);
@@ -281,7 +282,11 @@ public class NisqAnalyzerControlService {
 
                 // Try to infer the type of the parameters for the given implementation
                 Map<String, ParameterValue> execInputParameters =
-                        ParameterValue.inferTypedParameterValue(executableImpl.getInputParameters(), inputParameters);
+                    ParameterValue.inferTypedParameterValue(executableImpl.getInputParameters(), inputParameters);
+
+                if (!execInputParameters.containsKey("token")) {
+                    execInputParameters.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
+                }
 
                 for (AnalysisCandidate candidate : suitableCandidates) {
 
