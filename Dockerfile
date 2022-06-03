@@ -6,7 +6,7 @@ RUN mvn package -DskipTests && mkdir /build && unzip /tmp/nisq/org.planqk.nisq.a
 FROM ubuntu:18.04
 LABEL maintainer = "Benjamin Weder <benjamin.weder@iaas.uni-stuttgart.de>"
 
-ARG DOCKERIZE_VERSION=v0.3.0
+ARG DOCKERIZE_VERSION=v0.6.1
 ARG TOMCAT_VERSION=9.0.8
 
 ENV POSTGRES_HOSTNAME localhost
