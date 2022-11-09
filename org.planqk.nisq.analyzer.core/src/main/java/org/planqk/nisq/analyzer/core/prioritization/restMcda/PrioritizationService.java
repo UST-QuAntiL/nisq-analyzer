@@ -30,7 +30,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 
-import org.planqk.nisq.analyzer.core.connector.qiskit.QiskitSdkConnector;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.CircuitResult;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
@@ -44,6 +43,7 @@ import org.planqk.nisq.analyzer.core.model.McdaWeightLearningJob;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
+import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
@@ -94,7 +94,7 @@ public class PrioritizationService {
 
     private final XmcdaRepository xmcdaRepository;
 
-    private final QiskitSdkConnector qiskitSdkConnector;
+    private final QProvService qProvService;
 
     @org.springframework.beans.factory.annotation.Value("${org.planqk.nisq.analyzer.prioritization.hostname}")
     private String hostname;
@@ -594,9 +594,9 @@ public class PrioritizationService {
 
     private List<McdaCriteriaPerformances> getCircuitResults(List<CircuitResult> results) {
         List<McdaCriteriaPerformances> mcdaCriteriaPerformancesList = new ArrayList<>();
-        
+
         results.forEach(result -> {
-            int backendQueueSize = qiskitSdkConnector.getQueueSizeOfQpu(result.getQpu());
+            int backendQueueSize = qProvService.getQueueSizeOfQpu(result.getQpu());
 
             McdaCriteriaPerformances mcdaCriteriaPerformances = new McdaCriteriaPerformances();
             mcdaCriteriaPerformances.setId(result.getId().toString());

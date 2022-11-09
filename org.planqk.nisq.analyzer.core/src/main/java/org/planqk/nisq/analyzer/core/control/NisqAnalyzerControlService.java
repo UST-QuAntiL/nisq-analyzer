@@ -39,7 +39,6 @@ import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
-import org.planqk.nisq.analyzer.core.connector.qiskit.QiskitSdkConnector;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologKnowledgeBaseHandler;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologQueryEngine;
@@ -60,6 +59,7 @@ import org.planqk.nisq.analyzer.core.model.Provider;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
+import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
@@ -98,7 +98,7 @@ public class NisqAnalyzerControlService {
 
     final private PrologKnowledgeBaseHandler prologKnowledgeBaseHandler;
 
-    final private QiskitSdkConnector qiskitSdkConnector;
+    final private QProvService qProvService;
 
     final private TranslatorService translatorService;
 
@@ -134,7 +134,7 @@ public class NisqAnalyzerControlService {
         }
 
         // Retrieve the QPU from Qiskit-Service
-        Optional<Qpu> qpu = qiskitSdkConnector.getQpuByName(result.getQpu(), result.getProvider(), inputParameters.get("token").getRawValue());
+        Optional<Qpu> qpu = qProvService.getQpuByName(result.getQpu(), result.getProvider(), inputParameters.get("token").getRawValue());
         if (!qpu.isPresent()) {
             LOG.error("Unable to find qpu with name {}.", result.getQpu());
             throw new RuntimeException("Unable to find qpu with name " + result.getQpu());
@@ -253,11 +253,11 @@ public class NisqAnalyzerControlService {
 
         List<AnalysisResult> analysisResults = new ArrayList<>();
 
-        // Iterate over all providers listed in Qiskit Service
-        for (Provider provider : qiskitSdkConnector.getProviders()) {
+        // Iterate over all providers listed in QProv
+        for (Provider provider : qProvService.getProviders()) {
 
             // Get available QPUs
-            List<Qpu> qpus = qiskitSdkConnector.getQPUs(provider, token);
+            List<Qpu> qpus = qProvService.getQPUs(provider, token);
 
             // Rebuild the Prolog files for the QPU candidates
             rebuildQPUPrologFiles(qpus);
@@ -448,8 +448,8 @@ public class NisqAnalyzerControlService {
             circuitName = "temp";
         }
 
-        // iterate over all providers listed in Qiskit Service for the QPU selection
-        for (Provider provider : qiskitSdkConnector.getProviders()) {
+        // iterate over all providers listed in QProv for the QPU selection
+        for (Provider provider : qProvService.getProviders()) {
 
             // filter providers that are not contained in the list of allowed providers
             if (Objects.nonNull(allowedProviders) &&
@@ -461,7 +461,7 @@ public class NisqAnalyzerControlService {
             LOG.debug("Performing QPU selection for provider with name: {}", provider.getName());
 
             // get available QPUs
-            List<Qpu> qpus = qiskitSdkConnector.getQPUs(provider, caseInsensitiveTokens.get(provider.getName()));
+            List<Qpu> qpus = qProvService.getQPUs(provider, caseInsensitiveTokens.get(provider.getName()));
             LOG.debug("Found {} QPUs from provider '{}'!", qpus.size(), provider.getName());
 
             for (Qpu qpu : qpus) {
@@ -543,7 +543,7 @@ public class NisqAnalyzerControlService {
                                                    File circuitCode, String circuitName, List<String> compilerNames, String token) {
         List<CompilationResult> compilerAnalysisResults = new ArrayList<>();
         LOG.debug("Performing compiler selection for QPU with name '{}' from provider with name '{}'!", qpuName, providerName);
-        Qpu qpu = qiskitSdkConnector.getQpuByName(qpuName, providerName, token).orElse(null);
+        Qpu qpu = qProvService.getQpuByName(qpuName, providerName, token).orElse(null);
 
         String initialCircuitAsString = "";
         try {
