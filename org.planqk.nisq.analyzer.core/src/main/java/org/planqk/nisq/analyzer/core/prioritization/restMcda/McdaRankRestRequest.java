@@ -47,6 +47,10 @@ public class McdaRankRestRequest {
 
     @Getter
     @Setter
+    private Map<String, Float> bordaCountWeights;
+
+    @Getter
+    @Setter
     @OneToMany(cascade = CascadeType.PERSIST)
     private List<McdaCompiledCircuitJob> circuits;
 }

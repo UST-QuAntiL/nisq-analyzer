@@ -25,6 +25,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -299,7 +300,8 @@ public class XmcdaCriteriaController {
         @ApiResponse(responseCode = "500", content = @Content)}, description = "Run the MCDA method on the NISQ Analyzer job passed as parameter")
     @PostMapping(value = "/{methodName}/" + Constants.MCDA_PRIORITIZE)
     public HttpEntity<EntityModel<McdaJob>> prioritizeCompiledCircuitsOfJob(@PathVariable String methodName, @RequestParam UUID jobId,
-                                                                            @RequestParam Boolean useBordaCount) {
+                                                                            @RequestParam Boolean useBordaCount,
+                                                                            @RequestBody Map<String, Float> bordaCountWeights) {
         LOG.debug("Creating new job to run prioritization with MCDA method {} and NISQ Analyzer job with ID: {}", methodName, jobId);
 
         // check if method is supported
@@ -315,11 +317,17 @@ public class XmcdaCriteriaController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
+        if (useBordaCount && (bordaCountWeights == null || bordaCountWeights.size() == 0)) {
+            LOG.error("A ratio is required when Borda Count should be applied.");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
         // create job object and pass to corresponding MCDA plugin
         McdaJob mcdaJob = new McdaJob();
         mcdaJob.setTime(OffsetDateTime.now());
         mcdaJob.setMethod(methodName);
         mcdaJob.setUseBordaCount(useBordaCount);
+        mcdaJob.setBordaCountWeights(bordaCountWeights);
         mcdaJob.setReady(false);
         mcdaJob.setJobId(jobId);
         mcdaJob.setState(ExecutionResultStatus.INITIALIZED.toString());

@@ -173,7 +173,8 @@ public class PrioritizationService {
             mcdaMethodName = "promethee_ii";
         }
 
-        McdaRankRestRequest request = new McdaRankRestRequest(mcdaMethodName, metricWeights, bordaCountMetrics, circuits);
+        McdaRankRestRequest request =
+            new McdaRankRestRequest(mcdaMethodName, metricWeights, bordaCountMetrics, mcdaJob.getBordaCountWeights(), circuits);
 
         RestTemplate restTemplate = new RestTemplate();
         try {
