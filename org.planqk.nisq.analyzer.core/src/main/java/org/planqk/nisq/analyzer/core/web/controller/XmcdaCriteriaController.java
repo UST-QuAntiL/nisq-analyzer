@@ -317,7 +317,7 @@ public class XmcdaCriteriaController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        if (useBordaCount && (bordaCountWeights == null || bordaCountWeights.size() == 0)) {
+        if (useBordaCount && bordaCountWeights.size() == 0) {
             LOG.error("A ratio is required when Borda Count should be applied.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -506,7 +506,9 @@ public class XmcdaCriteriaController {
                                                                                                          @RequestParam float stepSize,
                                                                                                          @RequestParam float upperBound,
                                                                                                          @RequestParam float lowerBound,
-                                                                                                         @RequestParam Boolean useBordaCount) {
+                                                                                                         @RequestParam Boolean useBordaCount,
+                                                                                                         @RequestBody
+                                                                                                         Map<String, Float> bordaCountWeights) {
         LOG.debug("Creating new job to run sensitivity analysis with MCDA method {} and NISQ Analyzer job with ID: {}", methodName, jobId);
 
         // check if method is supported
@@ -523,6 +525,7 @@ public class XmcdaCriteriaController {
         mcdaSensitivityAnalysisJob.setMethod(methodName);
         mcdaSensitivityAnalysisJob.setReady(false);
         mcdaSensitivityAnalysisJob.setUseBordaCount(useBordaCount);
+        mcdaSensitivityAnalysisJob.setBordaCountWeights(bordaCountWeights);
         mcdaSensitivityAnalysisJob.setJobId(jobId);
         mcdaSensitivityAnalysisJob.setStepSize(stepSize);
         mcdaSensitivityAnalysisJob.setUpperBound(upperBound);

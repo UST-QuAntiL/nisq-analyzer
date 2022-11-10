@@ -499,6 +499,7 @@ public class PrioritizationService {
         request.setLowerBound(mcdaSensitivityAnalysisJob.getLowerBound());
         request.setMetricWeights(metricWeights);
         request.setBordaCountMetrics(bordaCountMetrics);
+        request.setBordaCountWeights(mcdaSensitivityAnalysisJob.getBordaCountWeights());
         request.setCircuits(circuits);
 
         RestTemplate restTemplate = new RestTemplate();
