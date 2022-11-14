@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2022 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,42 +17,35 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.web.dtos.requests;
+package org.planqk.nisq.analyzer.core.model;
 
-import java.net.URL;
-import java.util.List;
-import java.util.Map;
+import javax.persistence.Entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
+@EqualsAndHashCode(callSuper = true)
+@Entity
 @Data
-public class QpuSelectionDto {
+@NoArgsConstructor
+@AllArgsConstructor
+public class OriginalCircuitResult extends HasId {
 
-    boolean simulatorsAllowed;
+    private String circuitName;
 
-    List<String> allowedProviders;
+    private int originalWidth;
 
-    String circuitLanguage;
+    private int originalDepth;
 
-    URL circuitUrl;
+    private int originalMultiQubitGateDepth;
 
-    Map<String, String> tokens;
+    private int originalNumberOfSingleQubitGates;
 
-    String refreshToken;
+    private int originalNumberOfMultiQubitGates;
 
-    String circuitName;
+    private int originalTotalNumberOfOperations;
 
-    boolean preciseResultsPreference;
-
-    boolean shortWaitingTimesPreference;
-
-    Float queueImportanceRatio;
-
-    int maxNumberOfCompiledCircuits;
-
-    String predictionAlgorithm;
-
-    String metaOptimizer;
-
-    String userId;
+    private int originalNumberOfMeasurementOperations;
 }

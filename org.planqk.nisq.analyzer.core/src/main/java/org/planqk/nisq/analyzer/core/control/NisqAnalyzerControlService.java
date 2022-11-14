@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
+import org.planqk.nisq.analyzer.core.connector.OriginalCircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
 import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologKnowledgeBaseHandler;
@@ -53,6 +54,7 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.HasId;
 import org.planqk.nisq.analyzer.core.model.Implementation;
+import org.planqk.nisq.analyzer.core.model.OriginalCircuitResult;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 import org.planqk.nisq.analyzer.core.model.Provider;
@@ -66,6 +68,7 @@ import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilerAnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
+import org.planqk.nisq.analyzer.core.repository.OriginalCircuitResultRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 import org.planqk.nisq.analyzer.core.translator.TranslatorService;
@@ -94,6 +97,8 @@ public class NisqAnalyzerControlService {
 
     final private ExecutionResultRepository executionResultRepository;
 
+    final private OriginalCircuitResultRepository originalCircuitResultRepository;
+
     final private PrologQueryEngine prologQueryEngine;
 
     final private PrologKnowledgeBaseHandler prologKnowledgeBaseHandler;
@@ -109,6 +114,35 @@ public class NisqAnalyzerControlService {
     final private QpuSelectionJobRepository qpuSelectionJobRepository;
 
     final private QpuSelectionResultRepository qpuSelectionResultRepository;
+
+    public OriginalCircuitResult performPreSelectionOfCompilersAndQpus(String circuitName, File circuitFile, String circuitLanguage,
+                                                                       boolean preciseResultsPreference, boolean shortWaitingTimesPreference,
+                                                                       Float queueImportanceRatio, int maxNumberOfCompiledCircuits,
+                                                                       String predictionAlgorithm, String metaOptimizer) throws UnsatisfiedLinkError {
+
+        // analysis of original circuit with an SDK connector that supports the language
+        Optional<SdkConnector> connectorOptional = connectorList.stream().filter(sdkConnector ->
+            sdkConnector.getSupportedLanguages().contains(circuitLanguage.toLowerCase())).findFirst();
+
+        if (connectorOptional.isPresent()) {
+            SdkConnector connector = connectorOptional.get();
+            OriginalCircuitInformation originalCircuitInformation = connector.getOriginalCircuitProperties(circuitFile, circuitLanguage);
+
+            OriginalCircuitResult originalCircuitResult = new OriginalCircuitResult(
+                circuitName,
+                originalCircuitInformation.getCircuitWidth(),
+                originalCircuitInformation.getCircuitDepth(),
+                originalCircuitInformation.getCircuitMultiQubitGateDepth(),
+                originalCircuitInformation.getCircuitNumberOfSingleQubitGates(),
+                originalCircuitInformation.getCircuitNumberOfMultiQubitGates(),
+                originalCircuitInformation.getCircuitTotalNumberOfOperations(),
+                originalCircuitInformation.getCircuitNumberOfMeasurementOperations());
+
+            originalCircuitResultRepository.save(originalCircuitResult);
+
+        }
+        return null;
+    }
 
     /**
      * Execute the given quantum algorithm implementation with the given input parameters and return the corresponding output of the execution.

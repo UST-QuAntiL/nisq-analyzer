@@ -190,6 +190,12 @@ public class RootController {
                                                                   @RequestParam("circuit") MultipartFile circuitCode,
                                                                   @RequestParam(required = false) String circuitName,
                                                                   @RequestParam(required = false) String userId,
+                                                                  @RequestParam(required = false) boolean preciseResultsPreference,
+                                                                  @RequestParam(required = false) boolean shortWaitingTimesPreference,
+                                                                  @RequestParam(required = false) Float queueImportanceRatio,
+                                                                  @RequestParam(required = false) int maxNumberOfCompiledCircuits,
+                                                                  @RequestParam(required = false) String predictionAlgorithm,
+                                                                  @RequestParam(required = false) String metaOptimizer,
                                                                   @RequestParam(required = false) List<String> compilers) {
         LOG.debug("Post to select QPU for given quantum circuit with language: {}", circuitLanguage);
 
@@ -247,7 +253,12 @@ public class RootController {
         }
 
         qpuSelectionJobRepository.save(job);
+
         new Thread(() -> {
+            nisqAnalyzerService.performPreSelectionOfCompilersAndQpus(params.getCircuitName(), circuitFile, params.getCircuitLanguage(),
+                params.isPreciseResultsPreference(), params.isShortWaitingTimesPreference(), params.getQueueImportanceRatio(),
+                params.getMaxNumberOfCompiledCircuits(), params.getPredictionAlgorithm(), params.getMetaOptimizer());
+            //TODO
             nisqAnalyzerService
                     .performQpuSelectionForCircuit(job, params.getAllowedProviders(), params.getCircuitLanguage(), circuitFile,
                             params.getTokens(), params.isSimulatorsAllowed(), params.getCircuitName(), compilers);
