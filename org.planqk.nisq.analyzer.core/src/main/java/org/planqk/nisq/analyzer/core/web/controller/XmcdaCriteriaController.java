@@ -39,7 +39,7 @@ import org.planqk.nisq.analyzer.core.model.McdaSensitivityAnalysisJob;
 import org.planqk.nisq.analyzer.core.model.McdaWeightLearningJob;
 import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
-import org.planqk.nisq.analyzer.core.prioritization.restMcda.PrioritizationService;
+import org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction.PrioritizationService;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaSensitivityAnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaWeightLearningJobRepository;

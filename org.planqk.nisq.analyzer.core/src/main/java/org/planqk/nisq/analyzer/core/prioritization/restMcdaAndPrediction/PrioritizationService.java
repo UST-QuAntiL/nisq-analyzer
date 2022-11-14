@@ -17,7 +17,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.restMcda;
+package org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -108,6 +108,9 @@ public class PrioritizationService {
 
     public void executePredictionForCompilerAnQpuPreSelection(OriginalCircuitResult originalCircuitResult, QpuSelectionJob qpuSelectionJob,
                                                               Float queueImportanceRatio, String predictionAlgorithm, String metaOptimizer) {
+        // 3.2 alle Kombis erstellen und mit den alten Daten an Prio Prediction Service schicken, mit predictionAlgo und metaOptimizer, dann erhaltene Liste kürzen nach maxNUmber
+        // 3.2.1 wenn beides präferiert dann noch Queue ImportanceRatio angeben
+
     }
 
     public void executeMcdaMethod(McdaJob mcdaJob) {

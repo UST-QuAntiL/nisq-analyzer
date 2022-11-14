@@ -17,10 +17,10 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.restMcda;
+package org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction;
 
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 import javax.persistence.CascadeType;
 import javax.persistence.OneToMany;
 
@@ -31,14 +31,22 @@ import lombok.Setter;
 
 @AllArgsConstructor
 @NoArgsConstructor
-public class McdaCompiledCircuitJob {
+public class McdaWeightLearningRequest {
 
     @Getter
     @Setter
-    private UUID id;
+    private String mcdaMethod;
+
+    @Getter
+    @Setter
+    private String learningMethod;
+
+    @Getter
+    @Setter
+    private Map<String, McdaCriterionWeight> metricWeights;
 
     @Getter
     @Setter
     @OneToMany(cascade = CascadeType.PERSIST)
-    private List<McdaCriteriaPerformances> compiledCircuits;
+    private List<McdaCompiledCircuitJob> circuits;
 }

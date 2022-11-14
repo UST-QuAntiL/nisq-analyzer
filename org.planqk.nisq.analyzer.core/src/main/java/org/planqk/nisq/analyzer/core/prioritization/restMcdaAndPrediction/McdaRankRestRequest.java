@@ -17,22 +17,40 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.restMcda;
+package org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+import java.util.Map;
+import javax.persistence.CascadeType;
+import javax.persistence.OneToMany;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @AllArgsConstructor
-public class McdaCriterionWeight {
+@NoArgsConstructor
+public class McdaRankRestRequest {
 
     @Getter
     @Setter
-    float weight;
+    private String mcdaMethod;
 
     @Getter
     @Setter
-    @JsonProperty("isCost")
-    boolean isCost;
+    private Map<String, McdaCriterionWeight> metricWeights;
+
+    @Getter
+    @Setter
+    private Map<String, McdaCriterionWeight> bordaCountMetrics;
+
+    @Getter
+    @Setter
+    private Map<String, Float> bordaCountWeights;
+
+    @Getter
+    @Setter
+    @OneToMany(cascade = CascadeType.PERSIST)
+    private List<McdaCompiledCircuitJob> circuits;
 }

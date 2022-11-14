@@ -62,7 +62,7 @@ import org.planqk.nisq.analyzer.core.model.Provider;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
-import org.planqk.nisq.analyzer.core.prioritization.restMcda.PrioritizationService;
+import org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction.PrioritizationService;
 import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;

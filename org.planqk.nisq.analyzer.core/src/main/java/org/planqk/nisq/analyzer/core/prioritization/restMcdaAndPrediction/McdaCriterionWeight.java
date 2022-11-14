@@ -17,32 +17,23 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.restMcda;
-
-import java.util.ArrayList;
-import java.util.Map;
+package org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @AllArgsConstructor
-@NoArgsConstructor
-public class RankResultResponse {
+public class McdaCriterionWeight {
 
     @Getter
     @Setter
-    private Map<String, Float> scores;
+    float weight;
 
     @Getter
     @Setter
-    private ArrayList<String> ranking;
-
-    @Getter
-    @Setter
-    @JsonProperty("borda_count_ranking")
-    private ArrayList<String> bordaCountRanking;
+    @JsonProperty("isCost")
+    boolean isCost;
 }

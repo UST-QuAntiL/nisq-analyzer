@@ -17,9 +17,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.restMcda;
-
-import java.util.ArrayList;
+package org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,17 +26,21 @@ import lombok.Setter;
 
 @AllArgsConstructor
 @NoArgsConstructor
-public class PrioritizationServiceResultLocationResponse {
+public class PrioritizationServiceResultLocationOutputs {
 
     @Getter
     @Setter
-    private String log;
+    private String contentType;
 
     @Getter
     @Setter
-    private ArrayList<PrioritizationServiceResultLocationOutputs> outputs;
+    private String dataType;
 
     @Getter
     @Setter
-    private String status;
+    private String href;
+
+    @Getter
+    @Setter
+    private String name;
 }
