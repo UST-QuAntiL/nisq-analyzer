@@ -40,6 +40,7 @@ import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.model.McdaResult;
 import org.planqk.nisq.analyzer.core.model.McdaSensitivityAnalysisJob;
 import org.planqk.nisq.analyzer.core.model.McdaWeightLearningJob;
+import org.planqk.nisq.analyzer.core.model.OriginalCircuitResult;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
@@ -104,6 +105,10 @@ public class PrioritizationService {
 
     @org.springframework.beans.factory.annotation.Value("${org.planqk.nisq.analyzer.prioritization.version}")
     private String version;
+
+    public void executePredictionForCompilerAnQpuPreSelection(OriginalCircuitResult originalCircuitResult, QpuSelectionJob qpuSelectionJob,
+                                                              Float queueImportanceRatio, String predictionAlgorithm, String metaOptimizer) {
+    }
 
     public void executeMcdaMethod(McdaJob mcdaJob) {
         LOG.debug("Starting {} MCDA method to prioritize job with ID: {}", mcdaJob.getMethod(), mcdaJob.getJobId());

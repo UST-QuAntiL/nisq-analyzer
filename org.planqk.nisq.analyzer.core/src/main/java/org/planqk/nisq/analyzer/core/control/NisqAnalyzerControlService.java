@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -61,6 +62,7 @@ import org.planqk.nisq.analyzer.core.model.Provider;
 import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
+import org.planqk.nisq.analyzer.core.prioritization.restMcda.PrioritizationService;
 import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.AnalysisResultRepository;
@@ -107,6 +109,8 @@ public class NisqAnalyzerControlService {
 
     final private TranslatorService translatorService;
 
+    final private PrioritizationService prioritizationService;
+
     final private CompilationJobRepository compilationJobRepository;
 
     final private AnalysisJobRepository analysisJobRepository;
@@ -115,10 +119,7 @@ public class NisqAnalyzerControlService {
 
     final private QpuSelectionResultRepository qpuSelectionResultRepository;
 
-    public OriginalCircuitResult performPreSelectionOfCompilersAndQpus(String circuitName, File circuitFile, String circuitLanguage,
-                                                                       boolean preciseResultsPreference, boolean shortWaitingTimesPreference,
-                                                                       Float queueImportanceRatio, int maxNumberOfCompiledCircuits,
-                                                                       String predictionAlgorithm, String metaOptimizer) throws UnsatisfiedLinkError {
+    public OriginalCircuitResult analyzeOriginalCircuit(String circuitName, File circuitFile, String circuitLanguage) throws UnsatisfiedLinkError {
 
         // analysis of original circuit with an SDK connector that supports the language
         Optional<SdkConnector> connectorOptional = connectorList.stream().filter(sdkConnector ->
@@ -138,9 +139,9 @@ public class NisqAnalyzerControlService {
                 originalCircuitInformation.getCircuitTotalNumberOfOperations(),
                 originalCircuitInformation.getCircuitNumberOfMeasurementOperations());
 
-            originalCircuitResultRepository.save(originalCircuitResult);
-
+            return originalCircuitResultRepository.save(originalCircuitResult);
         }
+
         return null;
     }
 
@@ -472,7 +473,9 @@ public class NisqAnalyzerControlService {
      * @param circuitName     user defined name to (partly) distinguish circuits
      */
     public void performQpuSelectionForCircuit(QpuSelectionJob job, List<String> allowedProviders, String circuitLanguage, File circuitCode,
-                                              Map<String,String> tokens, boolean simulatorsAllowed, String circuitName, List<String> compilers) {
+                                              Map<String, String> tokens, boolean simulatorsAllowed, String circuitName, List<String> compilers,
+                                              boolean preciseResultsPreference, boolean shortWaitingTimesPreference, Float queueImportanceRatio,
+                                              int maxNumberOfCompiledCircuits, String predictionAlgorithm, String metaOptimizer) {
 
         // make name of providers case-insensitive
         TreeMap<String, String> caseInsensitiveTokens = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -480,6 +483,19 @@ public class NisqAnalyzerControlService {
 
         if (circuitName == null) {
             circuitName = "temp";
+        }
+
+        // analyze original circuit for pre-selection
+        OriginalCircuitResult originalCircuitResult = analyzeOriginalCircuit(circuitName, circuitCode, circuitLanguage);
+
+        // retrieve list of compilers that should be used for the comparison
+        List<String> compilersToUse;
+        if (Objects.nonNull(compilers)) {
+            LOG.debug("User restricted compiler usage to {} compilers: {}", compilers.size(), compilers.toString());
+            compilersToUse = compilers;
+        } else {
+            compilersToUse = connectorList.stream().flatMap(connector -> connector.supportedSdks().stream()).distinct().collect(Collectors.toList());
+            LOG.debug("No restriction for compilers defined. Using all ({}) supported compilers!", compilersToUse.size());
         }
 
         // iterate over all providers listed in QProv for the QPU selection
@@ -512,29 +528,15 @@ public class NisqAnalyzerControlService {
                     continue;
                 }
 
-                // perform compiler selection for the given QPU and circuit
-                List<CompilationResult> compilationResults =
-                        selectCompiler(provider.getName(), qpu.getName(), circuitLanguage, circuitCode, circuitName, compilers, token);
-                LOG.debug("Retrieved {} compilation results!", compilationResults.size());
-
-                // add results to the database and the job
-                for (CompilationResult result : compilationResults) {
+                // create all possible combinations of QPUs and compilers and retrieve actual QPU data
+                for (String compilerName : compilersToUse) {
                     QpuSelectionResult qpuSelectionResult = new QpuSelectionResult();
-                    qpuSelectionResult.setCircuitName(result.getCircuitName());
-                    qpuSelectionResult.setTranspiledCircuit(result.getTranspiledCircuit());
-                    qpuSelectionResult.setTranspiledLanguage(result.getTranspiledLanguage());
+                    qpuSelectionResult.setCircuitName(circuitName);
                     qpuSelectionResult.setTime(OffsetDateTime.now());
                     qpuSelectionResult.setQueueSize(qpu.getQueueSize());
                     qpuSelectionResult.setQpu(qpu.getName());
                     qpuSelectionResult.setProvider(provider.getName());
-                    qpuSelectionResult.setCompiler(result.getCompiler());
-                    qpuSelectionResult.setAnalyzedDepth(result.getAnalyzedDepth());
-                    qpuSelectionResult.setAnalyzedWidth(result.getAnalyzedWidth());
-                    qpuSelectionResult.setAnalyzedTotalNumberOfOperations(result.getAnalyzedTotalNumberOfOperations());
-                    qpuSelectionResult.setAnalyzedNumberOfSingleQubitGates(result.getAnalyzedNumberOfSingleQubitGates());
-                    qpuSelectionResult.setAnalyzedNumberOfMeasurementOperations(result.getAnalyzedNumberOfMeasurementOperations());
-                    qpuSelectionResult.setAnalyzedNumberOfMultiQubitGates(result.getAnalyzedNumberOfMultiQubitGates());
-                    qpuSelectionResult.setAnalyzedMultiQubitGateDepth(result.getAnalyzedMultiQubitGateDepth());
+                    qpuSelectionResult.setCompiler(compilerName);
                     qpuSelectionResult.setQpuSelectionJobId(job.getId());
                     qpuSelectionResult.setAvgMultiQubitGateError(qpu.getAvgMultiQubitGateError());
                     qpuSelectionResult.setAvgMultiQubitGateTime(qpu.getAvgMultiQubitGateTime());
@@ -547,12 +549,62 @@ public class NisqAnalyzerControlService {
                     qpuSelectionResult.setQubitCount(qpu.getQubitCount());
                     qpuSelectionResult.setSimulator(qpu.isSimulator());
                     qpuSelectionResult.setUserId(job.getUserId());
+                    qpuSelectionResult.setOriginalCircuitId(originalCircuitResult.getId());
 
                     qpuSelectionResult = qpuSelectionResultRepository.save(qpuSelectionResult);
                     job.getJobResults().add(qpuSelectionResult);
                 }
             }
         }
+
+        // user prefers only short waiting times
+        if (shortWaitingTimesPreference && !preciseResultsPreference) {
+            job.getJobResults().sort(Comparator.comparing(QpuSelectionResult::getQueueSize));
+            // trim list of possible combinations
+            if (maxNumberOfCompiledCircuits > 0 && job.getJobResults().size() > maxNumberOfCompiledCircuits) {
+                job.getJobResults().subList(maxNumberOfCompiledCircuits, job.getJobResults().size()).clear();
+            }
+        } else if (preciseResultsPreference) {
+            // look up if there is prior data for pre-selection based on prediction of precise execution results available
+            boolean priorDataAvailable = false;
+            List<ExecutionResult> executionResultList = executionResultRepository.findAll();
+            for (ExecutionResult executionResult : executionResultList) {
+                if (executionResult.getHistogramIntersectionValue() > 0) {
+                    priorDataAvailable = true;
+                    break;
+                }
+            }
+            if (priorDataAvailable) {
+                prioritizationService.executePredictionForCompilerAnQpuPreSelection(originalCircuitResult, job, queueImportanceRatio,
+                    predictionAlgorithm, metaOptimizer);
+            }
+        }
+
+
+//        // perform compiler selection for the given QPU and circuit
+//        List<CompilationResult> compilationResults =
+//            selectCompiler(provider.getName(), qpu.getName(), circuitLanguage, circuitCode, circuitName, compilers, token);
+//        LOG.debug("Retrieved {} compilation results!", compilationResults.size());
+//
+//        //TODO find suitable QpuSelectionResult and Job again for given result
+//
+//        // add results to the database and the job
+//        for (CompilationResult result : compilationResults) {
+//            QpuSelectionResult qpuSelectionResult = new QpuSelectionResult();
+//            qpuSelectionResult.setCircuitName(result.getCircuitName());
+//            qpuSelectionResult.setTranspiledCircuit(result.getTranspiledCircuit());
+//            qpuSelectionResult.setTranspiledLanguage(result.getTranspiledLanguage());
+//            qpuSelectionResult.setAnalyzedDepth(result.getAnalyzedDepth());
+//            qpuSelectionResult.setAnalyzedWidth(result.getAnalyzedWidth());
+//            qpuSelectionResult.setAnalyzedTotalNumberOfOperations(result.getAnalyzedTotalNumberOfOperations());
+//            qpuSelectionResult.setAnalyzedNumberOfSingleQubitGates(result.getAnalyzedNumberOfSingleQubitGates());
+//            qpuSelectionResult.setAnalyzedNumberOfMeasurementOperations(result.getAnalyzedNumberOfMeasurementOperations());
+//            qpuSelectionResult.setAnalyzedNumberOfMultiQubitGates(result.getAnalyzedNumberOfMultiQubitGates());
+//            qpuSelectionResult.setAnalyzedMultiQubitGateDepth(result.getAnalyzedMultiQubitGateDepth());
+//
+//            qpuSelectionResult = qpuSelectionResultRepository.save(qpuSelectionResult);
+//            job.getJobResults().add(qpuSelectionResult);
+//        }
 
         // store updated result object
         LOG.debug("Results: " + job.getJobResults().size());

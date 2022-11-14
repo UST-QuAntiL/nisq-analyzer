@@ -219,8 +219,9 @@ public class RootController {
         qpuSelectionJobRepository.save(job);
         new Thread(() -> {
             nisqAnalyzerService
-                    .performQpuSelectionForCircuit(job, allowedProviders, circuitLanguage, circuitFile,
-                            tokens, simulatorsAllowed, circuitName, compilers);
+                .performQpuSelectionForCircuit(job, allowedProviders, circuitLanguage, circuitFile,
+                    tokens, simulatorsAllowed, circuitName, compilers, preciseResultsPreference, shortWaitingTimesPreference, queueImportanceRatio,
+                    maxNumberOfCompiledCircuits, predictionAlgorithm, metaOptimizer);
         }).start();
 
         // send back QPU selection job to track the progress
@@ -255,13 +256,11 @@ public class RootController {
         qpuSelectionJobRepository.save(job);
 
         new Thread(() -> {
-            nisqAnalyzerService.performPreSelectionOfCompilersAndQpus(params.getCircuitName(), circuitFile, params.getCircuitLanguage(),
-                params.isPreciseResultsPreference(), params.isShortWaitingTimesPreference(), params.getQueueImportanceRatio(),
-                params.getMaxNumberOfCompiledCircuits(), params.getPredictionAlgorithm(), params.getMetaOptimizer());
-            //TODO
             nisqAnalyzerService
-                    .performQpuSelectionForCircuit(job, params.getAllowedProviders(), params.getCircuitLanguage(), circuitFile,
-                            params.getTokens(), params.isSimulatorsAllowed(), params.getCircuitName(), compilers);
+                .performQpuSelectionForCircuit(job, params.getAllowedProviders(), params.getCircuitLanguage(), circuitFile,
+                    params.getTokens(), params.isSimulatorsAllowed(), params.getCircuitName(), compilers, params.isPreciseResultsPreference(),
+                    params.isShortWaitingTimesPreference(), params.getQueueImportanceRatio(), params.getMaxNumberOfCompiledCircuits(),
+                    params.getPredictionAlgorithm(), params.getMetaOptimizer());
         }).start();
 
         // send back QPU selection job to track the progress
