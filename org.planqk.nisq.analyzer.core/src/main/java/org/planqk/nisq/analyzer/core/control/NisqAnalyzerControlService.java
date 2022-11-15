@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -485,6 +486,8 @@ public class NisqAnalyzerControlService {
             circuitName = "temp";
         }
 
+        QpuSelectionResult simulatorQpuSelectionResult = new QpuSelectionResult();
+
         // analyze original circuit for pre-selection
         OriginalCircuitResult originalCircuitResult = analyzeOriginalCircuit(circuitName, circuitCode, circuitLanguage);
 
@@ -553,9 +556,21 @@ public class NisqAnalyzerControlService {
 
                     qpuSelectionResult = qpuSelectionResultRepository.save(qpuSelectionResult);
                     job.getJobResults().add(qpuSelectionResult);
+
+                    if (qpuSelectionResult.getQpu().contains("qasm_simulator")) {
+                        simulatorQpuSelectionResult = qpuSelectionResult;
+                    }
                 }
             }
         }
+
+        //TODO delete
+        preciseResultsPreference = true;
+        metaOptimizer = "ada_boost_regressor";
+        predictionAlgorithm = "extra_trees_regressor";
+        queueImportanceRatio = 0.3f;
+        shortWaitingTimesPreference = true;
+        maxNumberOfCompiledCircuits = 5;
 
         // user prefers only short waiting times
         if (shortWaitingTimesPreference && !preciseResultsPreference) {
@@ -576,10 +591,40 @@ public class NisqAnalyzerControlService {
                 }
             }
             if (priorDataAvailable) {
-                prioritizationService.executePredictionForCompilerAnQpuPreSelection(originalCircuitResult, job, queueImportanceRatio,
-                    predictionAlgorithm, metaOptimizer);
+                List<String> qpuSelectionResultIdList =
+                    prioritizationService.executePredictionForCompilerAnQpuPreSelection(originalCircuitResult, job, queueImportanceRatio,
+                        predictionAlgorithm, metaOptimizer, shortWaitingTimesPreference);
+
+                // trim list of possible combinations
+                if (maxNumberOfCompiledCircuits > 0 && qpuSelectionResultIdList.size() > maxNumberOfCompiledCircuits) {
+                    qpuSelectionResultIdList.subList(maxNumberOfCompiledCircuits, qpuSelectionResultIdList.size()).clear();
+                    List<QpuSelectionResult> listOfSelectedQpuSelectionResults = new ArrayList<>();
+                    qpuSelectionResultIdList.forEach(id -> {
+                        job.getJobResults().forEach(qpuSelectionResult -> {
+                            if (qpuSelectionResult.getId().equals(UUID.fromString(id))) {
+                                listOfSelectedQpuSelectionResults.add(qpuSelectionResult);
+                            }
+                        });
+                    });
+                    job.setJobResults(listOfSelectedQpuSelectionResults);
+                }
             }
         }
+        // add one compilation candidate for the simulator to calculate the histogram intersection
+        job.getJobResults().add(simulatorQpuSelectionResult);
+
+        // delete compilation candidates that will not be considered
+        qpuSelectionResultRepository.findAllByQpuSelectionJobId(job.getId()).forEach(qpuSelectionResult -> {
+            AtomicBoolean resultIsContained = new AtomicBoolean(false);
+            job.getJobResults().forEach(qpuSelectionResult1 -> {
+                if (qpuSelectionResult.getId().equals(qpuSelectionResult1.getId())) {
+                    resultIsContained.set(true);
+                }
+            });
+            if (!resultIsContained.get()) {
+                qpuSelectionResultRepository.delete(qpuSelectionResult);
+            }
+        });
 
 
 //        // perform compiler selection for the given QPU and circuit

@@ -51,5 +51,5 @@ public class QpuSelectionResult extends CircuitResult {
 
     private String userId;
 
-    private float predictedHistogramIntersectionValue;
+    private Float predictedHistogramIntersectionValue;
 }
