@@ -569,7 +569,8 @@ public class NisqAnalyzerControlService {
             boolean priorDataAvailable = false;
             List<ExecutionResult> executionResultList = executionResultRepository.findAll();
             for (ExecutionResult executionResult : executionResultList) {
-                if (executionResult.getHistogramIntersectionValue() > 0) {
+                // ignore simulator results that are equal to 1 and non-calculated values
+                if (executionResult.getHistogramIntersectionValue() > 0 && executionResult.getHistogramIntersectionValue() < 1) {
                     priorDataAvailable = true;
                     break;
                 }
