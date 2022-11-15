@@ -21,6 +21,7 @@ package org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,11 +43,13 @@ import org.planqk.nisq.analyzer.core.model.McdaSensitivityAnalysisJob;
 import org.planqk.nisq.analyzer.core.model.McdaWeightLearningJob;
 import org.planqk.nisq.analyzer.core.model.OriginalCircuitResult;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
+import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
 import org.planqk.nisq.analyzer.core.model.xmcda.CriterionValue;
 import org.planqk.nisq.analyzer.core.prioritization.JobDataExtractor;
 import org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction.preSelectionModel.NewCircuit;
 import org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction.preSelectionModel.OriginalCircuitAndQpuMetrics;
 import org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction.preSelectionModel.PreSelectionPredictionRequest;
+import org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction.preSelectionModel.PredictionResultResponse;
 import org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction.preSelectionModel.TrainingData;
 import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
@@ -57,6 +60,7 @@ import org.planqk.nisq.analyzer.core.repository.McdaResultRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaSensitivityAnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaWeightLearningJobRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
+import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.xmcda.XmcdaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,6 +89,8 @@ public class PrioritizationService {
 
     private final QpuSelectionJobRepository qpuSelectionJobRepository;
 
+    private final QpuSelectionResultRepository qpuSelectionResultRepository;
+
     private final AnalysisJobRepository analysisJobRepository;
 
     private final CompilationJobRepository compilationJobRepository;
@@ -111,8 +117,9 @@ public class PrioritizationService {
     private String version;
 
     @Transactional
-    public void executePredictionForCompilerAnQpuPreSelection(OriginalCircuitResult originalCircuitResult, QpuSelectionJob qpuSelectionJob,
-                                                              Float queueImportanceRatio, String predictionAlgorithm, String metaOptimizer) {
+    public List<String> executePredictionForCompilerAnQpuPreSelection(OriginalCircuitResult originalCircuitResult, QpuSelectionJob qpuSelectionJob,
+                                                                      Float queueImportanceRatio, String predictionAlgorithm, String metaOptimizer,
+                                                                      boolean shortWaitingTimesPreference) {
 
         PreSelectionPredictionRequest preSelectionPredictionRequest = new PreSelectionPredictionRequest();
         preSelectionPredictionRequest.setMachineLearningMethod(predictionAlgorithm);
@@ -179,31 +186,94 @@ public class PrioritizationService {
         List<OriginalCircuitAndQpuMetrics> originalCircuitAndQpuMetricsNewCircuitList = new ArrayList<>();
 
         qpuSelectionJob.getJobResults().forEach(qpuSelectionResult -> {
-            OriginalCircuitAndQpuMetrics originalCircuitAndQpuMetricsNewCircuit = new OriginalCircuitAndQpuMetrics();
-            originalCircuitAndQpuMetricsNewCircuit.setId(qpuSelectionResult.getId().toString());
-            originalCircuitAndQpuMetricsNewCircuit.setOriginalDepth(originalCircuitResult.getOriginalDepth());
-            originalCircuitAndQpuMetricsNewCircuit.setOriginalWidth(originalCircuitResult.getOriginalWidth());
-            originalCircuitAndQpuMetricsNewCircuit.setOriginalMultiQubitGateDepth(originalCircuitResult.getOriginalMultiQubitGateDepth());
-            originalCircuitAndQpuMetricsNewCircuit.setOriginalNumberOfMeasurementOperations(
-                originalCircuitResult.getOriginalNumberOfMeasurementOperations());
-            originalCircuitAndQpuMetricsNewCircuit.setOriginalNumberOfMultiQubitGates(originalCircuitResult.getOriginalNumberOfMultiQubitGates());
-            originalCircuitAndQpuMetricsNewCircuit.setOriginalNumberOfSingleQubitGates(originalCircuitResult.getOriginalNumberOfSingleQubitGates());
-            originalCircuitAndQpuMetricsNewCircuit.setOriginalTotalNumberOfOperations(originalCircuitResult.getOriginalTotalNumberOfOperations());
-            originalCircuitAndQpuMetricsNewCircuit.setT1(qpuSelectionResult.getT1());
-            originalCircuitAndQpuMetricsNewCircuit.setT2(qpuSelectionResult.getT2());
-            originalCircuitAndQpuMetricsNewCircuit.setAvgSingleQubitGateError(qpuSelectionResult.getAvgSingleQubitGateError());
-            originalCircuitAndQpuMetricsNewCircuit.setAvgMultiQubitGateError(qpuSelectionResult.getAvgMultiQubitGateError());
-            originalCircuitAndQpuMetricsNewCircuit.setAvgSingleQubitGateTime(qpuSelectionResult.getAvgSingleQubitGateTime());
-            originalCircuitAndQpuMetricsNewCircuit.setAvgMultiQubitGateTime(qpuSelectionResult.getAvgMultiQubitGateTime());
-            originalCircuitAndQpuMetricsNewCircuit.setAvgReadoutError(qpuSelectionResult.getAvgReadoutError());
-            originalCircuitAndQpuMetricsNewCircuit.setQpu(qpuSelectionResult.getQpu());
-            originalCircuitAndQpuMetricsNewCircuit.setCompiler(qpuSelectionResult.getCompiler());
+            if (!qpuSelectionResult.getQpu().contains("simulator")) {
+                OriginalCircuitAndQpuMetrics originalCircuitAndQpuMetricsNewCircuit = new OriginalCircuitAndQpuMetrics();
+                originalCircuitAndQpuMetricsNewCircuit.setId(qpuSelectionResult.getId().toString());
+                originalCircuitAndQpuMetricsNewCircuit.setOriginalDepth(originalCircuitResult.getOriginalDepth());
+                originalCircuitAndQpuMetricsNewCircuit.setOriginalWidth(originalCircuitResult.getOriginalWidth());
+                originalCircuitAndQpuMetricsNewCircuit.setOriginalMultiQubitGateDepth(originalCircuitResult.getOriginalMultiQubitGateDepth());
+                originalCircuitAndQpuMetricsNewCircuit.setOriginalNumberOfMeasurementOperations(
+                    originalCircuitResult.getOriginalNumberOfMeasurementOperations());
+                originalCircuitAndQpuMetricsNewCircuit.setOriginalNumberOfMultiQubitGates(originalCircuitResult.getOriginalNumberOfMultiQubitGates());
+                originalCircuitAndQpuMetricsNewCircuit.setOriginalNumberOfSingleQubitGates(
+                    originalCircuitResult.getOriginalNumberOfSingleQubitGates());
+                originalCircuitAndQpuMetricsNewCircuit.setOriginalTotalNumberOfOperations(originalCircuitResult.getOriginalTotalNumberOfOperations());
+                originalCircuitAndQpuMetricsNewCircuit.setT1(qpuSelectionResult.getT1());
+                originalCircuitAndQpuMetricsNewCircuit.setT2(qpuSelectionResult.getT2());
+                originalCircuitAndQpuMetricsNewCircuit.setAvgSingleQubitGateError(qpuSelectionResult.getAvgSingleQubitGateError());
+                originalCircuitAndQpuMetricsNewCircuit.setAvgMultiQubitGateError(qpuSelectionResult.getAvgMultiQubitGateError());
+                originalCircuitAndQpuMetricsNewCircuit.setAvgSingleQubitGateTime(qpuSelectionResult.getAvgSingleQubitGateTime());
+                originalCircuitAndQpuMetricsNewCircuit.setAvgMultiQubitGateTime(qpuSelectionResult.getAvgMultiQubitGateTime());
+                originalCircuitAndQpuMetricsNewCircuit.setAvgReadoutError(qpuSelectionResult.getAvgReadoutError());
+                originalCircuitAndQpuMetricsNewCircuit.setQpu(qpuSelectionResult.getQpu());
+                originalCircuitAndQpuMetricsNewCircuit.setCompiler(qpuSelectionResult.getCompiler());
 
-            originalCircuitAndQpuMetricsNewCircuitList.add(originalCircuitAndQpuMetricsNewCircuit);
+                originalCircuitAndQpuMetricsNewCircuitList.add(originalCircuitAndQpuMetricsNewCircuit);
+            }
         });
 
         newCircuit.setOriginalCircuitAndQpuMetrics(originalCircuitAndQpuMetricsNewCircuitList);
         preSelectionPredictionRequest.setNewCircuit(newCircuit);
+
+        List<String> qpuSelectionResultIdList = new ArrayList<>();
+
+        // send request
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            URI resultLocationRedirect =
+                restTemplate.postForLocation(URI.create(String.format("http://%s:%d/plugins/es-optimizer@%s/prediction", hostname, port, version)),
+                    preSelectionPredictionRequest);
+
+            if (resultLocationRedirect != null) {
+                PrioritizationServiceResultLocationResponse prioritizationServiceResultLocationResponse =
+                    restTemplate.getForObject(resultLocationRedirect, PrioritizationServiceResultLocationResponse.class);
+
+                while (!prioritizationServiceResultLocationResponse.getLog().equalsIgnoreCase("finished")) {
+                    // Wait for next poll
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        // pass
+                    }
+                    prioritizationServiceResultLocationResponse =
+                        restTemplate.getForObject(resultLocationRedirect, PrioritizationServiceResultLocationResponse.class);
+                }
+
+                try {
+                    if (prioritizationServiceResultLocationResponse.getStatus().equalsIgnoreCase("success")) {
+                        PredictionResultResponse predictionResultResponse =
+                            restTemplate.getForObject(URI.create(prioritizationServiceResultLocationResponse.getOutputs().get(0).getHref()),
+                                PredictionResultResponse.class);
+
+                        if (predictionResultResponse != null) {
+                            //store predicted histogram intersection values
+                            predictionResultResponse.getPredictedHistogramIntersections().forEach((id, value) -> {
+                                Optional<QpuSelectionResult> qpuSelectionResultOptional = qpuSelectionResultRepository.findById(UUID.fromString(id));
+                                if (qpuSelectionResultOptional.isPresent()) {
+                                    QpuSelectionResult qpuSelectionResult = qpuSelectionResultOptional.get();
+                                    qpuSelectionResult.setPredictedHistogramIntersectionValue(value);
+                                    qpuSelectionResultRepository.save(qpuSelectionResult);
+
+                                    qpuSelectionResultIdList.add(qpuSelectionResult.getId().toString());
+                                }
+                            });
+                            if (shortWaitingTimesPreference && queueImportanceRatio > 0) {
+                                qpuSelectionResultIdList.sort(Comparator.comparingInt(predictionResultResponse.getBordaCountRanking()::indexOf));
+                                return qpuSelectionResultIdList;
+                            } else {
+                                qpuSelectionResultIdList.sort(Comparator.comparingInt(predictionResultResponse.getRanking()::indexOf));
+                                return qpuSelectionResultIdList;
+                            }
+                        }
+                    }
+                } catch (RestClientException e) {
+                    LOG.error("Cannot get prediction from Prioritization Service.");
+                }
+            }
+        } catch (RestClientException e) {
+            LOG.error("Connection to Prioritization Service failed.");
+        }
+        return null;
     }
 
     public void executeMcdaMethod(McdaJob mcdaJob) {
