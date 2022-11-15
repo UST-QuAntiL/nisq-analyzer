@@ -28,8 +28,6 @@ import lombok.Data;
 @Data
 public class QpuSelectionDto {
 
-    boolean simulatorsAllowed;
-
     List<String> allowedProviders;
 
     String circuitLanguage;

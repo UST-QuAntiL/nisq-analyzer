@@ -184,8 +184,7 @@ public class RootController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
         @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit passed in as file")
     @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitFile(@RequestParam boolean simulatorsAllowed,
-                                                                  @RequestParam List<String> allowedProviders, @RequestParam String circuitLanguage,
+    public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitFile(@RequestParam List<String> allowedProviders, @RequestParam String circuitLanguage,
                                                                   @RequestParam Map<String, String> tokens,
                                                                   @RequestParam("circuit") MultipartFile circuitCode,
                                                                   @RequestParam(required = false) String circuitName,
@@ -220,7 +219,7 @@ public class RootController {
         new Thread(() -> {
             nisqAnalyzerService
                 .performQpuSelectionForCircuit(job, allowedProviders, circuitLanguage, circuitFile,
-                    tokens, simulatorsAllowed, circuitName, compilers, preciseResultsPreference, shortWaitingTimesPreference, queueImportanceRatio,
+                    tokens, circuitName, compilers, preciseResultsPreference, shortWaitingTimesPreference, queueImportanceRatio,
                     maxNumberOfCompiledCircuits, predictionAlgorithm, metaOptimizer);
         }).start();
 
@@ -258,7 +257,7 @@ public class RootController {
         new Thread(() -> {
             nisqAnalyzerService
                 .performQpuSelectionForCircuit(job, params.getAllowedProviders(), params.getCircuitLanguage(), circuitFile,
-                    params.getTokens(), params.isSimulatorsAllowed(), params.getCircuitName(), compilers, params.isPreciseResultsPreference(),
+                    params.getTokens(), params.getCircuitName(), compilers, params.isPreciseResultsPreference(),
                     params.isShortWaitingTimesPreference(), params.getQueueImportanceRatio(), params.getMaxNumberOfCompiledCircuits(),
                     params.getPredictionAlgorithm(), params.getMetaOptimizer());
         }).start();
