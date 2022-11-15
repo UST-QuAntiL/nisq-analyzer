@@ -301,7 +301,7 @@ public class XmcdaCriteriaController {
     @PostMapping(value = "/{methodName}/" + Constants.MCDA_PRIORITIZE)
     public HttpEntity<EntityModel<McdaJob>> prioritizeCompiledCircuitsOfJob(@PathVariable String methodName, @RequestParam UUID jobId,
                                                                             @RequestParam Boolean useBordaCount,
-                                                                            @RequestBody Map<String, Float> bordaCountWeights) {
+                                                                            @RequestBody(required = false) Map<String, Float> bordaCountWeights) {
         LOG.debug("Creating new job to run prioritization with MCDA method {} and NISQ Analyzer job with ID: {}", methodName, jobId);
 
         // check if method is supported
@@ -507,7 +507,7 @@ public class XmcdaCriteriaController {
                                                                                                          @RequestParam float upperBound,
                                                                                                          @RequestParam float lowerBound,
                                                                                                          @RequestParam Boolean useBordaCount,
-                                                                                                         @RequestBody
+                                                                                                         @RequestBody(required = false)
                                                                                                          Map<String, Float> bordaCountWeights) {
         LOG.debug("Creating new job to run sensitivity analysis with MCDA method {} and NISQ Analyzer job with ID: {}", methodName, jobId);
 
