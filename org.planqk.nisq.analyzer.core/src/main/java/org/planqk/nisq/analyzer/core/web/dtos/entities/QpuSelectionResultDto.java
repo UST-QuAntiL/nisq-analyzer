@@ -44,6 +44,10 @@ public class QpuSelectionResultDto extends CircuitResultDto {
 
     private String userId;
 
+    UUID originalCircuitId;
+
+    Float estimatedHistogramIntersectionValue;
+
     public static final class Converter {
 
         public static QpuSelectionResultDto convert(final QpuSelectionResult object) {
@@ -76,6 +80,8 @@ public class QpuSelectionResultDto extends CircuitResultDto {
             dto.setT2(object.getT2());
             dto.setNumberOfQubits(object.getQubitCount());
             dto.setSimulator(object.isSimulator());
+            dto.setEstimatedHistogramIntersectionValue(object.getPredictedHistogramIntersectionValue());
+            dto.setOriginalCircuitId(object.getOriginalCircuitId());
             return dto;
         }
     }
