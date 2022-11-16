@@ -24,6 +24,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -301,7 +302,7 @@ public class XmcdaCriteriaController {
     @PostMapping(value = "/{methodName}/" + Constants.MCDA_PRIORITIZE)
     public HttpEntity<EntityModel<McdaJob>> prioritizeCompiledCircuitsOfJob(@PathVariable String methodName, @RequestParam UUID jobId,
                                                                             @RequestParam Boolean useBordaCount,
-                                                                            @RequestBody(required = false) Map<String, Float> bordaCountWeights) {
+                                                                            @RequestParam Float queueImportanceRatio) {
         LOG.debug("Creating new job to run prioritization with MCDA method {} and NISQ Analyzer job with ID: {}", methodName, jobId);
 
         // check if method is supported
@@ -317,9 +318,14 @@ public class XmcdaCriteriaController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        if (useBordaCount && bordaCountWeights.size() == 0) {
+        Map<String, Float> bordaCountWeights = new HashMap<>();
+
+        if (useBordaCount && queueImportanceRatio == null) {
             LOG.error("A ratio is required when Borda Count should be applied.");
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } else if (useBordaCount) {
+            bordaCountWeights.put("queue-size", queueImportanceRatio);
+            bordaCountWeights.put("result_precision", 1 - queueImportanceRatio);
         }
 
         // create job object and pass to corresponding MCDA plugin
@@ -507,9 +513,18 @@ public class XmcdaCriteriaController {
                                                                                                          @RequestParam float upperBound,
                                                                                                          @RequestParam float lowerBound,
                                                                                                          @RequestParam Boolean useBordaCount,
-                                                                                                         @RequestBody(required = false)
-                                                                                                         Map<String, Float> bordaCountWeights) {
+                                                                                                         @RequestParam Float queueImportanceRatio) {
         LOG.debug("Creating new job to run sensitivity analysis with MCDA method {} and NISQ Analyzer job with ID: {}", methodName, jobId);
+
+        Map<String, Float> bordaCountWeights = new HashMap<>();
+
+        if (useBordaCount && queueImportanceRatio == null) {
+            LOG.error("A ratio is required when Borda Count should be applied.");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } else if (useBordaCount) {
+            bordaCountWeights.put("queue-size", queueImportanceRatio);
+            bordaCountWeights.put("result_precision", 1 - queueImportanceRatio);
+        }
 
         // check if method is supported
         Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst()
