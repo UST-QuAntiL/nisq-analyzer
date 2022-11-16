@@ -59,6 +59,7 @@ import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaResultRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaSensitivityAnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaWeightLearningJobRepository;
+import org.planqk.nisq.analyzer.core.repository.OriginalCircuitResultRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.xmcda.XmcdaRepository;
@@ -96,6 +97,8 @@ public class PrioritizationService {
     private final CompilationJobRepository compilationJobRepository;
 
     private final ExecutionResultRepository executionResultRepository;
+
+    private final OriginalCircuitResultRepository originalCircuitResultRepository;
 
     private final McdaWeightLearningJobRepository mcdaWeightLearningJobRepository;
 
@@ -144,32 +147,38 @@ public class PrioritizationService {
                     .findFirst();
                 if (executionResultOptional.isPresent() &&
                     !qpuSelectionResult.getQpu().contains("simulator")) {  // TODO: add a better check if the result is from a simulator
-                    ExecutionResult executionResult = executionResultOptional.get();
-                    OriginalCircuitAndQpuMetrics originalCircuitAndQpuMetricsPriorCircuit = new OriginalCircuitAndQpuMetrics();
-                    originalCircuitAndQpuMetricsPriorCircuit.setId(qpuSelectionResult.getId().toString());
-                    originalCircuitAndQpuMetricsPriorCircuit.setOriginalDepth(originalCircuitResult.getOriginalDepth());
-                    originalCircuitAndQpuMetricsPriorCircuit.setOriginalWidth(originalCircuitResult.getOriginalWidth());
-                    originalCircuitAndQpuMetricsPriorCircuit.setOriginalMultiQubitGateDepth(originalCircuitResult.getOriginalMultiQubitGateDepth());
-                    originalCircuitAndQpuMetricsPriorCircuit.setOriginalNumberOfMeasurementOperations(
-                        originalCircuitResult.getOriginalNumberOfMeasurementOperations());
-                    originalCircuitAndQpuMetricsPriorCircuit.setOriginalNumberOfMultiQubitGates(
-                        originalCircuitResult.getOriginalNumberOfMultiQubitGates());
-                    originalCircuitAndQpuMetricsPriorCircuit.setOriginalNumberOfSingleQubitGates(
-                        originalCircuitResult.getOriginalNumberOfSingleQubitGates());
-                    originalCircuitAndQpuMetricsPriorCircuit.setOriginalTotalNumberOfOperations(
-                        originalCircuitResult.getOriginalTotalNumberOfOperations());
-                    originalCircuitAndQpuMetricsPriorCircuit.setT1(qpuSelectionResult.getT1());
-                    originalCircuitAndQpuMetricsPriorCircuit.setT2(qpuSelectionResult.getT2());
-                    originalCircuitAndQpuMetricsPriorCircuit.setAvgSingleQubitGateError(qpuSelectionResult.getAvgSingleQubitGateError());
-                    originalCircuitAndQpuMetricsPriorCircuit.setAvgMultiQubitGateError(qpuSelectionResult.getAvgMultiQubitGateError());
-                    originalCircuitAndQpuMetricsPriorCircuit.setAvgSingleQubitGateTime(qpuSelectionResult.getAvgSingleQubitGateTime());
-                    originalCircuitAndQpuMetricsPriorCircuit.setAvgMultiQubitGateTime(qpuSelectionResult.getAvgMultiQubitGateTime());
-                    originalCircuitAndQpuMetricsPriorCircuit.setAvgReadoutError(qpuSelectionResult.getAvgReadoutError());
-                    originalCircuitAndQpuMetricsPriorCircuit.setQpu(qpuSelectionResult.getQpu());
-                    originalCircuitAndQpuMetricsPriorCircuit.setCompiler(qpuSelectionResult.getCompiler());
-                    originalCircuitAndQpuMetricsPriorCircuit.setHistogramIntersection((float) executionResult.getHistogramIntersectionValue());
+                    Optional<OriginalCircuitResult> originalCircuitResultOptional =
+                        originalCircuitResultRepository.findById(qpuSelectionResult.getOriginalCircuitId());
+                    if (originalCircuitResultOptional.isPresent()) {
+                        OriginalCircuitResult originalCircuitResultTrainingDataPoint = originalCircuitResultOptional.get();
+                        ExecutionResult executionResult = executionResultOptional.get();
+                        OriginalCircuitAndQpuMetrics originalCircuitAndQpuMetricsPriorCircuit = new OriginalCircuitAndQpuMetrics();
+                        originalCircuitAndQpuMetricsPriorCircuit.setId(qpuSelectionResult.getId().toString());
+                        originalCircuitAndQpuMetricsPriorCircuit.setOriginalDepth(originalCircuitResultTrainingDataPoint.getOriginalDepth());
+                        originalCircuitAndQpuMetricsPriorCircuit.setOriginalWidth(originalCircuitResultTrainingDataPoint.getOriginalWidth());
+                        originalCircuitAndQpuMetricsPriorCircuit.setOriginalMultiQubitGateDepth(
+                            originalCircuitResultTrainingDataPoint.getOriginalMultiQubitGateDepth());
+                        originalCircuitAndQpuMetricsPriorCircuit.setOriginalNumberOfMeasurementOperations(
+                            originalCircuitResultTrainingDataPoint.getOriginalNumberOfMeasurementOperations());
+                        originalCircuitAndQpuMetricsPriorCircuit.setOriginalNumberOfMultiQubitGates(
+                            originalCircuitResultTrainingDataPoint.getOriginalNumberOfMultiQubitGates());
+                        originalCircuitAndQpuMetricsPriorCircuit.setOriginalNumberOfSingleQubitGates(
+                            originalCircuitResultTrainingDataPoint.getOriginalNumberOfSingleQubitGates());
+                        originalCircuitAndQpuMetricsPriorCircuit.setOriginalTotalNumberOfOperations(
+                            originalCircuitResultTrainingDataPoint.getOriginalTotalNumberOfOperations());
+                        originalCircuitAndQpuMetricsPriorCircuit.setT1(qpuSelectionResult.getT1());
+                        originalCircuitAndQpuMetricsPriorCircuit.setT2(qpuSelectionResult.getT2());
+                        originalCircuitAndQpuMetricsPriorCircuit.setAvgSingleQubitGateError(qpuSelectionResult.getAvgSingleQubitGateError());
+                        originalCircuitAndQpuMetricsPriorCircuit.setAvgMultiQubitGateError(qpuSelectionResult.getAvgMultiQubitGateError());
+                        originalCircuitAndQpuMetricsPriorCircuit.setAvgSingleQubitGateTime(qpuSelectionResult.getAvgSingleQubitGateTime());
+                        originalCircuitAndQpuMetricsPriorCircuit.setAvgMultiQubitGateTime(qpuSelectionResult.getAvgMultiQubitGateTime());
+                        originalCircuitAndQpuMetricsPriorCircuit.setAvgReadoutError(qpuSelectionResult.getAvgReadoutError());
+                        originalCircuitAndQpuMetricsPriorCircuit.setQpu(qpuSelectionResult.getQpu());
+                        originalCircuitAndQpuMetricsPriorCircuit.setCompiler(qpuSelectionResult.getCompiler());
+                        originalCircuitAndQpuMetricsPriorCircuit.setHistogramIntersection((float) executionResult.getHistogramIntersectionValue());
 
-                    originalCircuitAndQpuMetricsList.add(originalCircuitAndQpuMetricsPriorCircuit);
+                        originalCircuitAndQpuMetricsList.add(originalCircuitAndQpuMetricsPriorCircuit);
+                    }
                 }
             });
             if (originalCircuitAndQpuMetricsList.size() > 0) {
