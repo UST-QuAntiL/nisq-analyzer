@@ -17,22 +17,19 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.restMcda;
+package org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction.preSelectionModel;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
-public class McdaCriterionWeight {
+@NoArgsConstructor
+@Data
+public class NewCircuit {
+    private String id;
 
-    @Getter
-    @Setter
-    float weight;
-
-    @Getter
-    @Setter
-    @JsonProperty("isCost")
-    boolean isCost;
+    private List<OriginalCircuitAndQpuMetrics> originalCircuitAndQpuMetrics;
 }

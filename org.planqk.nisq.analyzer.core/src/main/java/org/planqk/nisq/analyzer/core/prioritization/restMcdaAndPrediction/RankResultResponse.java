@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2022 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,40 +17,32 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.web.dtos.requests;
+package org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction;
 
-import java.net.URL;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Data
-public class QpuSelectionDto {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-    List<String> allowedProviders;
+@AllArgsConstructor
+@NoArgsConstructor
+public class RankResultResponse {
 
-    String circuitLanguage;
+    @Getter
+    @Setter
+    private Map<String, Float> scores;
 
-    URL circuitUrl;
+    @Getter
+    @Setter
+    private ArrayList<String> ranking;
 
-    Map<String, String> tokens;
-
-    String refreshToken;
-
-    String circuitName;
-
-    boolean preciseResultsPreference;
-
-    boolean shortWaitingTimesPreference;
-
-    Float queueImportanceRatio;
-
-    int maxNumberOfCompiledCircuits;
-
-    String predictionAlgorithm;
-
-    String metaOptimizer;
-
-    String userId;
+    @Getter
+    @Setter
+    @JsonProperty("borda_count_ranking")
+    private ArrayList<String> bordaCountRanking;
 }

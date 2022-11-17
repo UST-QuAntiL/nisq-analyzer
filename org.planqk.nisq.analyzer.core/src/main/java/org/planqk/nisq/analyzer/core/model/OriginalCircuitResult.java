@@ -17,36 +17,49 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.restMcda;
+package org.planqk.nisq.analyzer.core.model;
 
-import java.util.List;
-import java.util.Map;
-import javax.persistence.CascadeType;
-import javax.persistence.OneToMany;
+import javax.persistence.Entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@AllArgsConstructor
+@Entity
 @NoArgsConstructor
-public class McdaWeightLearningRequest {
+@AllArgsConstructor
+public class OriginalCircuitResult extends HasId {
 
     @Getter
     @Setter
-    private String mcdaMethod;
+    private String circuitName;
 
     @Getter
     @Setter
-    private String learningMethod;
+    private int originalWidth;
 
     @Getter
     @Setter
-    private Map<String, McdaCriterionWeight> metricWeights;
+    private int originalDepth;
 
     @Getter
     @Setter
-    @OneToMany(cascade = CascadeType.PERSIST)
-    private List<McdaCompiledCircuitJob> circuits;
+    private int originalMultiQubitGateDepth;
+
+    @Getter
+    @Setter
+    private int originalNumberOfSingleQubitGates;
+
+    @Getter
+    @Setter
+    private int originalNumberOfMultiQubitGates;
+
+    @Getter
+    @Setter
+    private int originalTotalNumberOfOperations;
+
+    @Getter
+    @Setter
+    private int originalNumberOfMeasurementOperations;
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2022 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,40 +17,36 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.web.dtos.requests;
+package org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction;
 
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import javax.persistence.CascadeType;
+import javax.persistence.OneToMany;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
-public class QpuSelectionDto {
+@AllArgsConstructor
+@NoArgsConstructor
+public class McdaWeightLearningRequest {
 
-    List<String> allowedProviders;
+    @Getter
+    @Setter
+    private String mcdaMethod;
 
-    String circuitLanguage;
+    @Getter
+    @Setter
+    private String learningMethod;
 
-    URL circuitUrl;
+    @Getter
+    @Setter
+    private Map<String, McdaCriterionWeight> metricWeights;
 
-    Map<String, String> tokens;
-
-    String refreshToken;
-
-    String circuitName;
-
-    boolean preciseResultsPreference;
-
-    boolean shortWaitingTimesPreference;
-
-    Float queueImportanceRatio;
-
-    int maxNumberOfCompiledCircuits;
-
-    String predictionAlgorithm;
-
-    String metaOptimizer;
-
-    String userId;
+    @Getter
+    @Setter
+    @OneToMany(cascade = CascadeType.PERSIST)
+    private List<McdaCompiledCircuitJob> circuits;
 }

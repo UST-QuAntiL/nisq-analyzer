@@ -17,26 +17,29 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.restMcda;
+package org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction.preSelectionModel;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@NoArgsConstructor
 @AllArgsConstructor
-public class WeightLearningResponse {
+@NoArgsConstructor
+public class PredictionResultResponse {
 
     @Getter
     @Setter
-    @JsonProperty("normalized_weight")
-    float normalizedWeight;
+    private Map<String, Float> predictedHistogramIntersections;
 
     @Getter
     @Setter
-    @JsonProperty("isCost")
-    boolean isCost;
+    private List<String> ranking;
+    
+    @Getter
+    @Setter
+    private List<String> bordaCountRanking;
 }

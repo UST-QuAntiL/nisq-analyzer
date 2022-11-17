@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2022 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,40 +17,14 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.web.dtos.requests;
+package org.planqk.nisq.analyzer.core.repository;
 
-import java.net.URL;
-import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 
-import lombok.Data;
+import org.planqk.nisq.analyzer.core.model.OriginalCircuitResult;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-@Data
-public class QpuSelectionDto {
-
-    List<String> allowedProviders;
-
-    String circuitLanguage;
-
-    URL circuitUrl;
-
-    Map<String, String> tokens;
-
-    String refreshToken;
-
-    String circuitName;
-
-    boolean preciseResultsPreference;
-
-    boolean shortWaitingTimesPreference;
-
-    Float queueImportanceRatio;
-
-    int maxNumberOfCompiledCircuits;
-
-    String predictionAlgorithm;
-
-    String metaOptimizer;
-
-    String userId;
+@RepositoryRestResource(exported = false)
+public interface OriginalCircuitResultRepository extends JpaRepository<OriginalCircuitResult, UUID> {
 }

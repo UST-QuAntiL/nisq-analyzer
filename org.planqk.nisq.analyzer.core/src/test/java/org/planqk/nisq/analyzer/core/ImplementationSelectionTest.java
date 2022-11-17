@@ -26,10 +26,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
-import org.planqk.nisq.analyzer.core.connector.qiskit.QiskitSdkConnector;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.Provider;
+import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -38,7 +38,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
 
     @MockBean
-    private QiskitSdkConnector qiskitSdkConnector;
+    private QProvService qProvService;
 
     @Autowired
     protected AnalysisJobRepository analysisJobRepository;
@@ -52,16 +52,16 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         Provider ibmq = new Provider();
         ibmq.setName("IBMQ");
 
-        Mockito.when(qiskitSdkConnector.getProviders()).thenReturn(Arrays.asList(ibmq));
-        Mockito.when(qiskitSdkConnector.getQPUs(ibmq, System.getenv("token"))).thenReturn(Arrays.asList(
+        Mockito.when(qProvService.getProviders()).thenReturn(Arrays.asList(ibmq));
+        Mockito.when(qProvService.getQPUs(ibmq, System.getenv("token"))).thenReturn(Arrays.asList(
             createDummyQPU("IBMQ", "ibmq_16_melbourne", 15, 1696, 54502.2906f),
             createDummySimulator("IBMQ", "ibmq_qasm_simulator", 32)
         ));
     }
 
     @Test
-    public void testQiskitQpusMocking() {
-        Assertions.assertTrue(qiskitSdkConnector.getProviders().stream().allMatch(p -> p.getName().equals("IBMQ")));
+    public void testQProvQpusMocking() {
+        Assertions.assertTrue(qProvService.getProviders().stream().allMatch(p -> p.getName().equals("IBMQ")));
     }
 
     @Ignore("Ignored by default due to long expected runtime")

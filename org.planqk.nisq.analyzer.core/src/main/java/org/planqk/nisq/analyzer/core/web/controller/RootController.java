@@ -184,12 +184,17 @@ public class RootController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
         @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit passed in as file")
     @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitFile(@RequestParam boolean simulatorsAllowed,
-                                                                  @RequestParam List<String> allowedProviders, @RequestParam String circuitLanguage,
+    public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitFile(@RequestParam List<String> allowedProviders, @RequestParam String circuitLanguage,
                                                                   @RequestParam Map<String, String> tokens,
                                                                   @RequestParam("circuit") MultipartFile circuitCode,
                                                                   @RequestParam(required = false) String circuitName,
                                                                   @RequestParam(required = false) String userId,
+                                                                  @RequestParam(required = false) boolean preciseResultsPreference,
+                                                                  @RequestParam(required = false) boolean shortWaitingTimesPreference,
+                                                                  @RequestParam(required = false) Float queueImportanceRatio,
+                                                                  @RequestParam(required = false) int maxNumberOfCompiledCircuits,
+                                                                  @RequestParam(required = false) String predictionAlgorithm,
+                                                                  @RequestParam(required = false) String metaOptimizer,
                                                                   @RequestParam(required = false) List<String> compilers) {
         LOG.debug("Post to select QPU for given quantum circuit with language: {}", circuitLanguage);
 
@@ -213,8 +218,9 @@ public class RootController {
         qpuSelectionJobRepository.save(job);
         new Thread(() -> {
             nisqAnalyzerService
-                    .performQpuSelectionForCircuit(job, allowedProviders, circuitLanguage, circuitFile,
-                            tokens, simulatorsAllowed, circuitName, compilers);
+                .performQpuSelectionForCircuit(job, allowedProviders, circuitLanguage, circuitFile,
+                    tokens, circuitName, compilers, preciseResultsPreference, shortWaitingTimesPreference, queueImportanceRatio,
+                    maxNumberOfCompiledCircuits, predictionAlgorithm, metaOptimizer);
         }).start();
 
         // send back QPU selection job to track the progress
@@ -247,10 +253,13 @@ public class RootController {
         }
 
         qpuSelectionJobRepository.save(job);
+
         new Thread(() -> {
             nisqAnalyzerService
-                    .performQpuSelectionForCircuit(job, params.getAllowedProviders(), params.getCircuitLanguage(), circuitFile,
-                            params.getTokens(), params.isSimulatorsAllowed(), params.getCircuitName(), compilers);
+                .performQpuSelectionForCircuit(job, params.getAllowedProviders(), params.getCircuitLanguage(), circuitFile,
+                    params.getTokens(), params.getCircuitName(), compilers, params.isPreciseResultsPreference(),
+                    params.isShortWaitingTimesPreference(), params.getQueueImportanceRatio(), params.getMaxNumberOfCompiledCircuits(),
+                    params.getPredictionAlgorithm(), params.getMetaOptimizer());
         }).start();
 
         // send back QPU selection job to track the progress

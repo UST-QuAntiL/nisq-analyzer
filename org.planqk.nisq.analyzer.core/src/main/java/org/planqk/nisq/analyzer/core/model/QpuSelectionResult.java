@@ -47,5 +47,9 @@ public class QpuSelectionResult extends CircuitResult {
 
     private UUID qpuSelectionJobId;
 
+    private UUID originalCircuitResultId;
+
     private String userId;
+
+    private Float predictedHistogramIntersectionValue;
 }

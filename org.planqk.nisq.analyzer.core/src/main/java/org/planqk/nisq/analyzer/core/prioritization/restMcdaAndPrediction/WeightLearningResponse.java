@@ -17,28 +17,26 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.restMcda;
+package org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction;
 
-import java.util.ArrayList;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@AllArgsConstructor
 @NoArgsConstructor
-public class PrioritizationServiceResultLocationResponse {
+@AllArgsConstructor
+public class WeightLearningResponse {
 
     @Getter
     @Setter
-    private String log;
+    @JsonProperty("normalized_weight")
+    float normalizedWeight;
 
     @Getter
     @Setter
-    private ArrayList<PrioritizationServiceResultLocationOutputs> outputs;
-
-    @Getter
-    @Setter
-    private String status;
+    @JsonProperty("isCost")
+    boolean isCost;
 }

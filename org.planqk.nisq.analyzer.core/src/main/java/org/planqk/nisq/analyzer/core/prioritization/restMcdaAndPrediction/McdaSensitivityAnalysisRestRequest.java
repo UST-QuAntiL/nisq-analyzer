@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2022 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -17,40 +17,23 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.web.dtos.requests;
+package org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction;
 
-import java.net.URL;
-import java.util.List;
-import java.util.Map;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import lombok.Data;
+@NoArgsConstructor
+public class McdaSensitivityAnalysisRestRequest extends McdaRankRestRequest {
+    @Getter
+    @Setter
+    private float stepSize;
 
-@Data
-public class QpuSelectionDto {
+    @Getter
+    @Setter
+    private float upperBound;
 
-    List<String> allowedProviders;
-
-    String circuitLanguage;
-
-    URL circuitUrl;
-
-    Map<String, String> tokens;
-
-    String refreshToken;
-
-    String circuitName;
-
-    boolean preciseResultsPreference;
-
-    boolean shortWaitingTimesPreference;
-
-    Float queueImportanceRatio;
-
-    int maxNumberOfCompiledCircuits;
-
-    String predictionAlgorithm;
-
-    String metaOptimizer;
-
-    String userId;
+    @Getter
+    @Setter
+    private float lowerBound;
 }
