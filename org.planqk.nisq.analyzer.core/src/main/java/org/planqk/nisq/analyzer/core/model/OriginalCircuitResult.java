@@ -22,30 +22,44 @@ package org.planqk.nisq.analyzer.core.model;
 import javax.persistence.Entity;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@EqualsAndHashCode(callSuper = true)
 @Entity
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class OriginalCircuitResult extends HasId {
 
+    @Getter
+    @Setter
     private String circuitName;
 
+    @Getter
+    @Setter
     private int originalWidth;
 
+    @Getter
+    @Setter
     private int originalDepth;
 
+    @Getter
+    @Setter
     private int originalMultiQubitGateDepth;
 
+    @Getter
+    @Setter
     private int originalNumberOfSingleQubitGates;
 
+    @Getter
+    @Setter
     private int originalNumberOfMultiQubitGates;
 
+    @Getter
+    @Setter
     private int originalTotalNumberOfOperations;
 
+    @Getter
+    @Setter
     private int originalNumberOfMeasurementOperations;
 }

@@ -44,7 +44,7 @@ public class QpuSelectionResultDto extends CircuitResultDto {
 
     private String userId;
 
-    UUID originalCircuitId;
+    UUID originalCircuitResultId;
 
     Float estimatedHistogramIntersectionValue;
 
@@ -81,7 +81,7 @@ public class QpuSelectionResultDto extends CircuitResultDto {
             dto.setNumberOfQubits(object.getQubitCount());
             dto.setSimulator(object.isSimulator());
             dto.setEstimatedHistogramIntersectionValue(object.getPredictedHistogramIntersectionValue());
-            dto.setOriginalCircuitId(object.getOriginalCircuitId());
+            dto.setOriginalCircuitResultId(object.getOriginalCircuitResultId());
             return dto;
         }
     }

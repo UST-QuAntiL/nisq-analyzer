@@ -552,7 +552,7 @@ public class NisqAnalyzerControlService {
                         qpuSelectionResult.setQubitCount(qpu.getQubitCount());
                         qpuSelectionResult.setSimulator(qpu.isSimulator());
                         qpuSelectionResult.setUserId(job.getUserId());
-                        qpuSelectionResult.setOriginalCircuitId(originalCircuitResult.getId());
+                        qpuSelectionResult.setOriginalCircuitResultId(originalCircuitResult.getId());
 
                         qpuSelectionResult = qpuSelectionResultRepository.save(qpuSelectionResult);
                         job.getJobResults().add(qpuSelectionResult);

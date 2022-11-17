@@ -148,7 +148,7 @@ public class PrioritizationService {
                 if (executionResultOptional.isPresent() &&
                     !qpuSelectionResult.getQpu().contains("simulator")) {  // TODO: add a better check if the result is from a simulator
                     Optional<OriginalCircuitResult> originalCircuitResultOptional =
-                        originalCircuitResultRepository.findById(qpuSelectionResult.getOriginalCircuitId());
+                        originalCircuitResultRepository.findById(qpuSelectionResult.getOriginalCircuitResultId());
                     if (originalCircuitResultOptional.isPresent()) {
                         OriginalCircuitResult originalCircuitResultTrainingDataPoint = originalCircuitResultOptional.get();
                         ExecutionResult executionResult = executionResultOptional.get();
