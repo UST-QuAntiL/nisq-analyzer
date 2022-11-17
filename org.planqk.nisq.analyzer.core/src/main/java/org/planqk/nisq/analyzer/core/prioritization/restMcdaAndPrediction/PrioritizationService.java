@@ -264,7 +264,7 @@ public class PrioritizationService {
                                 if (qpuSelectionResultOptional.isPresent()) {
                                     QpuSelectionResult qpuSelectionResult = qpuSelectionResultOptional.get();
                                     qpuSelectionResult.setPredictedHistogramIntersectionValue(value);
-                                    qpuSelectionResultRepository.save(qpuSelectionResult);
+                                    qpuSelectionResult = qpuSelectionResultRepository.save(qpuSelectionResult);
 
                                     qpuSelectionResultIdList.add(qpuSelectionResult.getId().toString());
                                 }
