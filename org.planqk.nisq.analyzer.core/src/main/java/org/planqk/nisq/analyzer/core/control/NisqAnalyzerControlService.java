@@ -36,6 +36,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import javax.transaction.Transactional;
 
 import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
@@ -472,6 +473,7 @@ public class NisqAnalyzerControlService {
      * @param tokens            a map with access tokens for the different quantum hardware providers
      * @param circuitName     user defined name to (partly) distinguish circuits
      */
+    @Transactional
     public void performQpuSelectionForCircuit(QpuSelectionJob job, List<String> allowedProviders, String circuitLanguage, File circuitCode,
                                               Map<String, String> tokens, String circuitName, List<String> compilers,
                                               boolean preciseResultsPreference, boolean shortWaitingTimesPreference, Float queueImportanceRatio,
@@ -670,6 +672,19 @@ public class NisqAnalyzerControlService {
                 qpuSelectionResultRepository.save(qpuSelectionResult);
             }
         });
+
+        //delete qpuSelectionResults that are not executable because they were not compilable as too many qubits are required
+        qpuSelectionResultRepository.findAllByQpuSelectionJobId(job.getId()).forEach(qpuSelectionResult -> {
+            if (qpuSelectionResult.getAnalyzedWidth() == 0 && qpuSelectionResult.getAnalyzedDepth() == 0) {
+                qpuSelectionResultRepository.delete(qpuSelectionResult);
+            }
+        });
+        List<QpuSelectionResult> allOverRemainingQpuSelectionResultList = new ArrayList<>();
+        job.getJobResults().forEach(qpuSelectionResultOld -> {
+            Optional<QpuSelectionResult> qpuSelectionResultOptional = qpuSelectionResultRepository.findById(qpuSelectionResultOld.getId());
+            qpuSelectionResultOptional.ifPresent(allOverRemainingQpuSelectionResultList::add);
+        });
+        job.setJobResults(allOverRemainingQpuSelectionResultList);
 
         // store updated result object
         LOG.debug("Results: " + job.getJobResults().size());
