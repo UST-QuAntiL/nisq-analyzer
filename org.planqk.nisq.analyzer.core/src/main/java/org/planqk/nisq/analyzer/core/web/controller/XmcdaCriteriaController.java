@@ -326,6 +326,9 @@ public class XmcdaCriteriaController {
         } else if (useBordaCount) {
             bordaCountWeights.put("queue-size", queueImportanceRatio);
             bordaCountWeights.put("result_precision", 1 - queueImportanceRatio);
+        } else {
+            bordaCountWeights.put("queue-size", 0.0f);
+            bordaCountWeights.put("result_precision", 0.0f);
         }
 
         // create job object and pass to corresponding MCDA plugin
@@ -524,6 +527,9 @@ public class XmcdaCriteriaController {
         } else if (useBordaCount) {
             bordaCountWeights.put("queue-size", queueImportanceRatio);
             bordaCountWeights.put("result_precision", 1 - queueImportanceRatio);
+        } else {
+            bordaCountWeights.put("queue-size", 0.0f);
+            bordaCountWeights.put("result_precision", 0.0f);
         }
 
         // check if method is supported
