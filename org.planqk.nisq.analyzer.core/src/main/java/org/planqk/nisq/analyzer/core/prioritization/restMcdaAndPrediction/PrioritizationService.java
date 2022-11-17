@@ -139,45 +139,48 @@ public class PrioritizationService {
             List<OriginalCircuitAndQpuMetrics> originalCircuitAndQpuMetricsList = new ArrayList<>();
 
             priorQpuSelectionJob.getJobResults().forEach(qpuSelectionResult -> {
-                List<ExecutionResult> executionResultList = executionResultRepository.findByQpuSelectionResult(qpuSelectionResult);
-                Optional<ExecutionResult> executionResultOptional = executionResultList.stream().filter(
-                        exeResult -> exeResult.getShots() > 0 && exeResult.getHistogramIntersectionValue() > 0 &&
-                            exeResult.getHistogramIntersectionValue() < 1 &&
-                            exeResult.getStatus().equals(ExecutionResultStatus.FINISHED))
-                    .findFirst();
-                if (executionResultOptional.isPresent() &&
-                    !qpuSelectionResult.getQpu().contains("simulator")) {  // TODO: add a better check if the result is from a simulator
-                    Optional<OriginalCircuitResult> originalCircuitResultOptional =
-                        originalCircuitResultRepository.findById(qpuSelectionResult.getOriginalCircuitResultId());
-                    if (originalCircuitResultOptional.isPresent()) {
-                        OriginalCircuitResult originalCircuitResultTrainingDataPoint = originalCircuitResultOptional.get();
-                        ExecutionResult executionResult = executionResultOptional.get();
-                        OriginalCircuitAndQpuMetrics originalCircuitAndQpuMetricsPriorCircuit = new OriginalCircuitAndQpuMetrics();
-                        originalCircuitAndQpuMetricsPriorCircuit.setId(qpuSelectionResult.getId().toString());
-                        originalCircuitAndQpuMetricsPriorCircuit.setOriginalDepth(originalCircuitResultTrainingDataPoint.getOriginalDepth());
-                        originalCircuitAndQpuMetricsPriorCircuit.setOriginalWidth(originalCircuitResultTrainingDataPoint.getOriginalWidth());
-                        originalCircuitAndQpuMetricsPriorCircuit.setOriginalMultiQubitGateDepth(
-                            originalCircuitResultTrainingDataPoint.getOriginalMultiQubitGateDepth());
-                        originalCircuitAndQpuMetricsPriorCircuit.setOriginalNumberOfMeasurementOperations(
-                            originalCircuitResultTrainingDataPoint.getOriginalNumberOfMeasurementOperations());
-                        originalCircuitAndQpuMetricsPriorCircuit.setOriginalNumberOfMultiQubitGates(
-                            originalCircuitResultTrainingDataPoint.getOriginalNumberOfMultiQubitGates());
-                        originalCircuitAndQpuMetricsPriorCircuit.setOriginalNumberOfSingleQubitGates(
-                            originalCircuitResultTrainingDataPoint.getOriginalNumberOfSingleQubitGates());
-                        originalCircuitAndQpuMetricsPriorCircuit.setOriginalTotalNumberOfOperations(
-                            originalCircuitResultTrainingDataPoint.getOriginalTotalNumberOfOperations());
-                        originalCircuitAndQpuMetricsPriorCircuit.setT1(qpuSelectionResult.getT1());
-                        originalCircuitAndQpuMetricsPriorCircuit.setT2(qpuSelectionResult.getT2());
-                        originalCircuitAndQpuMetricsPriorCircuit.setAvgSingleQubitGateError(qpuSelectionResult.getAvgSingleQubitGateError());
-                        originalCircuitAndQpuMetricsPriorCircuit.setAvgMultiQubitGateError(qpuSelectionResult.getAvgMultiQubitGateError());
-                        originalCircuitAndQpuMetricsPriorCircuit.setAvgSingleQubitGateTime(qpuSelectionResult.getAvgSingleQubitGateTime());
-                        originalCircuitAndQpuMetricsPriorCircuit.setAvgMultiQubitGateTime(qpuSelectionResult.getAvgMultiQubitGateTime());
-                        originalCircuitAndQpuMetricsPriorCircuit.setAvgReadoutError(qpuSelectionResult.getAvgReadoutError());
-                        originalCircuitAndQpuMetricsPriorCircuit.setQpu(qpuSelectionResult.getQpu());
-                        originalCircuitAndQpuMetricsPriorCircuit.setCompiler(qpuSelectionResult.getCompiler());
-                        originalCircuitAndQpuMetricsPriorCircuit.setHistogramIntersection((float) executionResult.getHistogramIntersectionValue());
+                if (qpuSelectionResult.getOriginalCircuitResultId() != null) {
+                    List<ExecutionResult> executionResultList = executionResultRepository.findByQpuSelectionResult(qpuSelectionResult);
+                    Optional<ExecutionResult> executionResultOptional = executionResultList.stream().filter(
+                            exeResult -> exeResult.getShots() > 0 && exeResult.getHistogramIntersectionValue() > 0 &&
+                                exeResult.getHistogramIntersectionValue() < 1 &&
+                                exeResult.getStatus().equals(ExecutionResultStatus.FINISHED))
+                        .findFirst();
+                    if (executionResultOptional.isPresent() &&
+                        !qpuSelectionResult.getQpu().contains("simulator")) {  // TODO: add a better check if the result is from a simulator
+                        Optional<OriginalCircuitResult> originalCircuitResultOptional =
+                            originalCircuitResultRepository.findById(qpuSelectionResult.getOriginalCircuitResultId());
+                        if (originalCircuitResultOptional.isPresent()) {
+                            OriginalCircuitResult originalCircuitResultTrainingDataPoint = originalCircuitResultOptional.get();
+                            ExecutionResult executionResult = executionResultOptional.get();
+                            OriginalCircuitAndQpuMetrics originalCircuitAndQpuMetricsPriorCircuit = new OriginalCircuitAndQpuMetrics();
+                            originalCircuitAndQpuMetricsPriorCircuit.setId(qpuSelectionResult.getId().toString());
+                            originalCircuitAndQpuMetricsPriorCircuit.setOriginalDepth(originalCircuitResultTrainingDataPoint.getOriginalDepth());
+                            originalCircuitAndQpuMetricsPriorCircuit.setOriginalWidth(originalCircuitResultTrainingDataPoint.getOriginalWidth());
+                            originalCircuitAndQpuMetricsPriorCircuit.setOriginalMultiQubitGateDepth(
+                                originalCircuitResultTrainingDataPoint.getOriginalMultiQubitGateDepth());
+                            originalCircuitAndQpuMetricsPriorCircuit.setOriginalNumberOfMeasurementOperations(
+                                originalCircuitResultTrainingDataPoint.getOriginalNumberOfMeasurementOperations());
+                            originalCircuitAndQpuMetricsPriorCircuit.setOriginalNumberOfMultiQubitGates(
+                                originalCircuitResultTrainingDataPoint.getOriginalNumberOfMultiQubitGates());
+                            originalCircuitAndQpuMetricsPriorCircuit.setOriginalNumberOfSingleQubitGates(
+                                originalCircuitResultTrainingDataPoint.getOriginalNumberOfSingleQubitGates());
+                            originalCircuitAndQpuMetricsPriorCircuit.setOriginalTotalNumberOfOperations(
+                                originalCircuitResultTrainingDataPoint.getOriginalTotalNumberOfOperations());
+                            originalCircuitAndQpuMetricsPriorCircuit.setT1(qpuSelectionResult.getT1());
+                            originalCircuitAndQpuMetricsPriorCircuit.setT2(qpuSelectionResult.getT2());
+                            originalCircuitAndQpuMetricsPriorCircuit.setAvgSingleQubitGateError(qpuSelectionResult.getAvgSingleQubitGateError());
+                            originalCircuitAndQpuMetricsPriorCircuit.setAvgMultiQubitGateError(qpuSelectionResult.getAvgMultiQubitGateError());
+                            originalCircuitAndQpuMetricsPriorCircuit.setAvgSingleQubitGateTime(qpuSelectionResult.getAvgSingleQubitGateTime());
+                            originalCircuitAndQpuMetricsPriorCircuit.setAvgMultiQubitGateTime(qpuSelectionResult.getAvgMultiQubitGateTime());
+                            originalCircuitAndQpuMetricsPriorCircuit.setAvgReadoutError(qpuSelectionResult.getAvgReadoutError());
+                            originalCircuitAndQpuMetricsPriorCircuit.setQpu(qpuSelectionResult.getQpu());
+                            originalCircuitAndQpuMetricsPriorCircuit.setCompiler(qpuSelectionResult.getCompiler());
+                            originalCircuitAndQpuMetricsPriorCircuit.setHistogramIntersection(
+                                (float) executionResult.getHistogramIntersectionValue());
 
-                        originalCircuitAndQpuMetricsList.add(originalCircuitAndQpuMetricsPriorCircuit);
+                            originalCircuitAndQpuMetricsList.add(originalCircuitAndQpuMetricsPriorCircuit);
+                        }
                     }
                 }
             });
