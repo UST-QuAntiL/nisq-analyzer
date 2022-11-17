@@ -632,6 +632,14 @@ public class NisqAnalyzerControlService {
             }
         });
 
+        // overwrite old, non-updated qpuSelectionResults in the job, after prediction
+        List<QpuSelectionResult> remainingQpuSelectionResultList = new ArrayList<>();
+        job.getJobResults().forEach(qpuSelectionResultOld -> {
+            Optional<QpuSelectionResult> qpuSelectionResultOptional = qpuSelectionResultRepository.findById(qpuSelectionResultOld.getId());
+            qpuSelectionResultOptional.ifPresent(remainingQpuSelectionResultList::add);
+        });
+        job.setJobResults(remainingQpuSelectionResultList);
+
         job.getJobResults().forEach(qpuSelectionResult -> {
             String token = caseInsensitiveTokens.get(qpuSelectionResult.getProvider());
             if (Objects.isNull(token)) {
