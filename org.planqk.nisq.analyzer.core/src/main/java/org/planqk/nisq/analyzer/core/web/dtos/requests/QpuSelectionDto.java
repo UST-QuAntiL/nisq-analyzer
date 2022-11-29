@@ -28,17 +28,29 @@ import lombok.Data;
 @Data
 public class QpuSelectionDto {
 
-    boolean simulatorsAllowed;
-
     List<String> allowedProviders;
 
     String circuitLanguage;
 
     URL circuitUrl;
 
-    Map<String,String> tokens;
+    Map<String, String> tokens;
 
     String refreshToken;
 
     String circuitName;
+
+    boolean preciseResultsPreference;
+
+    boolean shortWaitingTimesPreference;
+
+    Float queueImportanceRatio;
+
+    int maxNumberOfCompiledCircuits;
+
+    String predictionAlgorithm;
+
+    String metaOptimizer;
+
+    String userId;
 }

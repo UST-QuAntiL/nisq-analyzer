@@ -19,14 +19,8 @@
 
 package org.planqk.nisq.analyzer.core;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -53,20 +47,20 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
     protected NisqAnalyzerControlService nisqAnalyzerControlService;
 
     @Before
-    public void setUpQProvMock(){
+    public void setUpQiskitQpusMock() {
 
         Provider ibmq = new Provider();
         ibmq.setName("IBMQ");
 
         Mockito.when(qProvService.getProviders()).thenReturn(Arrays.asList(ibmq));
-        Mockito.when(qProvService.getQPUs(ibmq)).thenReturn(Arrays.asList(
-                createDummyQPU("IBMQ", "ibmq_16_melbourne", 15, 1696, 54502.2906f),
-                createDummySimulator("IBMQ", "ibmq_qasm_simulator", 32)
+        Mockito.when(qProvService.getQPUs(ibmq, System.getenv("token"))).thenReturn(Arrays.asList(
+            createDummyQPU("IBMQ", "ibmq_16_melbourne", 15, 1696, 54502.2906f),
+            createDummySimulator("IBMQ", "ibmq_qasm_simulator", 32)
         ));
     }
 
     @Test
-    public void testQProvMocking(){
+    public void testQProvQpusMocking() {
         Assertions.assertTrue(qProvService.getProviders().stream().allMatch(p -> p.getName().equals("IBMQ")));
     }
 

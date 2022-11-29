@@ -42,6 +42,8 @@ public class QpuSelectionJob extends Job {
 
     private String circuitName;
 
+    private String userId;
+
     @OneToMany(cascade = CascadeType.PERSIST)
     private List<QpuSelectionResult> jobResults = new ArrayList<>();
 }

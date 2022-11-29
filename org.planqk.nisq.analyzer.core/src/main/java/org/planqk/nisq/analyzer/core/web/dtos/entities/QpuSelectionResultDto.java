@@ -42,6 +42,12 @@ public class QpuSelectionResultDto extends CircuitResultDto {
 
     UUID qpuSelectionJobId;
 
+    private String userId;
+
+    UUID originalCircuitResultId;
+
+    Float estimatedHistogramIntersectionValue;
+
     public static final class Converter {
 
         public static QpuSelectionResultDto convert(final QpuSelectionResult object) {
@@ -55,6 +61,7 @@ public class QpuSelectionResultDto extends CircuitResultDto {
             dto.setTranspiledCircuit(object.getTranspiledCircuit());
             dto.setTranspiledLanguage(object.getTranspiledLanguage());
             dto.setQpuSelectionJobId(object.getQpuSelectionJobId());
+            dto.setUserId(object.getUserId());
             dto.setCompiler(object.getCompiler());
             dto.setAnalyzedDepth(object.getAnalyzedDepth());
             dto.setAnalyzedWidth(object.getAnalyzedWidth());
@@ -73,6 +80,8 @@ public class QpuSelectionResultDto extends CircuitResultDto {
             dto.setT2(object.getT2());
             dto.setNumberOfQubits(object.getQubitCount());
             dto.setSimulator(object.isSimulator());
+            dto.setEstimatedHistogramIntersectionValue(object.getPredictedHistogramIntersectionValue());
+            dto.setOriginalCircuitResultId(object.getOriginalCircuitResultId());
             return dto;
         }
     }

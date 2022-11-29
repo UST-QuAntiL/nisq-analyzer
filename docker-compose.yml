@@ -1,4 +1,6 @@
 version: '3.6'
+volumes:
+  exec_data:
 services:
   db:
     image: postgres
@@ -10,20 +12,87 @@ services:
     ports:
       - "5060:5060"
   nisq-analyzer:
-    image: planqk/nisq-analyzer
+    image: planqk/nisq-analyzer:latest
     environment:
       POSTGRES_HOSTNAME: db
       POSTGRES_PORT: 5060
       POSTGRES_USER: nisq
       POSTGRES_PASSWORD: nisq
       POSTGRES_DB: nisq
-      NISQ_HOSTNAME: qiskit-service
-      NISQ_PORT: 5013
-      NISQ_VERSION: v1.0
+
+      # activate correct application properties
+      SPRING_PROFILES_ACTIVE: docker
+
+      TRANSLATOR_HOSTNAME: quantum-transpiler
+      TRANSLATOR_PORT: 5012
+      # Configuration of the SDK Connector Services
+      QISKIT_HOSTNAME: qiskit-service
+      QISKIT_PORT: 5013
+      FOREST_HOSTNAME: forest-service
+      FOREST_PORT: 5014
+      PYTKET_HOSTNAME: pytket-service
+      PYTKET_PORT: 5015
+      # Configure Prioritization Service connection
+      PRIORITIZATION_HOSTNAME: qhana-plugin-runner
+      PRIORITIZATION_PORT: 8080
     ports:
       - '5010:5010'
     networks:
       - default
+
+  nisq-analyzer-ui:
+    image: planqk/nisq-analyzer-ui:latest
+    environment:
+      NISQ_ANALYZER_HOST_NAME: localhost
+      NISQ_ANALYZER_PORT: 6473
+    ports:
+      - '80:80'
+    networks:
+      - default
+
+  qiskit-service:
+    image: planqk/qiskit-service:latest
+    command: sh /app/startup.sh
+    ports:
+      - "5013:5013"
+    environment:
+      - REDIS_URL=redis://redis:5040
+      - DATABASE_URL=sqlite:////data/app.db
+    volumes:
+      - exec_data:/data
+    networks:
+      - default
+
+  qiskit-rq-worker:
+    image: planqk/qiskit-service:latest
+    command: rq worker --url redis://redis:5040 qiskit-service_execute
+    environment:
+      - REDIS_URL=redis://redis:5040
+      - DATABASE_URL=sqlite:////data/app.db
+    volumes:
+      - exec_data:/data
+    depends_on:
+      - redis
+    deploy:
+      replicas: 2
+
+  redis:
+    image: redis:6.2.2
+    ports:
+      - "5040:5040"
+    command: --port 5040
+    networks:
+      - default
+
+  gateway:
+    image: planqk/gateway:latest
+    environment:
+      NISQ_ANALYZER_URI: http://nisq-analyzer:5010
+    ports:
+      - '6473:6473'
+    networks:
+      - default
+
 networks:
   default:
     driver: bridge

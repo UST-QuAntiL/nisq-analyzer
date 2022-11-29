@@ -24,14 +24,15 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Sdk;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.lang.NonNull;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Data transfer object for the model class Implementation ({@link org.planqk.nisq.analyzer.core.model.Implementation}).
@@ -51,6 +52,10 @@ public class ImplementationDto extends RepresentationModel<ImplementationDto> {
     @Getter
     @Setter
     private UUID implementedAlgorithm;
+
+    @Getter
+    @Setter
+    private String algorithmName;
 
     @Getter
     @Setter
@@ -97,6 +102,7 @@ public class ImplementationDto extends RepresentationModel<ImplementationDto> {
             dto.setId(object.getId());
             dto.setName(object.getName());
             dto.setImplementedAlgorithm(object.getImplementedAlgorithm());
+            dto.setAlgorithmName(object.getAlgorithmName());
             dto.setSelectionRule(object.getSelectionRule());
             dto.setFileLocation(object.getFileLocation());
             dto.setSdk(object.getSdk().getName());
@@ -119,6 +125,7 @@ public class ImplementationDto extends RepresentationModel<ImplementationDto> {
             Implementation implementation = new Implementation();
             implementation.setName(object.getName());
             implementation.setImplementedAlgorithm(object.getImplementedAlgorithm());
+            implementation.setAlgorithmName(object.getAlgorithmName());
             implementation.setSelectionRule(object.getSelectionRule());
             implementation.setFileLocation(object.getFileLocation());
             implementation.setSdk(sdk);

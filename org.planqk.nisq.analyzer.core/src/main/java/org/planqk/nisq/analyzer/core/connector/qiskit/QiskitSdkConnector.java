@@ -40,6 +40,7 @@ import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.ExecutionRequestResult;
+import org.planqk.nisq.analyzer.core.connector.OriginalCircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
 import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
@@ -75,22 +76,28 @@ public class QiskitSdkConnector implements SdkConnector {
 
     private URI executeAPIEndpoint;
 
+    private URI analyzeOriginalAPIEndpoint;
+
     public QiskitSdkConnector(
-            @Value("${org.planqk.nisq.analyzer.connector.qiskit.hostname}") String hostname,
-            @Value("${org.planqk.nisq.analyzer.connector.qiskit.port}") int port,
-            @Value("${org.planqk.nisq.analyzer.connector.qiskit.version}") String version
+        @Value("${org.planqk.nisq.analyzer.connector.qiskit.hostname}") String hostname,
+        @Value("${org.planqk.nisq.analyzer.connector.qiskit.port}") int port,
+        @Value("${org.planqk.nisq.analyzer.connector.qiskit.version}") String version
     ) {
         // compile the API endpoints
+        analyzeOriginalAPIEndpoint =
+            URI.create(String.format("http://%s:%d/qiskit-service/api/%s/analyze-original-circuit", hostname, port, version));
         transpileAPIEndpoint = URI.create(String.format("http://%s:%d/qiskit-service/api/%s/transpile", hostname, port, version));
         executeAPIEndpoint = URI.create(String.format("http://%s:%d/qiskit-service/api/%s/execute", hostname, port, version));
     }
 
     @Override
     public void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters,
-                                                      ExecutionResult executionResult, ExecutionResultRepository resultRepository, String refreshToken) {
+                                                      ExecutionResult executionResult, ExecutionResultRepository resultRepository,
+                                                      String refreshToken) {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
         String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
-        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters, bearerToken);
+        QiskitRequest request =
+            new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters, bearerToken);
         executeQuantumCircuit(request, executionResult, resultRepository, null);
     }
 
@@ -236,6 +243,30 @@ public class QiskitSdkConnector implements SdkConnector {
         }
     }
 
+    private OriginalCircuitInformation executeOriginalCircuitPropertiesRequest(QiskitRequest request) {
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            // Analyze the given original circuit using Qiskit service
+            ResponseEntity<OriginalCircuitInformation> response =
+                restTemplate.postForEntity(analyzeOriginalAPIEndpoint, request, OriginalCircuitInformation.class);
+
+            // Check if the Qiskit service was successful
+            if (response.getStatusCode().is2xxSuccessful()) {
+                LOG.debug("Original circuit analyzing using Qiskit Service.");
+
+                return response.getBody();
+            } else if (response.getStatusCode().is4xxClientError()) {
+                LOG.error(String.format("Qiskit Service rejected request (HTTP %d)", response.getStatusCodeValue()));
+            } else if (response.getStatusCode().is5xxServerError()) {
+                LOG.error(String.format("Internal Qiskit Service error (HTTP %d)", response.getStatusCodeValue()));
+            }
+        } catch (RestClientException e) {
+            LOG.error("Connection to Qiskit Service failed.");
+        }
+
+        return null;
+    }
+
     @Override
     public CircuitInformation getCircuitProperties(Implementation implementation, String providerName, String qpuName,
                                                    Map<String, ParameterValue> parameters, String refreshToken) {
@@ -318,5 +349,24 @@ public class QiskitSdkConnector implements SdkConnector {
     @Override
     public String getName() {
         return this.getClass().getSimpleName().toLowerCase().replace("sdkconnector", "");
+    }
+
+    public List<String> getSupportedLanguages() {
+        return Arrays.asList(Constants.QISKIT, Constants.OPENQASM);
+    }
+
+    @Override
+    public OriginalCircuitInformation getOriginalCircuitProperties(File circuit, String language) {
+        LOG.debug("Retrieving circuit properties for original circuit passed as file with language '{}'.", language);
+        try {
+            // retrieve content form file and encode base64
+            String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
+            String encodedCircuit = Base64.getEncoder().encodeToString(fileContent.getBytes());
+            QiskitRequest request = new QiskitRequest(encodedCircuit, language);
+            return executeOriginalCircuitPropertiesRequest(request);
+        } catch (IOException e) {
+            LOG.error("Unable to read file content from circuit file!");
+        }
+        return null;
     }
 }

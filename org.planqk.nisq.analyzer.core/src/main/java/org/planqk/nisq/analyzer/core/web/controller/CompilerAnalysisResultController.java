@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import javax.transaction.Transactional;
 
 import org.planqk.nisq.analyzer.core.Constants;
@@ -55,6 +54,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -134,9 +134,9 @@ public class CompilerAnalysisResultController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
-            @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute a compilation result")
+        @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute a compilation result")
     @PostMapping("/{resId}/" + Constants.EXECUTION)
-    public HttpEntity<ExecutionResultDto> executeCompilationResult(@PathVariable UUID resId) {
+    public HttpEntity<ExecutionResultDto> executeCompilationResult(@PathVariable UUID resId, @RequestParam String token) {
         LOG.debug("Post to execute compilation result with id: {}", resId);
 
         Optional<CompilationResult> result = compilerAnalysisResultRepository.findById(resId);
@@ -145,10 +145,10 @@ public class CompilerAnalysisResultController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        // get stored token for the execution
+        // get token for the execution
         CompilationResult compilationResult = result.get();
         Map<String, ParameterValue> params = new HashMap<>();
-        params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, compilationResult.getToken()));
+        params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
 
         ExecutionResult executionResult = controlService.executeCompiledQuantumCircuit(compilationResult, params);
         ExecutionResultDto dto = ExecutionResultDto.Converter.convert(executionResult);
@@ -159,7 +159,7 @@ public class CompilerAnalysisResultController {
     private CompilerAnalysisResultDto createDto(CompilationResult result) {
         CompilerAnalysisResultDto dto = CompilerAnalysisResultDto.Converter.convert(result);
         dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisResult(result.getId())).withSelfRel());
-        dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).executeCompilationResult(result.getId())).withRel(Constants.EXECUTION));
+        // dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).executeCompilationResult(result.getId(), null)).withRel(Constants.EXECUTION));
         for (ExecutionResult executionResult : executionResultRepository.findByCompilationResult(result)) {
             dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(executionResult.getId()))
                 .withRel(Constants.EXECUTION + "-" + executionResult.getId()));

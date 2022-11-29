@@ -125,4 +125,20 @@ public interface SdkConnector {
      * @return
      */
     String getName();
+
+    /**
+     * Returns the natively supported languages of the SDK
+     *
+     * @return
+     */
+    List<String> getSupportedLanguages();
+
+    /**
+     * Analyse the given original, non-transpiled circuit.
+     *
+     * @param circuit  the file containing the circuit
+     * @param language the language of the circuit
+     * @return the object containing all analysed properties of the original quantum circuit
+     */
+    OriginalCircuitInformation getOriginalCircuitProperties(File circuit, String language);
 }

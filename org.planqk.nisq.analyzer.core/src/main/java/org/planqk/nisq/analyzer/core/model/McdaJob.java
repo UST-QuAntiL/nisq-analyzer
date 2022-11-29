@@ -20,8 +20,10 @@
 package org.planqk.nisq.analyzer.core.model;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import javax.persistence.CascadeType;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 
@@ -43,6 +45,11 @@ public class McdaJob extends Job {
     private String method;
 
     private String state;
+
+    private boolean useBordaCount;
+
+    @ElementCollection
+    private Map<String, Float> bordaCountWeights;
 
     private UUID jobId;
 
