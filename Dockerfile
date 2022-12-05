@@ -1,4 +1,4 @@
-FROM maven:3-jdk-8 as builder
+FROM maven:3-jdk-11 as builder
 COPY . /tmp/nisq
 WORKDIR /tmp/nisq
 RUN mvn package -DskipTests && mkdir /build && unzip /tmp/nisq/org.planqk.nisq.analyzer.core/target/org.planqk.nisq.analyzer.core.war -d /build/nisq-analyzer
