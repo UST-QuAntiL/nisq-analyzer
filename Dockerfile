@@ -21,7 +21,7 @@ ENV NISQ_VERSION: v1.0
 
 ENV MCDA_SERVICES_URL https://webservices.decision-deck.org/soap/
 
-RUN apt-get -qq update && apt-get install -qqy software-properties-common openjdk-8-jdk wget
+RUN apt-get -qq update && apt-get install -qqy software-properties-common openjdk-11-jdk wget
 
 # setup tomcat
 RUN mkdir /usr/local/tomcat

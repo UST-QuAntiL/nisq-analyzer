@@ -18,7 +18,7 @@ services:
       POSTGRES_PORT: 5060
       POSTGRES_USER: nisq
       POSTGRES_PASSWORD: nisq
-      POSTGRES_DB: nisq
+      POSTGRES_DB: nisqgit
 
       # activate correct application properties
       SPRING_PROFILES_ACTIVE: docker
