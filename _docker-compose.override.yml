@@ -2,4 +2,4 @@ version: '3.6'
 services:
   gateway:
     environment:
-      IBMQ_TOKEN: ''
+      IBMQ_TOKEN: '04925ca1e5b8f48d04e080e4eccdb6cd15dcc9fceb705b30962115e0a854cc8294fd0d2b7004c19c9718382f84665b9400fafb9a4ca9febf5c772451fb9ca935'

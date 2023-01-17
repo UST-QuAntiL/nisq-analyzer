@@ -13,12 +13,14 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
+import org.springframework.stereotype.Repository;
 
 @EnableAsync
 @SpringBootApplication(scanBasePackages = "org.planqk.nisq.analyzer.*")
 @EnableJpaRepositories("org.planqk.nisq.analyzer.*")
 @EntityScan("org.planqk.nisq.analyzer.*")
 @OpenAPIDefinition(info = @Info(title = "NISQ Analyzer API", version = "1.4.0", license = @License(name = "Apache 2.0", url = "http://www.apache.org/licenses/LICENSE-2.0.html"), contact = @Contact(url = "https://github.com/UST-QuAntiL/nisq-analyzer", name = "GitHub Repository")))
+@Repository
 public class Application extends SpringBootServletInitializer {
 
     final private static Logger LOG = LoggerFactory.getLogger(Application.class);
