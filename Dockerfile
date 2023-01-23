@@ -1,4 +1,4 @@
-FROM maven:3-jdk-8 as builder
+FROM maven:3-jdk-11 as builder
 COPY . /tmp/nisq
 WORKDIR /tmp/nisq
 RUN mvn package -DskipTests && mkdir /build && unzip /tmp/nisq/org.planqk.nisq.analyzer.core/target/org.planqk.nisq.analyzer.core.war -d /build/nisq-analyzer
@@ -21,7 +21,7 @@ ENV NISQ_VERSION: v1.0
 
 ENV MCDA_SERVICES_URL https://webservices.decision-deck.org/soap/
 
-RUN apt-get -qq update && apt-get install -qqy software-properties-common openjdk-8-jdk wget
+RUN apt-get -qq update && apt-get install -qqy software-properties-common openjdk-11-jdk wget
 
 # setup tomcat
 RUN mkdir /usr/local/tomcat

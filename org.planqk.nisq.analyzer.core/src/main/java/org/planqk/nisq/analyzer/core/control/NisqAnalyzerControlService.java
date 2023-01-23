@@ -124,8 +124,14 @@ public class NisqAnalyzerControlService {
     public OriginalCircuitResult analyzeOriginalCircuit(String circuitName, File circuitFile, String circuitLanguage) throws UnsatisfiedLinkError {
 
         // analysis of original circuit with an SDK connector that supports the language
-        Optional<SdkConnector> connectorOptional = connectorList.stream().filter(sdkConnector ->
-            sdkConnector.getSupportedLanguages().contains(circuitLanguage.toLowerCase())).findFirst();
+        List<SdkConnector> connectorMatchingList = connectorList.stream().filter(sdkConnector ->
+            sdkConnector.getSupportedLanguages().contains(circuitLanguage.toLowerCase())).collect(Collectors.toList());
+
+        Optional<SdkConnector> connectorOptional = connectorMatchingList.stream().filter(sdk -> sdk.getName().equalsIgnoreCase("qiskit")).findFirst();
+        if (!connectorOptional.isPresent()) {
+            connectorOptional = connectorList.stream().filter(sdkConnector ->
+                sdkConnector.getSupportedLanguages().contains(circuitLanguage.toLowerCase())).findFirst();
+        }
 
         if (connectorOptional.isPresent()) {
             SdkConnector connector = connectorOptional.get();

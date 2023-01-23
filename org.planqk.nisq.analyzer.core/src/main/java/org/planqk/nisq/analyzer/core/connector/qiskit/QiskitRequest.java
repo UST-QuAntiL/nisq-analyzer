@@ -92,8 +92,9 @@ public class QiskitRequest {
         this.input_params = input_params;
     }
 
-    public QiskitRequest(String impl_data, String impl_language) {
+    public QiskitRequest(String impl_data, Map<String, ParameterValue> input_params, String impl_language) {
         this.impl_data = impl_data;
         this.impl_language = impl_language;
+        this.input_params = input_params;
     }
 }
