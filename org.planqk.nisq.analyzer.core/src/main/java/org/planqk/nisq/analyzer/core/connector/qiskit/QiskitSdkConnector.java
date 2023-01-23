@@ -27,6 +27,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -362,7 +363,8 @@ public class QiskitSdkConnector implements SdkConnector {
             // retrieve content form file and encode base64
             String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
             String encodedCircuit = Base64.getEncoder().encodeToString(fileContent.getBytes());
-            QiskitRequest request = new QiskitRequest(encodedCircuit, language);
+            Map<String, ParameterValue> emptyMap = Collections.emptyMap();
+            QiskitRequest request = new QiskitRequest(encodedCircuit, emptyMap, language);
             return executeOriginalCircuitPropertiesRequest(request);
         } catch (IOException e) {
             LOG.error("Unable to read file content from circuit file!");
