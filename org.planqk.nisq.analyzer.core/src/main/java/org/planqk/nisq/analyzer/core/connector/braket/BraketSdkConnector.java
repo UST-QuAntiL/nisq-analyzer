@@ -20,17 +20,18 @@
 package org.planqk.nisq.analyzer.core.connector.braket;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
+import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.ExecutionRequestResult;
 import org.planqk.nisq.analyzer.core.connector.OriginalCircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
+import org.planqk.nisq.analyzer.core.connector.cirq.CirqRequest;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.Implementation;
@@ -42,6 +43,7 @@ import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -104,7 +106,7 @@ public class BraketSdkConnector implements SdkConnector {
             executionResult.setStatusCode("Pending for execution on Braket Service ...");
             resultRepository.save(executionResult);
 
-            // poll the Forest service frequently
+            // poll the Braket service frequently
             while (executionResult.getStatus() != ExecutionResultStatus.FINISHED && executionResult.getStatus() != ExecutionResultStatus.FAILED) {
                 try {
                     ExecutionRequestResult result = restTemplate.getForObject(resultLocation, ExecutionRequestResult.class);
@@ -133,6 +135,7 @@ public class BraketSdkConnector implements SdkConnector {
             }
         } catch (RestClientException e) {
             LOG.error("Connection to Braket Service failed.");
+            LOG.error(e.getLocalizedMessage());
             executionResult.setStatus(ExecutionResultStatus.FAILED);
             executionResult.setStatusCode("Connection to Braket Service failed.");
             resultRepository.save(executionResult);
@@ -142,19 +145,55 @@ public class BraketSdkConnector implements SdkConnector {
     @Override
     public CircuitInformation getCircuitProperties(Implementation implementation, String providerName, String qpuName,
                                                    Map<String, ParameterValue> parameters, String refreshToken) {
-        LOG.error("Braket Service does not support transpilation before execution.");
-        return null;
+        LOG.debug("Analysing quantum algorithm implementation with Braket Sdk connector plugin!");
+        String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
+        BraketRequest request = new BraketRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, parameters, bearerToken);
+        return executeCircuitPropertiesRequest(request);
     }
 
     @Override
     public CircuitInformation getCircuitProperties(File circuit, String language, String providerName, String qpuName,
                                                    Map<String, ParameterValue> parameters) {
-        LOG.error("Braket Service does not support transpilation before execution.");
+        LOG.debug("Retrieving circuit properties for circuit passed as file with provider '{}', qpu '{}', and language '{}'.", providerName, qpuName,
+                language);
+        try {
+            // retrieve content form file and encode base64
+            String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
+            String encodedCircuit = Base64.getEncoder().encodeToString(fileContent.getBytes());
+            BraketRequest request = new BraketRequest(language, encodedCircuit, qpuName, parameters);
+            return executeCircuitPropertiesRequest(request);
+        } catch (IOException e) {
+            LOG.error("Unable to read file content from circuit file!");
+        }
         return null;
     }
 
     private CircuitInformation executeCircuitPropertiesRequest(BraketRequest request) {
-        LOG.error("Braket Service does not support transpilation before execution.");
+        LOG.warn("Braket cannot transpile pre-execution, so only original circuit information is returned!");
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            // Transpile the given algorithm implementation using Braket service
+            ResponseEntity<CircuitInformation> response = restTemplate.postForEntity(transpileAPIEndpoint, request, CircuitInformation.class);
+
+            // Check if the Cirq service was successful
+            if (response.getStatusCode().is2xxSuccessful()) {
+                LOG.debug("Circuit transpiled using Forest Service.");
+                CircuitInformation circuitInformation = response.getBody();
+
+                // update language required for selection
+                if (Objects.nonNull(circuitInformation)) {
+                    circuitInformation.setTranspiledLanguage(Constants.CIRQ_JSON);
+                }
+                return circuitInformation;
+            } else if (response.getStatusCode().is4xxClientError()) {
+                LOG.error(String.format("Braket Service rejected request (HTTP %d)", response.getStatusCodeValue()));
+            } else if (response.getStatusCode().is5xxServerError()) {
+                LOG.error(String.format("Internal Braket Service error (HTTP %d)", response.getStatusCodeValue()));
+            }
+        } catch (RestClientException e) {
+            LOG.error("Connection to Braket Service failed.");
+        }
+
         return null;
     }
 
@@ -195,7 +234,23 @@ public class BraketSdkConnector implements SdkConnector {
 
     @Override
     public OriginalCircuitInformation getOriginalCircuitProperties(File circuit, String language) {
-        //TODO
+        LOG.debug("Retrieving original circuit properties for circuit passed as file in language '{}'.", language);
+        try {
+            // retrieve content form file and encode base64
+            String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
+            String encodedCircuit = Base64.getEncoder().encodeToString(fileContent.getBytes());
+            BraketRequest request = new BraketRequest(language, encodedCircuit, "Local-Simulator", new HashMap<>());
+            CircuitInformation information = executeCircuitPropertiesRequest(request);
+            if (information == null) {
+                return null;
+            } else {
+                return new OriginalCircuitInformation(information.getCircuitDepth(), information.getCircuitWidth(), information.getCircuitTotalNumberOfOperations(), information.getCircuitNumberOfSingleQubitGates(), information.getCircuitNumberOfMultiQubitGates(), information.getCircuitNumberOfMeasurementOperations(), information.getCircuitMultiQubitGateDepth());
+            }
+        } catch (IOException e) {
+            LOG.error("Unable to read file content from circuit file!");
+        }
         return null;
     }
+
+
 }

@@ -17,16 +17,17 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.connector;
+package org.planqk.nisq.analyzer.core.connector.qsharp;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.planqk.nisq.analyzer.core.Constants;
+import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 
 /**
  * Object to encapsulate all information that is retrieved during the analysis of a quantum circuit.
@@ -34,32 +35,22 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class CircuitInformation {
+public class QSharpCircuitInformation {
 
     @Getter
     @Setter
-    @JsonProperty("depth")
-    private int circuitDepth = 0;
+    @JsonProperty("t-depth")
+    private int tDepth = 0;
+
+    @Getter
+    @Setter
+    @JsonProperty("number-of-cnots")
+    private int cNotAmount = 0;
 
     @Getter
     @Setter
     @JsonProperty("width")
-    private int circuitWidth = 0;
-
-    @Getter
-    @Setter
-    @JsonProperty("total-number-of-operations")
-    private int circuitTotalNumberOfOperations = 0;
-
-    @Getter
-    @Setter
-    @JsonProperty("number-of-single-qubit-gates")
-    private int circuitNumberOfSingleQubitGates = 0;
-
-    @Getter
-    @Setter
-    @JsonProperty("number-of-multi-qubit-gates")
-    private int circuitNumberOfMultiQubitGates = 0;
+    private int width = 0;
 
     @Getter
     @Setter
@@ -68,17 +59,12 @@ public class CircuitInformation {
 
     @Getter
     @Setter
-    @JsonProperty("multi-qubit-gate-depth")
-    private int circuitMultiQubitGateDepth = 0;
+    @JsonProperty("qsharp-string")
+    private String qsharpString;
 
     @Getter
     @Setter
-    @JsonAlias({"transpiled-qasm", "transpiled-quil", "transpiled-cirq-json", "transpiled-braket-ir"})
-    private String transpiledCircuit;
-
-    @Getter
-    @Setter
-    @JsonProperty("language")
+    @JsonProperty("traced-qsharp")
     private String transpiledLanguage;
 
     @Getter
@@ -92,5 +78,10 @@ public class CircuitInformation {
     public boolean wasTranspilationSuccessfull()
     {
         return this.error == null;
+    }
+
+    public CircuitInformation toCircuitInformation()
+    {
+        return new CircuitInformation(this.tDepth, this.width, -1, -1, -1, this.circuitNumberOfMeasurementOperations, -1, this.qsharpString, Constants.QS, null);
     }
 }

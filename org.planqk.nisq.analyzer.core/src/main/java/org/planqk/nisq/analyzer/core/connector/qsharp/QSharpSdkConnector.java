@@ -23,13 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
@@ -37,8 +31,7 @@ import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.ExecutionRequestResult;
 import org.planqk.nisq.analyzer.core.connector.OriginalCircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
-import org.planqk.nisq.analyzer.core.connector.cirq.CirqRequest;
-import org.planqk.nisq.analyzer.core.connector.cirq.CirqSdkConnector;
+import org.planqk.nisq.analyzer.core.connector.braket.BraketRequest;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.Implementation;
@@ -51,13 +44,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import static org.planqk.nisq.analyzer.core.web.Utils.getBearerTokenFromRefreshToken;
 
-public class QsharpSdkConnector implements SdkConnector {
-    final private static Logger LOG = LoggerFactory.getLogger(CirqSdkConnector.class);
+@Service
+public class QSharpSdkConnector implements SdkConnector {
+    final private static Logger LOG = LoggerFactory.getLogger(QSharpSdkConnector.class);
 
     @Value("${org.planqk.nisq.analyzer.connector.qsharp.pollInterval:10000}")
     private int pollInterval;
@@ -67,7 +62,7 @@ public class QsharpSdkConnector implements SdkConnector {
 
     private URI executeAPIEndpoint;
 
-    public QsharpSdkConnector(
+    public QSharpSdkConnector(
             @Value("${org.planqk.nisq.analyzer.connector.qsharp.hostname}") String hostname,
             @Value("${org.planqk.nisq.analyzer.connector.qsharp.port}") int port,
             @Value("${org.planqk.nisq.analyzer.connector.qsharp.version}") String version
@@ -82,7 +77,7 @@ public class QsharpSdkConnector implements SdkConnector {
                                                       ExecutionResult executionResult, ExecutionResultRepository resultRepository, String refreshToken) {
         LOG.debug("Executing quantum algorithm implementation with Qsharp Sdk connector plugin!");
         String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
-        QsharpRequest request = new QsharpRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters, bearerToken);
+        QSharpRequest request = new QSharpRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters, bearerToken);
         executeQuantumCircuit(request, executionResult, resultRepository);
     }
 
@@ -92,11 +87,11 @@ public class QsharpSdkConnector implements SdkConnector {
                                                 ExecutionResultRepository resultRepository,
                                                 QpuSelectionResultRepository qpuSelectionResultRepository) {
         LOG.debug("Executing circuit passed as file with provider '{}' and qpu '{}'.", providerName, qpuName);
-        QsharpRequest request = new QsharpRequest(transpiledCircuit, qpuName, parameters);
+        QSharpRequest request = new QSharpRequest(transpiledCircuit, qpuName, parameters);
         executeQuantumCircuit(request, executionResult, resultRepository);
     }
 
-    private void executeQuantumCircuit(QsharpRequest request, ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
+    private void executeQuantumCircuit(QSharpRequest request, ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
         RestTemplate restTemplate = new RestTemplate();
         try {
             // make the execution request
@@ -128,16 +123,17 @@ public class QsharpSdkConnector implements SdkConnector {
                         // pass
                     }
                 } catch (RestClientException e) {
-                    LOG.error("Polling result from Braket Service failed.");
+                    LOG.error("Polling result from QSharp Service failed.");
                     executionResult.setStatus(ExecutionResultStatus.FAILED);
-                    executionResult.setStatusCode("Polling result from Cirq Service failed.");
+                    executionResult.setStatusCode("Polling result from QSharp Service failed.");
                     resultRepository.save(executionResult);
                 }
             }
         } catch (RestClientException e) {
-            LOG.error("Connection to Braket Service failed.");
+            LOG.error("Connection to QSharp Service failed.");
+            LOG.error(e.getLocalizedMessage());
             executionResult.setStatus(ExecutionResultStatus.FAILED);
-            executionResult.setStatusCode("Connection to Braket Service failed.");
+            executionResult.setStatusCode("Connection to QSharp Service failed.");
             resultRepository.save(executionResult);
         }
     }
@@ -145,9 +141,9 @@ public class QsharpSdkConnector implements SdkConnector {
     @Override
     public CircuitInformation getCircuitProperties(Implementation implementation, String providerName, String qpuName,
                                                    Map<String, ParameterValue> parameters, String refreshToken) {
-        LOG.debug("Analysing quantum algorithm implementation with Cirq Sdk connector plugin!");
+        LOG.debug("Analysing quantum algorithm implementation with QSharp Sdk connector plugin!");
         String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
-        CirqRequest request = new CirqRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, parameters, bearerToken);
+        QSharpRequest request = new QSharpRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, parameters, bearerToken);
         return executeCircuitPropertiesRequest(request);
     }
 
@@ -160,7 +156,7 @@ public class QsharpSdkConnector implements SdkConnector {
             // retrieve content form file and encode base64
             String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
             String encodedCircuit = Base64.getEncoder().encodeToString(fileContent.getBytes());
-            CirqRequest request = new CirqRequest(language, encodedCircuit, qpuName, parameters);
+            QSharpRequest request = new QSharpRequest(language, encodedCircuit, qpuName, parameters);
             return executeCircuitPropertiesRequest(request);
         } catch (IOException e) {
             LOG.error("Unable to read file content from circuit file!");
@@ -168,29 +164,31 @@ public class QsharpSdkConnector implements SdkConnector {
         return null;
     }
 
-    private CircuitInformation executeCircuitPropertiesRequest(CirqRequest request) {
+    private CircuitInformation executeCircuitPropertiesRequest(QSharpRequest request) {
         RestTemplate restTemplate = new RestTemplate();
         try {
-            // Transpile the given algorithm implementation using Cirq service
-            ResponseEntity<CircuitInformation> response = restTemplate.postForEntity(transpileAPIEndpoint, request, CircuitInformation.class);
 
-            // Check if the Cirq service was successful
+            // Transpile the given algorithm implementation using QSharp service
+            ResponseEntity<QSharpCircuitInformation> response = restTemplate.postForEntity(transpileAPIEndpoint, request, QSharpCircuitInformation.class);
+
+            // Check if the QSharp service was successful
             if (response.getStatusCode().is2xxSuccessful()) {
-                LOG.debug("Circuit transpiled using Forest Service.");
-                CircuitInformation circuitInformation = response.getBody();
+                LOG.debug("Circuit transpiled using QSharp Service.");
+                QSharpCircuitInformation qsharpInformation = response.getBody();
 
-                // update language required for selection
-                if (Objects.nonNull(circuitInformation)) {
-                    circuitInformation.setTranspiledLanguage(Constants.CIRQ_JSON);
+                // Create generic information from QSharp information if any is given
+                CircuitInformation circuitInformation = null;
+                if (Objects.nonNull(qsharpInformation)) {
+                    circuitInformation = qsharpInformation.toCircuitInformation();
                 }
                 return circuitInformation;
             } else if (response.getStatusCode().is4xxClientError()) {
-                LOG.error(String.format("Cirq Service rejected request (HTTP %d)", response.getStatusCodeValue()));
+                LOG.error(String.format("QSharp Service rejected request (HTTP %d)", response.getStatusCodeValue()));
             } else if (response.getStatusCode().is5xxServerError()) {
-                LOG.error(String.format("Internal Cirq Service error (HTTP %d)", response.getStatusCodeValue()));
+                LOG.error(String.format("Internal QSharp Service error (HTTP %d)", response.getStatusCodeValue()));
             }
         } catch (RestClientException e) {
-            LOG.error("Connection to Cirq Service failed.");
+            LOG.error("Connection to QSharp Service failed.");
         }
 
         return null;
@@ -206,7 +204,6 @@ public class QsharpSdkConnector implements SdkConnector {
         if (sdkName.equals(Constants.QSHARP)) {
             return Arrays.asList(Constants.QS);
         }
-
         return null;
     }
 
@@ -233,7 +230,21 @@ public class QsharpSdkConnector implements SdkConnector {
 
     @Override
     public OriginalCircuitInformation getOriginalCircuitProperties(File circuit, String language) {
-        //TODO
+        LOG.debug("Retrieving original circuit properties for circuit passed as file in language '{}'.", language);
+        try {
+            // retrieve content form file and encode base64
+            String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
+            String encodedCircuit = Base64.getEncoder().encodeToString(fileContent.getBytes());
+            QSharpRequest request = new QSharpRequest(language, encodedCircuit, "Local-Simulator", new HashMap<>());
+            CircuitInformation information = executeCircuitPropertiesRequest(request);
+            if (information == null) {
+                return null;
+            } else {
+                return new OriginalCircuitInformation(information.getCircuitDepth(), information.getCircuitWidth(), information.getCircuitTotalNumberOfOperations(), information.getCircuitNumberOfSingleQubitGates(), information.getCircuitNumberOfMultiQubitGates(), information.getCircuitNumberOfMeasurementOperations(), information.getCircuitMultiQubitGateDepth());
+            }
+        } catch (IOException e) {
+            LOG.error("Unable to read file content from circuit file!");
+        }
         return null;
     }
 }

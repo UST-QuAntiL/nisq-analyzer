@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 
 public class BraketRequest {
@@ -54,7 +55,7 @@ public class BraketRequest {
 
     @Getter
     @Setter
-    @JsonProperty(value = "braket_ir")
+    @JsonProperty(value = "braket-ir")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String braket_ir;
 
@@ -78,8 +79,8 @@ public class BraketRequest {
     }
 
     public BraketRequest(String impl_language, String impl_data, String qpu_name, Map<String, ParameterValue> input_params) {
-        this.impl_language = impl_language;
         this.impl_data = impl_data;
+        this.impl_language = impl_language;
         this.qpu_name = qpu_name;
         this.input_params = input_params;
     }
@@ -88,6 +89,7 @@ public class BraketRequest {
         this.braket_ir = braket_ir;
         this.qpu_name = qpu_name;
         this.input_params = input_params;
+        this.impl_language = Constants.BRAKET_IR;
     }
 }
 

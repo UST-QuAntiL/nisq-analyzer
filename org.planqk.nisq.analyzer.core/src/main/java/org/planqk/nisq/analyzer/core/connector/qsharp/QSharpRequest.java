@@ -26,9 +26,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 
-public class QsharpRequest {
+public class QSharpRequest {
 
     @Getter
     @Setter
@@ -49,7 +50,8 @@ public class QsharpRequest {
 
     @Getter
     @Setter
-    @JsonProperty("qsharp-string")
+    @JsonProperty(value = "qsharp-string")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String qsharp_string;
 
     @Getter
@@ -68,7 +70,7 @@ public class QsharpRequest {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String bearerToken;
 
-    public QsharpRequest(URL impl_url, String impl_language, String qpu_name, Map<String, ParameterValue> input_params, String bearerToken) {
+    public QSharpRequest(URL impl_url, String impl_language, String qpu_name, Map<String, ParameterValue> input_params, String bearerToken) {
         this.impl_url = impl_url;
         this.impl_language = impl_language;
         this.qpu_name = qpu_name;
@@ -76,18 +78,17 @@ public class QsharpRequest {
         this.bearerToken = bearerToken;
     }
 
-    public QsharpRequest(String impl_language, String impl_data, String qpu_name, Map<String, ParameterValue> input_params, String bearerToken) {
+    public QSharpRequest(String impl_language, String impl_data, String qpu_name, Map<String, ParameterValue> input_params) {
         this.impl_language = impl_language;
         this.impl_data = impl_data;
         this.qpu_name = qpu_name;
         this.input_params = input_params;
-        this.bearerToken = bearerToken;
     }
 
-    public QsharpRequest(String qsharp, String qpu_name, Map<String, ParameterValue> input_params) {
+    public QSharpRequest(String qsharp, String qpu_name, Map<String, ParameterValue> input_params) {
         this.qsharp_string = qsharp;
+        this.impl_language = Constants.QS;
         this.qpu_name = qpu_name;
         this.input_params = input_params;
-
     }
 }

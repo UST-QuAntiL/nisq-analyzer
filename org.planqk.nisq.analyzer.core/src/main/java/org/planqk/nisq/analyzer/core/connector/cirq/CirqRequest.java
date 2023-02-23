@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
 
 public class CirqRequest {
@@ -88,5 +89,6 @@ public class CirqRequest {
         this.transpiled_cirq = transpiled_cirq;
         this.qpu_name = qpu_name;
         this.input_params = input_params;
+        this.impl_language = Constants.CIRQ_JSON;
     }
 }

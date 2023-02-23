@@ -23,13 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
@@ -194,6 +188,7 @@ public class CirqSdkConnector implements SdkConnector {
                 LOG.error(String.format("Internal Cirq Service error (HTTP %d)", response.getStatusCodeValue()));
             }
         } catch (RestClientException e) {
+            LOG.error(e.getLocalizedMessage());
             LOG.error("Connection to Cirq Service failed.");
         }
 
@@ -237,7 +232,21 @@ public class CirqSdkConnector implements SdkConnector {
 
     @Override
     public OriginalCircuitInformation getOriginalCircuitProperties(File circuit, String language) {
-        //TODO
+        LOG.debug("Retrieving original circuit properties for circuit passed as file in language '{}'.", language);
+        try {
+            // retrieve content form file and encode base64
+            String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
+            String encodedCircuit = Base64.getEncoder().encodeToString(fileContent.getBytes());
+            CirqRequest request = new CirqRequest(language, encodedCircuit, "Local-Simulator", new HashMap<>());
+            CircuitInformation information = executeCircuitPropertiesRequest(request);
+            if (information == null) {
+                return null;
+            } else {
+                return new OriginalCircuitInformation(information.getCircuitDepth(), information.getCircuitWidth(), information.getCircuitTotalNumberOfOperations(), information.getCircuitNumberOfSingleQubitGates(), information.getCircuitNumberOfMultiQubitGates(), information.getCircuitNumberOfMeasurementOperations(), information.getCircuitMultiQubitGateDepth());
+            }
+        } catch (IOException e) {
+            LOG.error("Unable to read file content from circuit file!");
+        }
         return null;
     }
 }

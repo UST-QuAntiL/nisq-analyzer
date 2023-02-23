@@ -83,18 +83,18 @@ public class Constants {
     public static final String OPENQASM = "openqasm";
     public static final String QUIL = "quil";
     public static final String PYQUIL = "pyquil";
-    public static final String CIRQ_JSON = "cirq";
-    public static final String CIRQ_SDK = "cirqsdk";
+    public static final String CIRQ_JSON = "cirq-json";
+    public static final String CIRQ_SDK = "cirq";
     public static final String QS = "qsharp";
-    public static final String BRAKET_IR = "braket";
-    public static final String BRAKET_SDK = "braketsdk";
+    public static final String BRAKET_IR = "braket-ir";
+    public static final String BRAKET_SDK = "braket";
 
     // provider
     public static final String IBMQ = "ibmq";
     public static final String RIGETTI = "rigetti";
-    public static final String GOOGLE = "google";
+    public static final String GOOGLE = "google-cirq";
     public static final String AMAZON = "amazon-aws";
-    public static final String MICROSOFT = "microsoft";
+    public static final String MICROSOFT = "microsoft-azure";
 
     // sdks
     public static final String QISKIT = "qiskit";
