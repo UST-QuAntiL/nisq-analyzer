@@ -40,6 +40,7 @@ import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.ExecutionRequestResult;
+import org.planqk.nisq.analyzer.core.connector.OriginalCircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
 import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
@@ -75,12 +76,16 @@ public class PyTketSdkConnector implements SdkConnector {
 
     private URI executeAPIEndpoint;
 
+    private URI analyzeOriginalAPIEndpoint;
+
     public PyTketSdkConnector(
-            @Value("${org.planqk.nisq.analyzer.connector.pytket.hostname}") String hostname,
-            @Value("${org.planqk.nisq.analyzer.connector.pytket.port}") int port,
-            @Value("${org.planqk.nisq.analyzer.connector.pytket.version}") String version
+        @Value("${org.planqk.nisq.analyzer.connector.pytket.hostname}") String hostname,
+        @Value("${org.planqk.nisq.analyzer.connector.pytket.port}") int port,
+        @Value("${org.planqk.nisq.analyzer.connector.pytket.version}") String version
     ) {
         // compile the API endpoints
+        analyzeOriginalAPIEndpoint =
+            URI.create(String.format("http://%s:%d/pytket-service/api/%s/analyze-original-circuit", hostname, port, version));
         this.transpileAPIEndpoint = URI.create(String.format("http://%s:%d/pytket-service/api/%s/transpile", hostname, port, version));
         this.executeAPIEndpoint = URI.create(String.format("http://%s:%d/pytket-service/api/%s/execute", hostname, port, version));
     }
@@ -311,6 +316,30 @@ public class PyTketSdkConnector implements SdkConnector {
         return null;
     }
 
+    private OriginalCircuitInformation executeOriginalCircuitPropertiesRequest(PyTketRequest request) {
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            // Analyze the given original circuit using Pytket service
+            ResponseEntity<OriginalCircuitInformation> response =
+                restTemplate.postForEntity(analyzeOriginalAPIEndpoint, request, OriginalCircuitInformation.class);
+
+            // Check if the Pytket service was successful
+            if (response.getStatusCode().is2xxSuccessful()) {
+                LOG.debug("Original circuit analyzing using Pytket Service.");
+
+                return response.getBody();
+            } else if (response.getStatusCode().is4xxClientError()) {
+                LOG.error(String.format("Pytket Service rejected request (HTTP %d)", response.getStatusCodeValue()));
+            } else if (response.getStatusCode().is5xxServerError()) {
+                LOG.error(String.format("Internal Pytket Service error (HTTP %d)", response.getStatusCodeValue()));
+            }
+        } catch (RestClientException e) {
+            LOG.error("Connection to Pytket Service failed.");
+        }
+
+        return null;
+    }
+
     @Override
     public List<String> supportedSdks() {
         return Arrays.asList(Constants.PYTKET);
@@ -339,5 +368,24 @@ public class PyTketSdkConnector implements SdkConnector {
     @Override
     public String getName() {
         return this.getClass().getSimpleName().toLowerCase().replace("sdkconnector", "");
+    }
+
+    public List<String> getSupportedLanguages() {
+        return Arrays.asList(Constants.QISKIT, Constants.OPENQASM, Constants.QUIL);
+    }
+
+    @Override
+    public OriginalCircuitInformation getOriginalCircuitProperties(File circuit, String language) {
+        LOG.debug("Retrieving circuit properties for original circuit passed as file with language '{}'.", language);
+        try {
+            // retrieve content form file and encode base64
+            String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
+            String encodedCircuit = Base64.getEncoder().encodeToString(fileContent.getBytes());
+            PyTketRequest request = new PyTketRequest(encodedCircuit, language);
+            return executeOriginalCircuitPropertiesRequest(request);
+        } catch (IOException e) {
+            LOG.error("Unable to read file content from circuit file!");
+        }
+        return null;
     }
 }

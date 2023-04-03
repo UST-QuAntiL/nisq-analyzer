@@ -21,7 +21,7 @@ package org.planqk.nisq.analyzer.core.prioritization.promethee;
 
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.prioritization.McdaMethod;
-import org.planqk.nisq.analyzer.core.prioritization.restMcda.PrioritizationService;
+import org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction.PrioritizationService;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;

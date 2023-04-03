@@ -37,6 +37,7 @@ import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.ExecutionRequestResult;
+import org.planqk.nisq.analyzer.core.connector.OriginalCircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
@@ -66,16 +67,20 @@ public class ForestSdkConnector implements SdkConnector {
     private int pollInterval;
 
     // API Endpoints
+    private URI analyzeOriginalAPIEndpoint;
+
     private URI transpileAPIEndpoint;
 
     private URI executeAPIEndpoint;
 
     public ForestSdkConnector(
-            @Value("${org.planqk.nisq.analyzer.connector.forest.hostname}") String hostname,
-            @Value("${org.planqk.nisq.analyzer.connector.forest.port}") int port,
-            @Value("${org.planqk.nisq.analyzer.connector.forest.version}") String version
+        @Value("${org.planqk.nisq.analyzer.connector.forest.hostname}") String hostname,
+        @Value("${org.planqk.nisq.analyzer.connector.forest.port}") int port,
+        @Value("${org.planqk.nisq.analyzer.connector.forest.version}") String version
     ) {
         // compile the API endpoints
+        analyzeOriginalAPIEndpoint =
+            URI.create(String.format("http://%s:%d/forest-service/api/%s/analyze-original-circuit", hostname, port, version));
         transpileAPIEndpoint = URI.create(String.format("http://%s:%d/forest-service/api/%s/transpile", hostname, port, version));
         executeAPIEndpoint = URI.create(String.format("http://%s:%d/forest-service/api/%s/execute", hostname, port, version));
     }
@@ -199,6 +204,30 @@ public class ForestSdkConnector implements SdkConnector {
         return null;
     }
 
+    private OriginalCircuitInformation executeOriginalCircuitPropertiesRequest(ForestRequest request) {
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            // Analyze the given original circuit using Forest service
+            ResponseEntity<OriginalCircuitInformation> response =
+                restTemplate.postForEntity(analyzeOriginalAPIEndpoint, request, OriginalCircuitInformation.class);
+
+            // Check if the Forest service was successful
+            if (response.getStatusCode().is2xxSuccessful()) {
+                LOG.debug("Original circuit analyzing using Forest Service.");
+
+                return response.getBody();
+            } else if (response.getStatusCode().is4xxClientError()) {
+                LOG.error(String.format("Forest Service rejected request (HTTP %d)", response.getStatusCodeValue()));
+            } else if (response.getStatusCode().is5xxServerError()) {
+                LOG.error(String.format("Internal Forest Service error (HTTP %d)", response.getStatusCodeValue()));
+            }
+        } catch (RestClientException e) {
+            LOG.error("Connection to Forest Service failed.");
+        }
+
+        return null;
+    }
+
     @Override
     public List<String> supportedSdks() {
         return Arrays.asList(Constants.FOREST);
@@ -227,5 +256,24 @@ public class ForestSdkConnector implements SdkConnector {
     @Override
     public String getName() {
         return this.getClass().getSimpleName().toLowerCase().replace("sdkconnector", "");
+    }
+
+    public List<String> getSupportedLanguages() {
+        return Arrays.asList(Constants.QUIL, Constants.PYQUIL);
+    }
+
+    @Override
+    public OriginalCircuitInformation getOriginalCircuitProperties(File circuit, String language) {
+        LOG.debug("Retrieving circuit properties for original circuit passed as file with language '{}'.", language);
+        try {
+            // retrieve content form file and encode base64
+            String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
+            String encodedCircuit = Base64.getEncoder().encodeToString(fileContent.getBytes());
+            ForestRequest request = new ForestRequest(encodedCircuit, language);
+            return executeOriginalCircuitPropertiesRequest(request);
+        } catch (IOException e) {
+            LOG.error("Unable to read file content from circuit file!");
+        }
+        return null;
     }
 }

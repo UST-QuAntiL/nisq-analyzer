@@ -12,7 +12,7 @@ services:
     ports:
       - "5060:5060"
   nisq-analyzer:
-    image: planqk/nisq-analyzer:latest
+    image: planqk/nisq-analyzer:without-qprov
     environment:
       POSTGRES_HOSTNAME: db
       POSTGRES_PORT: 5060

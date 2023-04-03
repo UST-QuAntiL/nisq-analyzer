@@ -17,36 +17,53 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.restMcda;
+package org.planqk.nisq.analyzer.core.connector;
 
-import java.util.List;
-import java.util.Map;
-import javax.persistence.CascadeType;
-import javax.persistence.OneToMany;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
-@AllArgsConstructor
 @NoArgsConstructor
-public class McdaRankRestRequest {
+@AllArgsConstructor
+@ToString
+public class OriginalCircuitInformation {
 
     @Getter
     @Setter
-    private String mcdaMethod;
+    @JsonProperty("original-depth")
+    private int circuitDepth = 0;
 
     @Getter
     @Setter
-    private Map<String, McdaCriterionWeight> metricWeights;
+    @JsonProperty("original-width")
+    private int circuitWidth = 0;
 
     @Getter
     @Setter
-    private Map<String, McdaCriterionWeight> bordaCountMetrics;
+    @JsonProperty("original-total-number-of-operations")
+    private int circuitTotalNumberOfOperations = 0;
 
     @Getter
     @Setter
-    @OneToMany(cascade = CascadeType.PERSIST)
-    private List<McdaCompiledCircuitJob> circuits;
+    @JsonProperty("original-number-of-single-qubit-gates")
+    private int circuitNumberOfSingleQubitGates = 0;
+
+    @Getter
+    @Setter
+    @JsonProperty("original-number-of-multi-qubit-gates")
+    private int circuitNumberOfMultiQubitGates = 0;
+
+    @Getter
+    @Setter
+    @JsonProperty("original-number-of-measurement-operations")
+    private int circuitNumberOfMeasurementOperations = 0;
+
+    @Getter
+    @Setter
+    @JsonProperty("original-multi-qubit-gate-depth")
+    private int circuitMultiQubitGateDepth = 0;
 }

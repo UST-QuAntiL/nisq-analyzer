@@ -26,8 +26,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +37,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Utils {
 
@@ -97,14 +98,14 @@ public class Utils {
         }
 
         try {
-            String url = "https://platform.planqk.de/auth/realms/planqk/protocol/openid-connect/token";
+            String url = "https://login.planqk.de/realms/planqk/protocol/openid-connect/token";
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
             MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
             map.add("grant_type", "refresh_token");
-            map.add("client_id", "vue-frontend");
+            map.add("client_id", "planqk-login");
             map.add("refresh_token", refreshToken);
 
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<MultiValueMap<String, String>>(map, headers);

@@ -17,9 +17,9 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.prioritization.restMcda;
+package org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction.preSelectionModel;
 
-import java.util.ArrayList;
+import org.planqk.nisq.analyzer.core.prioritization.restMcdaAndPrediction.McdaCriteriaPerformances;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -30,50 +30,50 @@ import lombok.Setter;
 
 @AllArgsConstructor
 @NoArgsConstructor
-public class SensitivityAnalysisResultResponse {
+public class OriginalCircuitAndQpuMetrics extends McdaCriteriaPerformances {
 
     @Getter
     @Setter
-    @JsonProperty("original_scores")
-    private ArrayList<Float> originalScores;
+    @JsonProperty("original-width")
+    private int originalWidth;
 
     @Getter
     @Setter
-    @JsonProperty("original_ranking")
-    private ArrayList<Integer> originalRanking;
+    @JsonProperty("original-depth")
+    private int originalDepth;
 
     @Getter
     @Setter
-    @JsonProperty("original_borda_count_ranking")
-    private ArrayList<Integer> originalBordaCountRanking;
+    @JsonProperty("original-multi-qubit-gate-depth")
+    private int originalMultiQubitGateDepth;
 
     @Getter
     @Setter
-    @JsonProperty("decreasing_factors")
-    private ArrayList<Float> decreasingFactors;
+    @JsonProperty("original-total-number-of-operations")
+    private int originalTotalNumberOfOperations;
 
     @Getter
     @Setter
-    @JsonProperty("disturbed_ranks_decreased")
-    private ArrayList<ArrayList<Integer>> disturbedRanksDecreased;
+    @JsonProperty("original-number-of-single-qubit-gates")
+    private int originalNumberOfSingleQubitGates;
 
     @Getter
     @Setter
-    @JsonProperty("disturbed_borda_ranks_decreased")
-    private ArrayList<ArrayList<ArrayList<Integer>>> disturbedBordaRanksDecreased;
+    @JsonProperty("original-number-of-multi-qubit-gates")
+    private int originalNumberOfMultiQubitGates;
 
     @Getter
     @Setter
-    @JsonProperty("increasing_factors")
-    private ArrayList<Float> increasingFactors;
+    @JsonProperty("original-number-of-measurement-operations")
+    private int originalNumberOfMeasurementOperations;
 
     @Getter
     @Setter
-    @JsonProperty("disturbed_ranks_increased")
-    private ArrayList<ArrayList<Integer>> disturbedRanksIncreased;
+    @JsonProperty("compiler")
+    private String compiler;
 
     @Getter
     @Setter
-    @JsonProperty("disturbed_borda_ranks_increased")
-    private ArrayList<ArrayList<ArrayList<Integer>>> disturbedBordaRanksIncreased;
+    @JsonProperty("qpu")
+    private String qpu;
 }
