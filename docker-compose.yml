@@ -12,7 +12,7 @@ services:
     ports:
       - "5060:5060"
   nisq-analyzer:
-    image: planqk/nisq-analyzer:without-qprov
+    image: planqk/nisq-analyzer:latest
     environment:
       POSTGRES_HOSTNAME: db
       POSTGRES_PORT: 5060
@@ -35,6 +35,9 @@ services:
       # Configure Prioritization Service connection
       PRIORITIZATION_HOSTNAME: qhana-plugin-runner
       PRIORITIZATION_PORT: 8080
+      # Configuration for QProv
+      QPROV_HOSTNAME: localhost
+      QPROV_PORT: 5020
     ports:
       - '5010:5010'
     networks:
