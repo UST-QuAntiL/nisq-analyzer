@@ -26,6 +26,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
+import org.planqk.nisq.analyzer.core.connector.qiskit.QiskitSdkConnector;
 import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.Provider;
@@ -40,6 +41,9 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
     @MockBean
     private QProvService qProvService;
 
+    @MockBean
+    private QiskitSdkConnector qiskitSdkConnector;
+
     @Autowired
     protected AnalysisJobRepository analysisJobRepository;
 
@@ -52,8 +56,8 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         Provider ibmq = new Provider();
         ibmq.setName("IBMQ");
 
-        Mockito.when(qProvService.getProviders()).thenReturn(Arrays.asList(ibmq));
-        Mockito.when(qProvService.getQPUs(ibmq, System.getenv("token"))).thenReturn(Arrays.asList(
+        Mockito.when(qiskitSdkConnector.getProviders()).thenReturn(Arrays.asList(ibmq));
+        Mockito.when(qiskitSdkConnector.getQPUs(ibmq, System.getenv("token"))).thenReturn(Arrays.asList(
             createDummyQPU("IBMQ", "ibmq_16_melbourne", 15, 1696, 54502.2906f),
             createDummySimulator("IBMQ", "ibmq_qasm_simulator", 32)
         ));
@@ -61,7 +65,7 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
 
     @Test
     public void testQProvQpusMocking() {
-        Assertions.assertTrue(qProvService.getProviders().stream().allMatch(p -> p.getName().equals("IBMQ")));
+        Assertions.assertTrue(qiskitSdkConnector.getProviders().stream().allMatch(p -> p.getName().equals("IBMQ")));
     }
 
     @Ignore("Ignored by default due to long expected runtime")

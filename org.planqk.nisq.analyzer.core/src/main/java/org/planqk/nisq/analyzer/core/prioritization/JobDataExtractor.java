@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import org.planqk.nisq.analyzer.core.connector.qiskit.QiskitSdkConnector;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.CircuitResult;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
@@ -74,6 +75,8 @@ public class JobDataExtractor {
     private final XmcdaRepository xmcdaRepository;
 
     private final QProvService qProvService;
+
+    private final QiskitSdkConnector qiskitSdkConnector;
 
     /**
      * Get the required information to run MCDA methods from different kinds of NISQ Analyzer jobs
@@ -142,7 +145,7 @@ public class JobDataExtractor {
 
         for (CircuitResult result : circuitResults) {
 
-            int backendQueueSize = qProvService.getQueueSizeOfQpu(result.getQpu());
+            int backendQueueSize = qiskitSdkConnector.getQueueSizeOfQpu(result.getQpu());
 
             // add alternative representing the analysis result
             String name = result.getQpu() + "-" + result.getCompiler() + "-" + result.getCircuitName();
