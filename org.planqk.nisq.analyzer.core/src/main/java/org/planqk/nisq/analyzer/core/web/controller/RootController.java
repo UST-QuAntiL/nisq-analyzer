@@ -22,7 +22,11 @@ package org.planqk.nisq.analyzer.core.web.controller;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -229,16 +233,39 @@ public class RootController {
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
+    private File createQasmFileFromUrlOrString(URL url, String qasm, String refreshToken) throws IOException, IllegalArgumentException {
+        if (Objects.isNull(url) == Objects.isNull(qasm)) {
+            throw new IllegalArgumentException("Either circuitUrl or qasmCode needs to be specified.");
+        }
+
+        File circuitFile;
+
+        // create circuit file from string or URL
+        if (Objects.isNull(url)) {
+            circuitFile = Utils.inputStreamToFile(new ByteArrayInputStream(qasm.getBytes(StandardCharsets.UTF_8)), "qasm");
+        } else {
+            // get file from passed URL
+            circuitFile = Utils.getFileObjectFromUrl(url, refreshToken);
+            if (Objects.isNull(circuitFile)) {
+                throw new IOException("Unable to load file from given URL");
+            }
+        }
+
+        return circuitFile;
+    }
+
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit loaded from the given URL")
     @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitUrl(@RequestParam List<String> compilers,@RequestBody QpuSelectionDto params) {
+    public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitUrl(@RequestParam List<String> compilers, @RequestBody QpuSelectionDto params) {
         LOG.debug("Post to select QPU for quantum circuit at URL '{}', with language '{}', and allowed providers '{}'!", params.getCircuitUrl(), params.getCircuitLanguage(), params.getAllowedProviders());
 
-        // get file from passed URL
-        File circuitFile = Utils.getFileObjectFromUrl(params.getCircuitUrl(), params.getRefreshToken());
-        if (Objects.isNull(circuitFile)) {
-            return new ResponseEntity("Unable to load file from given URL", HttpStatus.INTERNAL_SERVER_ERROR);
+        File circuitFile;
+
+        try {
+            circuitFile = createQasmFileFromUrlOrString(params.getCircuitUrl(), params.getQasmCode(), params.getRefreshToken());
+        } catch (Exception e) {
+            return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         // create object for the QPU selection job and call asynchronously to update the job
@@ -307,10 +334,12 @@ public class RootController {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        // get file from passed URL
-        File circuitFile = Utils.getFileObjectFromUrl(compilerSelectionDto.getCircuitUrl(), compilerSelectionDto.getRefreshToken());
-        if (Objects.isNull(circuitFile)) {
-            return new ResponseEntity("Unable to load file from given URL", HttpStatus.INTERNAL_SERVER_ERROR);
+        File circuitFile;
+
+        try {
+            circuitFile = createQasmFileFromUrlOrString(compilerSelectionDto.getCircuitUrl(), compilerSelectionDto.getQasmCode(), compilerSelectionDto.getRefreshToken());
+        } catch (Exception e) {
+            return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         // create object for the compilation job and call asynchronously to update the job

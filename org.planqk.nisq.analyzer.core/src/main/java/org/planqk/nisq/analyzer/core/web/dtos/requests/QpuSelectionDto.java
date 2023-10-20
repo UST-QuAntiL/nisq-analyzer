@@ -34,6 +34,8 @@ public class QpuSelectionDto {
 
     URL circuitUrl;
 
+    String qasmCode;
+
     Map<String, String> tokens;
 
     String refreshToken;
