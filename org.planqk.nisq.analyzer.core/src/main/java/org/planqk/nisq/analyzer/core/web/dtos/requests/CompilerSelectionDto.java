@@ -36,6 +36,8 @@ public class CompilerSelectionDto {
 
     URL circuitUrl;
 
+    String qasmCode;
+
     String token;
 
     String refreshToken;
