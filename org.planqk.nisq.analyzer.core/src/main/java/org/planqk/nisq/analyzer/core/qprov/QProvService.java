@@ -64,13 +64,13 @@ public class QProvService {
 
         try {
             ProviderListDto result = restTemplate.getForObject(providerAPIEnpoint, ProviderListDto.class);
-
             if (result != null) {
                 return ProviderListDto.Converter.convert(result);
             } else {
                 return new ArrayList<>();
             }
         } catch (RestClientException e) {
+            LOG.error("Error while connecting to QPROV: " + e.getMessage());
             return new ArrayList<>();
         }
     }
