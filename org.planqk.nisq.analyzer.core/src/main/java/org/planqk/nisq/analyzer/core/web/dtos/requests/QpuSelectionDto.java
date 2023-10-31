@@ -55,4 +55,6 @@ public class QpuSelectionDto {
     String metaOptimizer;
 
     String userId;
+
+    List<String> compilers;
 }

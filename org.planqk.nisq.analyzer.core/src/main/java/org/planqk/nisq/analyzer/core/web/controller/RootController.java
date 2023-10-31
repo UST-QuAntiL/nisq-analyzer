@@ -257,7 +257,7 @@ public class RootController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit loaded from the given URL")
     @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitUrl(@RequestParam List<String> compilers, @RequestBody QpuSelectionDto params) {
+    public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitUrl(@RequestBody QpuSelectionDto params) {
         LOG.debug("Post to select QPU for quantum circuit at URL '{}', with language '{}', and allowed providers '{}'!", params.getCircuitUrl(), params.getCircuitLanguage(), params.getAllowedProviders());
 
         File circuitFile;
@@ -284,7 +284,7 @@ public class RootController {
         new Thread(() -> {
             nisqAnalyzerService
                 .performQpuSelectionForCircuit(job, params.getAllowedProviders(), params.getCircuitLanguage(), circuitFile,
-                    params.getTokens(), params.getCircuitName(), compilers, params.isPreciseResultsPreference(),
+                    params.getTokens(), params.getCircuitName(), params.getCompilers(), params.isPreciseResultsPreference(),
                     params.isShortWaitingTimesPreference(), params.getQueueImportanceRatio(), params.getMaxNumberOfCompiledCircuits(),
                     params.getPredictionAlgorithm(), params.getMetaOptimizer());
         }).start();
