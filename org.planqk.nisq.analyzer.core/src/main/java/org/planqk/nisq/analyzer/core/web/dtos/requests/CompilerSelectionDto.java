@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.web.dtos.requests;
 
 import java.net.URL;
+import java.util.Map;
 
 import lombok.Data;
 
@@ -38,7 +39,7 @@ public class CompilerSelectionDto {
 
     String qasmCode;
 
-    String token;
+    Map<String, String> tokens;
 
     String refreshToken;
 }

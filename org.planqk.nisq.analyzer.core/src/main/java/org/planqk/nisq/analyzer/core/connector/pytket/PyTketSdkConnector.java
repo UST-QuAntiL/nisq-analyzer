@@ -356,7 +356,7 @@ public class PyTketSdkConnector implements SdkConnector {
 
     @Override
     public List<String> supportedProviders() {
-        return Arrays.asList(Constants.IBMQ, Constants.RIGETTI);
+        return Arrays.asList(Constants.IBMQ, Constants.RIGETTI, Constants.IONQ);
     }
 
     @Override

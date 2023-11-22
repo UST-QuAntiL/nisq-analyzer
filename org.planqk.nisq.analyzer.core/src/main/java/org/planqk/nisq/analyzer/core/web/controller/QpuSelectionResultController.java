@@ -154,7 +154,7 @@ public class QpuSelectionResultController {
     @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
         @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute a compilation result")
     @PostMapping("/{resId}/" + Constants.EXECUTION)
-    public HttpEntity<ExecutionResultDto> executeQpuSelectionResult(@PathVariable UUID resId, @RequestParam String token) {
+    public HttpEntity<ExecutionResultDto> executeQpuSelectionResult(@PathVariable UUID resId, @RequestParam Map<String, Map<String, String>> tokens) {
         LOG.debug("Post to execute qpu-selection-result with id: {}", resId);
 
         Optional<QpuSelectionResult> result = qpuSelectionResultRepository.findById(resId);
@@ -191,7 +191,7 @@ public class QpuSelectionResultController {
                 if (simulatorExecutionResults.size() == 0) {
 
                     Map<String, ParameterValue> simulatorParams = new HashMap<>();
-                    simulatorParams.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
+                    simulatorParams.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ibmq").get("ibmq")));
 
                     ExecutionResult simulatorExecutionResult =
                         controlService.executeCompiledQpuSelectionCircuit(simulatorQpuSelectionResult, simulatorParams);
@@ -212,7 +212,12 @@ public class QpuSelectionResultController {
         }
 
         Map<String, ParameterValue> params = new HashMap<>();
-        params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
+        if (qpuSelectionResult.getProvider().equalsIgnoreCase("ibmq")) {
+            params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ibmq").get("ibmq")));
+        } else if (qpuSelectionResult.getProvider().equalsIgnoreCase("ionq")) {
+            params.put(Constants.AWS_ACCESS_TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ionq").get("awsAccessKey")));
+            params.put(Constants.AWS_ACCESS_SECRET_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ionq").get("awsSecretKey")));
+        }
 
         ExecutionResult executionResult = controlService.executeCompiledQpuSelectionCircuit(qpuSelectionResult, params);
         ExecutionResultDto dto = ExecutionResultDto.Converter.convert(executionResult);

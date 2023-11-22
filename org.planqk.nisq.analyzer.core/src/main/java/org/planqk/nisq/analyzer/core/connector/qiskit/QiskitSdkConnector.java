@@ -338,7 +338,7 @@ public class QiskitSdkConnector implements SdkConnector {
 
     @Override
     public List<String> supportedProviders() {
-        return Arrays.asList(Constants.IBMQ);
+        return Arrays.asList(Constants.IBMQ, Constants.IONQ);
     }
 
     @Override

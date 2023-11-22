@@ -189,7 +189,7 @@ public class RootController {
         @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit passed in as file")
     @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitFile(@RequestParam List<String> allowedProviders, @RequestParam String circuitLanguage,
-                                                                  @RequestParam Map<String, String> tokens,
+                                                                  @RequestParam Map<String, Map<String, String>> tokens,
                                                                   @RequestParam("circuit") MultipartFile circuitCode,
                                                                   @RequestParam(required = false) String circuitName,
                                                                   @RequestParam(required = false) String userId,
@@ -300,7 +300,7 @@ public class RootController {
     @PostMapping(value = "/" + Constants.COMPILER_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public HttpEntity<CompilationJobDto> selectCompilerForFile(@RequestParam String providerName, @RequestParam String qpuName,
                                                                @RequestParam String circuitLanguage, @RequestParam String circuitName,
-                                                               @RequestParam String token,
+                                                               @RequestParam Map<String, String> tokens,
                                                                @RequestParam("circuit") MultipartFile circuitCode) {
 
         // get temp file for passed circuit code
@@ -314,7 +314,7 @@ public class RootController {
         new Thread(() -> {
             nisqAnalyzerService
                     .performCompilerSelection(job, providerName.toLowerCase(), qpuName.toLowerCase(), circuitLanguage.toLowerCase(), circuitFile,
-                            circuitName,null, token);
+                            circuitName,null, tokens);
         }).start();
 
         // send back compilation job
@@ -329,7 +329,7 @@ public class RootController {
     public HttpEntity<CompilationJobDto> selectCompilerForUrl(@RequestBody CompilerSelectionDto compilerSelectionDto) {
 
         if (Objects.isNull(compilerSelectionDto.getProviderName()) || Objects.isNull(compilerSelectionDto.getQpuName()) ||
-                Objects.isNull(compilerSelectionDto.getCircuitLanguage()) || Objects.isNull(compilerSelectionDto.getToken())) {
+                Objects.isNull(compilerSelectionDto.getCircuitLanguage()) || Objects.isNull(compilerSelectionDto.getTokens())) {
             return new ResponseEntity("Provider name, QPU name, circuit language, and access token have to be passed!",
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -349,7 +349,7 @@ public class RootController {
                     .performCompilerSelection(job, compilerSelectionDto.getProviderName().toLowerCase(),
                             compilerSelectionDto.getQpuName().toLowerCase(),
                             compilerSelectionDto.getCircuitLanguage().toLowerCase(), circuitFile, compilerSelectionDto.getCircuitName(),null,
-                            compilerSelectionDto.getToken());
+                            compilerSelectionDto.getTokens());
         }).start();
 
         // send back compilation job

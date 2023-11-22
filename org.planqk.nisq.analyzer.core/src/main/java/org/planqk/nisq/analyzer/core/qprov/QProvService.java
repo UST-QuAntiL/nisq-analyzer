@@ -22,6 +22,7 @@ package org.planqk.nisq.analyzer.core.qprov;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -75,28 +76,28 @@ public class QProvService {
         }
     }
 
-    public List<Qpu> getQPUs(Provider provider, String token) {
+    public List<Qpu> getQPUs(Provider provider) {
 
         RestTemplate restTemplate = new RestTemplate();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("token", token);
-
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        ResponseEntity<QpuListDto> response =
-            restTemplate.exchange(URI.create(String.format(providerAPIEnpoint + "/%s/qpus", provider.getId())), HttpMethod.GET, entity,
-                QpuListDto.class);
-
-        QpuListDto qpuListDto = response.getBody();
-
-        return qpuListDto.getQpuDtoList().stream().map(dto -> QpuDto.Converter.convert(dto, provider.getName())).collect(Collectors.toList());
+        try {
+            QpuListDto qpuListDto =
+                restTemplate.getForObject(URI.create(String.format(providerAPIEnpoint + "/%s/qpus", provider.getId())), QpuListDto.class);
+            if (qpuListDto != null) {
+                return qpuListDto.getQpuDtoList().stream().map(dto -> QpuDto.Converter.convert(dto, provider.getName())).collect(Collectors.toList());
+            } else {
+                return new ArrayList<>();
+            }
+        } catch (RestClientException e) {
+            LOG.error("Error while connecting to QPROV: " + e.getMessage());
+            return new ArrayList<>();
+        }
     }
 
-    public Optional<Qpu> getQpuByName(String name, String provider, String token) {
+    public Optional<Qpu> getQpuByName(String name, String provider) {
         Optional<Provider> prov = getProviders().stream().filter(p -> p.getName().equals(provider)).findFirst();
         if (prov.isPresent()) {
-            return getQPUs(prov.get(), token).stream().filter(q -> q.getName().equals(name)).findFirst();
+            return getQPUs(prov.get()).stream().filter(q -> q.getName().equals(name)).findFirst();
         } else {
             return Optional.empty();
         }

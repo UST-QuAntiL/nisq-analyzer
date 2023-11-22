@@ -3,6 +3,7 @@ package org.planqk.nisq.analyzer.core.web.controller;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -167,15 +168,20 @@ public class AnalysisResultController {
             Map<String, ParameterValue> typedParams =
                 ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), analysisResult.getInputParameters());
             String refreshToken = "";
-            String token = "";
+            Map<String, String> tokens;
 
             if (request != null && request.getRefreshToken() != null) {
                 refreshToken = request.getRefreshToken();
             }
 
-            if (request != null && request.getToken() != null) {
-                token = request.getToken();
-                typedParams.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
+            if (request != null && request.getTokens() != null) {
+                tokens = request.getTokens();
+                if (analysisResult.getProvider().equalsIgnoreCase("ibmq")) {
+                    typedParams.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ibmq")));
+                } else if (analysisResult.getProvider().equalsIgnoreCase("ionq")) {
+                    typedParams.put(Constants.AWS_ACCESS_TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("awsAccessKey")));
+                    typedParams.put(Constants.AWS_ACCESS_SECRET_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("awsSecretKey")));
+                }
             }
 
             ExecutionResult result = controlService.executeQuantumAlgorithmImplementation(analysisResult, typedParams, refreshToken);
