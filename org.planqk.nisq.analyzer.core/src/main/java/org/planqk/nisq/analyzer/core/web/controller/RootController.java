@@ -111,7 +111,7 @@ public class RootController {
         responseEntity.add(linkTo(methodOn(RootController.class).getSelectionParams(null)).withRel(Constants.SELECTION_PARAMS));
         responseEntity.add(linkTo(methodOn(RootController.class).selectImplementations(null)).withRel(Constants.SELECTION));
         responseEntity
-                .add(linkTo(methodOn(RootController.class).selectCompilerForFile(null, null, null, null, null, null))
+                .add(linkTo(methodOn(RootController.class).selectCompilerForFile(null, null))
                         .withRel(Constants.COMPILER_SELECTION));
         responseEntity.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisResults()).withRel(Constants.COMPILER_RESULTS));
         responseEntity.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResults(null)).withRel(Constants.EXECUTION_RESULTS));
@@ -290,9 +290,7 @@ public class RootController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable compiler for an implementation passed in as file")
     @PostMapping(value = "/" + Constants.COMPILER_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public HttpEntity<CompilationJobDto> selectCompilerForFile(@RequestParam String providerName, @RequestParam String qpuName,
-                                                               @RequestParam String circuitLanguage, @RequestParam String circuitName,
-                                                               @RequestParam Map<String, String> tokens,
+    public HttpEntity<CompilationJobDto> selectCompilerForFile(@RequestBody CompilerSelectionDto compilerSelectionDto,
                                                                @RequestParam("circuit") MultipartFile circuitCode) {
 
         // get temp file for passed circuit code
@@ -305,8 +303,9 @@ public class RootController {
         CompilationJob job = compilationJobRepository.save(new CompilationJob());
         new Thread(() -> {
             nisqAnalyzerService
-                    .performCompilerSelection(job, providerName.toLowerCase(), qpuName.toLowerCase(), circuitLanguage.toLowerCase(), circuitFile,
-                            circuitName,null, tokens);
+                    .performCompilerSelection(job, compilerSelectionDto.getProviderName().toLowerCase(),
+                        compilerSelectionDto.getQpuName().toLowerCase(), compilerSelectionDto.getCircuitLanguage().toLowerCase(), circuitFile,
+                        compilerSelectionDto.getCircuitName(),null, compilerSelectionDto.getTokens());
         }).start();
 
         // send back compilation job
