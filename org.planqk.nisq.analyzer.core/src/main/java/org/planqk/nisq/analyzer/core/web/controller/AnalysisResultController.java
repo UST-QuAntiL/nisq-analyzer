@@ -168,7 +168,7 @@ public class AnalysisResultController {
             Map<String, ParameterValue> typedParams =
                 ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), analysisResult.getInputParameters());
             String refreshToken = "";
-            Map<String, String> tokens;
+            Map<String, Map<String, String>> tokens;
 
             if (request != null && request.getRefreshToken() != null) {
                 refreshToken = request.getRefreshToken();
@@ -177,10 +177,10 @@ public class AnalysisResultController {
             if (request != null && request.getTokens() != null) {
                 tokens = request.getTokens();
                 if (analysisResult.getProvider().equalsIgnoreCase("ibmq")) {
-                    typedParams.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ibmq")));
+                    typedParams.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ibmq").get("ibmq")));
                 } else if (analysisResult.getProvider().equalsIgnoreCase("ionq")) {
-                    typedParams.put(Constants.AWS_ACCESS_TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("awsAccessKey")));
-                    typedParams.put(Constants.AWS_ACCESS_SECRET_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("awsSecretKey")));
+                    typedParams.put(Constants.AWS_ACCESS_TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ionq").get("awsAccessKey")));
+                    typedParams.put(Constants.AWS_ACCESS_SECRET_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ionq").get("awsSecretKey")));
                 }
             }
 
