@@ -97,7 +97,7 @@ public class QProvService {
     public Optional<Qpu> getQpuByName(String name, String provider) {
         Optional<Provider> prov = getProviders().stream().filter(p -> p.getName().equals(provider)).findFirst();
         if (prov.isPresent()) {
-            return getQPUs(prov.get()).stream().filter(q -> q.getName().equals(name)).findFirst();
+            return getQPUs(prov.get()).stream().filter(q -> q.getName().equalsIgnoreCase(name)).findFirst();
         } else {
             return Optional.empty();
         }

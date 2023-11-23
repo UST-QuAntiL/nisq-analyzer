@@ -793,7 +793,7 @@ public class NisqAnalyzerControlService {
                 params.put(Constants.AWS_ACCESS_SECRET_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("awsSecretKey")));
             }
             CircuitInformation circuitInformation =
-                    connector.getCircuitProperties(circuitToCompile, circuitToCompileLanguage, providerName, qpuName, params);
+                    connector.getCircuitProperties(circuitToCompile, circuitToCompileLanguage, providerName, qpu.getName(), params);
 
             if (Objects.isNull(circuitInformation) || Objects.nonNull(circuitInformation.getError())) {
                 if (Objects.nonNull(circuitInformation)) {
