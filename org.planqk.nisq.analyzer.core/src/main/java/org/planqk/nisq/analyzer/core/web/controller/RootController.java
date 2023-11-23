@@ -188,19 +188,9 @@ public class RootController {
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
         @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit passed in as file")
     @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitFile(@RequestParam List<String> allowedProviders, @RequestParam String circuitLanguage,
-                                                                  @RequestParam Map<String, Map<String, String>> tokens,
-                                                                  @RequestParam("circuit") MultipartFile circuitCode,
-                                                                  @RequestParam(required = false) String circuitName,
-                                                                  @RequestParam(required = false) String userId,
-                                                                  @RequestParam(required = false) boolean preciseResultsPreference,
-                                                                  @RequestParam(required = false) boolean shortWaitingTimesPreference,
-                                                                  @RequestParam(required = false) Float queueImportanceRatio,
-                                                                  @RequestParam(required = false) int maxNumberOfCompiledCircuits,
-                                                                  @RequestParam(required = false) String predictionAlgorithm,
-                                                                  @RequestParam(required = false) String metaOptimizer,
-                                                                  @RequestParam(required = false) List<String> compilers) {
-        LOG.debug("Post to select QPU for given quantum circuit with language: {}", circuitLanguage);
+    public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitFile(@RequestBody QpuSelectionDto qpuSelectionDto,
+                                                                  @RequestParam("circuit") MultipartFile circuitCode) {
+        LOG.debug("Post to select QPU for given quantum circuit with language: {}", qpuSelectionDto.getCircuitLanguage());
 
         // get temp file for passed circuit code
         File circuitFile = Utils.getFileObjectFromMultipart(circuitCode);
@@ -211,20 +201,22 @@ public class RootController {
         // create object for the QPU selection job and call asynchronously to update the job
         QpuSelectionJob job = new QpuSelectionJob();
         job.setTime(OffsetDateTime.now());
-        job.setUserId(userId);
+        job.setUserId(qpuSelectionDto.getUserId());
 
-        if (circuitName == null) {
+        if (qpuSelectionDto.getCircuitName() == null) {
             job.setCircuitName("temp");
         } else {
-            job.setCircuitName(circuitName);
+            job.setCircuitName(qpuSelectionDto.getCircuitName());
         }
 
         qpuSelectionJobRepository.save(job);
         new Thread(() -> {
             nisqAnalyzerService
-                .performQpuSelectionForCircuit(job, allowedProviders, circuitLanguage, circuitFile,
-                    tokens, circuitName, compilers, preciseResultsPreference, shortWaitingTimesPreference, queueImportanceRatio,
-                    maxNumberOfCompiledCircuits, predictionAlgorithm, metaOptimizer);
+                .performQpuSelectionForCircuit(job, qpuSelectionDto.getAllowedProviders(), qpuSelectionDto.getCircuitLanguage(), circuitFile,
+                    qpuSelectionDto.getTokens(), qpuSelectionDto.getCircuitName(), qpuSelectionDto.getCompilers(),
+                    qpuSelectionDto.isPreciseResultsPreference(), qpuSelectionDto.isShortWaitingTimesPreference(),
+                    qpuSelectionDto.getQueueImportanceRatio(), qpuSelectionDto.getMaxNumberOfCompiledCircuits(),
+                    qpuSelectionDto.getPredictionAlgorithm(), qpuSelectionDto.getMetaOptimizer());
         }).start();
 
         // send back QPU selection job to track the progress
