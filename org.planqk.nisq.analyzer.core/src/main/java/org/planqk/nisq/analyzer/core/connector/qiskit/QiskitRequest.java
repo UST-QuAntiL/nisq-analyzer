@@ -56,6 +56,11 @@ public class QiskitRequest {
 
     @Getter
     @Setter
+    @JsonProperty("provider")
+    private String provider;
+
+    @Getter
+    @Setter
     @JsonProperty(value = "transpiled-qasm")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String transpiled_qasm;
@@ -71,24 +76,28 @@ public class QiskitRequest {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String bearerToken;
 
-    public QiskitRequest(URL impl_url, String impl_language, String qpu_name, Map<String, ParameterValue> input_params, String bearerToken) {
+    public QiskitRequest(URL impl_url, String impl_language, String qpu_name, String provider, Map<String, ParameterValue> input_params,
+                         String bearerToken) {
         this.impl_url = impl_url;
         this.impl_language = impl_language;
         this.qpu_name = qpu_name;
+        this.provider = provider;
         this.input_params = input_params;
         this.bearerToken = bearerToken;
     }
 
-    public QiskitRequest(String impl_language, String impl_data, String qpu_name, Map<String, ParameterValue> input_params) {
+    public QiskitRequest(String impl_language, String impl_data, String qpu_name, String provider, Map<String, ParameterValue> input_params) {
         this.impl_language = impl_language;
         this.impl_data = impl_data;
         this.qpu_name = qpu_name;
+        this.provider = provider;
         this.input_params = input_params;
     }
 
-    public QiskitRequest(String transpiled_qasm, String qpu_name, Map<String, ParameterValue> input_params) {
+    public QiskitRequest(String transpiled_qasm, String qpu_name, String provider, Map<String, ParameterValue> input_params) {
         this.transpiled_qasm = transpiled_qasm;
         this.qpu_name = qpu_name;
+        this.provider = provider;
         this.input_params = input_params;
     }
 
