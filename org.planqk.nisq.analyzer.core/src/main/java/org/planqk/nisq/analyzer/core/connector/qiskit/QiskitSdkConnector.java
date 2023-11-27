@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
@@ -161,9 +160,7 @@ public class QiskitSdkConnector implements SdkConnector {
                                 // check if current execution result is already of a simulator otherwise get all qpu-selection-results of same job
                                 if (!qResult.getQpu().contains(simulator)) {
                                     List<QpuSelectionResult> jobResults =
-                                        qpuSelectionResultRepository.findAll().stream()
-                                            .filter(res -> res.getQpuSelectionJobId().equals(qResult.getQpuSelectionJobId()))
-                                            .collect(Collectors.toList());
+                                        qpuSelectionResultRepository.findAllByQpuSelectionJobId(qResult.getQpuSelectionJobId());
                                     // get qpuSelectionResult of simulator if available
                                     QpuSelectionResult simulatorQpuSelectionResult =
                                         jobResults.stream().filter(jobResult -> jobResult.getQpu().contains(simulator)).findFirst().orElse(null);
@@ -177,6 +174,7 @@ public class QiskitSdkConnector implements SdkConnector {
                                                     resultRepository
                                                         .findAll()
                                                         .stream()
+                                                        .filter(exResults -> Objects.nonNull(exResults.getQpuSelectionResult()))
                                                         .filter(exeResult -> exeResult.getQpuSelectionResult().getId()
                                                             .equals(simulatorQpuSelectionResult.getId()))
                                                         .findFirst()
