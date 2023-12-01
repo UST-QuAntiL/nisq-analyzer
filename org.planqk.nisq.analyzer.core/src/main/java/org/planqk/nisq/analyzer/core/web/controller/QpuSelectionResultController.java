@@ -220,10 +220,13 @@ public class QpuSelectionResultController {
             params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown,
                 executeAnalysisResultRequestDto.getTokens().get("ibmq").get("ibmq")));
         } else if (qpuSelectionResult.getProvider().equalsIgnoreCase("ionq")) {
+                params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown,
+                    executeAnalysisResultRequestDto.getTokens().get("ionq").get("ionq")));
+        } else if (qpuSelectionResult.getProvider().equalsIgnoreCase("aws")) {
             params.put(Constants.AWS_ACCESS_TOKEN_PARAMETER, new ParameterValue(DataType.Unknown,
-                executeAnalysisResultRequestDto.getTokens().get("ionq").get("awsAccessKey")));
+                executeAnalysisResultRequestDto.getTokens().get("aws").get("awsAccessKey")));
             params.put(Constants.AWS_ACCESS_SECRET_PARAMETER, new ParameterValue(DataType.Unknown,
-                executeAnalysisResultRequestDto.getTokens().get("ionq").get("awsSecretKey")));
+                executeAnalysisResultRequestDto.getTokens().get("aws").get("awsSecretKey")));
         }
 
         ExecutionResult executionResult = controlService.executeCompiledQpuSelectionCircuit(qpuSelectionResult, params);

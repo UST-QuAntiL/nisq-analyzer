@@ -103,30 +103,39 @@ public class QProvService {
         }
     }
 
-    public Integer getQueueSizeOfQpu(String qpuName) {
-        URI ibmqQueueSizeUrl = URI.create(String.format("https://api.quantum-computing.ibm.com/api/Backends/%s/queue/status?", qpuName));
-        LOG.debug("Requesting IBMQ for queue size");
-        RestTemplate restTemplate = new RestTemplate();
+    public Integer getQueueSizeOfQpu(String qpuName, String provider) {
+        if (provider.equalsIgnoreCase("ionq")) {
+            Optional<Qpu> optionalQpu = getQpuByName(qpuName, provider);
+            if (optionalQpu.isPresent()) {
+                Qpu qpu = optionalQpu.get();
+                return qpu.getQueueSize();
+            }
+        } else {
+            URI ibmqQueueSizeUrl = URI.create(String.format("https://api.quantum-computing.ibm.com/api/Backends/%s/queue/status?", qpuName));
+            LOG.debug("Requesting IBMQ for queue size");
+            RestTemplate restTemplate = new RestTemplate();
 
-        // fake user agent, as IBMQ blocks Java/1.8
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("user-agent", "python-requests/2.27.1");
+            // fake user agent, as IBMQ blocks Java/1.8
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("user-agent", "python-requests/2.27.1");
 
-        HttpEntity<String> entity = new HttpEntity<>(headers);
+            HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        try {
-            ResponseEntity<IbmqQpuQueue> response =
-                restTemplate.exchange(ibmqQueueSizeUrl, HttpMethod.GET, entity, IbmqQpuQueue.class);
+            try {
+                ResponseEntity<IbmqQpuQueue> response =
+                    restTemplate.exchange(ibmqQueueSizeUrl, HttpMethod.GET, entity, IbmqQpuQueue.class);
 
-            IbmqQpuQueue ibmqQpuQueue = response.getBody();
+                IbmqQpuQueue ibmqQpuQueue = response.getBody();
 
-            if (ibmqQpuQueue != null) {
-                return ibmqQpuQueue.getLengthQueue();
-            } else {
+                if (ibmqQpuQueue != null) {
+                    return ibmqQpuQueue.getLengthQueue();
+                } else {
+                    return 100;
+                }
+            } catch (RestClientException e) {
                 return 100;
             }
-        } catch (RestClientException e) {
-            return 100;
         }
+        return 100;
     }
 }

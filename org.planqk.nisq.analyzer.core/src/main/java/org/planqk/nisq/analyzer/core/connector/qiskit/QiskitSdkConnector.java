@@ -96,12 +96,8 @@ public class QiskitSdkConnector implements SdkConnector {
                                                       String refreshToken) {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
         String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
-        String provider = qpu.getProvider();
-        if (provider.equalsIgnoreCase("ionq")) {
-            provider = "aws";
-        }
         QiskitRequest request =
-            new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), provider, parameters,
+            new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), qpu.getProvider(), parameters,
                 bearerToken);
         executeQuantumCircuit(request, executionResult, resultRepository, null);
     }
@@ -112,11 +108,7 @@ public class QiskitSdkConnector implements SdkConnector {
                                                 ExecutionResultRepository resultRepository,
                                                 QpuSelectionResultRepository qpuSelectionResultRepository) {
         LOG.debug("Executing circuit passed as file with provider '{}' and qpu '{}'.", providerName, qpuName);
-        String provider = providerName;
-        if (provider.equalsIgnoreCase("ionq")) {
-            provider = "aws";
-        }
-        QiskitRequest request = new QiskitRequest(transpiledCircuit, qpuName, provider, parameters);
+        QiskitRequest request = new QiskitRequest(transpiledCircuit, qpuName, providerName, parameters);
         executeQuantumCircuit(request, executionResult, resultRepository, qpuSelectionResultRepository);
     }
 
@@ -280,11 +272,7 @@ public class QiskitSdkConnector implements SdkConnector {
                                                    Map<String, ParameterValue> parameters, String refreshToken) {
         LOG.debug("Analysing quantum algorithm implementation with Qiskit Sdk connector plugin!");
         String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
-        String provider = providerName;
-        if (provider.equalsIgnoreCase("ionq")) {
-            provider = "aws";
-        }
-        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, provider, parameters,
+        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, providerName, parameters,
             bearerToken);
         return executeCircuitPropertiesRequest(request);
     }
@@ -298,11 +286,7 @@ public class QiskitSdkConnector implements SdkConnector {
             // retrieve content form file and encode base64
             String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
             String encodedCircuit = Base64.getEncoder().encodeToString(fileContent.getBytes());
-            String provider = providerName;
-            if (provider.equalsIgnoreCase("ionq")) {
-                provider = "aws";
-            }
-            QiskitRequest request = new QiskitRequest(language, encodedCircuit, qpuName, provider, parameters);
+            QiskitRequest request = new QiskitRequest(language, encodedCircuit, qpuName, providerName, parameters);
             return executeCircuitPropertiesRequest(request);
         } catch (IOException e) {
             LOG.error("Unable to read file content from circuit file!");

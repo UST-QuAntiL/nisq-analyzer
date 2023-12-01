@@ -151,6 +151,8 @@ public class CompilerAnalysisResultController {
         if (compilationResult.getProvider().equalsIgnoreCase("ibmq")) {
             params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ibmq")));
         } else if (compilationResult.getProvider().equalsIgnoreCase("ionq")) {
+            params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ionq")));
+        } else if (compilationResult.getProvider().equalsIgnoreCase("aws")) {
             params.put(Constants.AWS_ACCESS_TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("awsAccessKey")));
             params.put(Constants.AWS_ACCESS_SECRET_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("awsSecretKey")));
         }

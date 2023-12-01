@@ -179,8 +179,10 @@ public class AnalysisResultController {
                 if (analysisResult.getProvider().equalsIgnoreCase("ibmq")) {
                     typedParams.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ibmq").get("ibmq")));
                 } else if (analysisResult.getProvider().equalsIgnoreCase("ionq")) {
-                    typedParams.put(Constants.AWS_ACCESS_TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ionq").get("awsAccessKey")));
-                    typedParams.put(Constants.AWS_ACCESS_SECRET_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ionq").get("awsSecretKey")));
+                    typedParams.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ionq").get("ionq")));
+                } else if (analysisResult.getProvider().equalsIgnoreCase("aws")) {
+                    typedParams.put(Constants.AWS_ACCESS_TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("aws").get("awsAccessKey")));
+                    typedParams.put(Constants.AWS_ACCESS_SECRET_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("aws").get("awsSecretKey")));
                 }
             }
 

@@ -789,6 +789,8 @@ public class NisqAnalyzerControlService {
             if (providerName.equalsIgnoreCase("ibmq")) {
                 params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ibmq")));
             } else if (providerName.equalsIgnoreCase("ionq")) {
+                params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ionq")));
+            } else if (providerName.equalsIgnoreCase("aws")) {
                 params.put(Constants.AWS_ACCESS_TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("awsAccessKey")));
                 params.put(Constants.AWS_ACCESS_SECRET_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("awsSecretKey")));
             }
