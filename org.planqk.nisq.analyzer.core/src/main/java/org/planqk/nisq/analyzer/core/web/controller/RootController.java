@@ -225,27 +225,6 @@ public class RootController {
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
-    private File createQasmFileFromUrlOrString(URL url, String qasm, String refreshToken) throws IOException, IllegalArgumentException {
-        if (Objects.isNull(url) == Objects.isNull(qasm)) {
-            throw new IllegalArgumentException("Either circuitUrl or qasmCode needs to be specified.");
-        }
-
-        File circuitFile;
-
-        // create circuit file from string or URL
-        if (Objects.isNull(url)) {
-            circuitFile = Utils.inputStreamToFile(new ByteArrayInputStream(qasm.getBytes(StandardCharsets.UTF_8)), "qasm");
-        } else {
-            // get file from passed URL
-            circuitFile = Utils.getFileObjectFromUrl(url, refreshToken);
-            if (Objects.isNull(circuitFile)) {
-                throw new IOException("Unable to load file from given URL");
-            }
-        }
-
-        return circuitFile;
-    }
-
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
             @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit loaded from the given URL")
     @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
@@ -255,7 +234,7 @@ public class RootController {
         File circuitFile;
 
         try {
-            circuitFile = createQasmFileFromUrlOrString(params.getCircuitUrl(), params.getQasmCode(), params.getRefreshToken());
+            circuitFile = nisqAnalyzerService.createQasmFileFromUrlOrString(params.getCircuitUrl(), params.getQasmCode(), params.getRefreshToken());
         } catch (Exception e) {
             return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -328,7 +307,7 @@ public class RootController {
         File circuitFile;
 
         try {
-            circuitFile = createQasmFileFromUrlOrString(compilerSelectionDto.getCircuitUrl(), compilerSelectionDto.getQasmCode(), compilerSelectionDto.getRefreshToken());
+            circuitFile = nisqAnalyzerService.createQasmFileFromUrlOrString(compilerSelectionDto.getCircuitUrl(), compilerSelectionDto.getQasmCode(), compilerSelectionDto.getRefreshToken());
         } catch (Exception e) {
             return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

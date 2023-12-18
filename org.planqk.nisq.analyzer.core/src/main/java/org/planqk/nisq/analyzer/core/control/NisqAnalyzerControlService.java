@@ -19,8 +19,10 @@
 
 package org.planqk.nisq.analyzer.core.control;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -76,8 +78,11 @@ import org.planqk.nisq.analyzer.core.repository.OriginalCircuitResultRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 import org.planqk.nisq.analyzer.core.translator.TranslatorService;
+import org.planqk.nisq.analyzer.core.web.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -295,6 +300,218 @@ public class NisqAnalyzerControlService {
             executableImplementations.size());
 
         List<AnalysisResult> analysisResults = new ArrayList<>();
+
+        AnalysisResult simulatorAnalysisResult = new AnalysisResult();
+
+        File circuitFile;
+
+        try {
+            circuitFile = createQasmFileFromUrlOrString(params.getCircuitUrl(), params.getQasmCode(), params.getRefreshToken());
+        } catch (Exception e) {
+            return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // analyze original circuit for pre-selection
+        OriginalCircuitResult originalCircuitResult = analyzeOriginalCircuit(circuitName, circuitCode, circuitLanguage);
+
+        // retrieve list of compilers that should be used for the comparison
+        List<String> compilersToUse;
+        if (Objects.nonNull(compilers)) {
+            LOG.debug("User restricted compiler usage to {} compilers: {}", compilers.size(), compilers.toString());
+            compilersToUse = compilers;
+        } else {
+            compilersToUse = connectorList.stream().flatMap(connector -> connector.supportedSdks().stream()).distinct().collect(Collectors.toList());
+            LOG.debug("No restriction for compilers defined. Using all ({}) supported compilers!", compilersToUse.size());
+        }
+
+        // iterate over all providers listed in QProv for the QPU selection
+        for (Provider provider : qProvService.getProviders()) {
+
+            // filter providers that are not contained in the list of allowed providers
+            if (Objects.nonNull(allowedProviders) &&
+                allowedProviders.stream().noneMatch(allowedProvider -> allowedProvider.equalsIgnoreCase(provider.getName()))) {
+                LOG.debug("Provider '{}' is not contained in list of allowed providers. Skipping!", provider.getName());
+                continue;
+            }
+
+            LOG.debug("Performing QPU selection for provider with name: {}", provider.getName());
+
+            // get available QPUs
+            List<Qpu> qpus = qProvService.getQPUs(provider);
+            LOG.debug("Found {} QPUs from provider '{}'!", qpus.size(), provider.getName());
+
+            for (Qpu qpu : qpus) {
+                LOG.debug("Checking if QPU '{}' is suitable for the execution of the given circuit...", qpu.getName());
+
+//                if (!simulatorsAllowed && qpu.isSimulator()) {
+//                    LOG.debug("Skipping simulator as they are disabled for the selection!");
+//                    continue;
+//                }
+
+                // only consider standard simulator
+                if (provider.getName().equalsIgnoreCase("ibmq") && qpu.isSimulator() && !Objects.equals(qpu.getName(), "ibmq_qasm_simulator")) {
+                    continue;
+                }
+
+                // create all possible combinations of QPUs and compilers and retrieve actual QPU data
+                for (String compilerName : compilersToUse) {
+                    // use only qiskit transpiler when compiling with the simulator
+                    if (!(compilerName.equalsIgnoreCase("pytket") && qpu.getName().equalsIgnoreCase("ibmq_qasm_simulator"))) {
+                        QpuSelectionResult qpuSelectionResult = new QpuSelectionResult();
+                        qpuSelectionResult.setCircuitName(circuitName);
+                        qpuSelectionResult.setTime(OffsetDateTime.now());
+                        qpuSelectionResult.setQueueSize(qpu.getQueueSize());
+                        qpuSelectionResult.setQpu(qpu.getName());
+                        qpuSelectionResult.setProvider(provider.getName());
+                        qpuSelectionResult.setCompiler(compilerName);
+                        qpuSelectionResult.setQpuSelectionJobId(job.getId());
+                        qpuSelectionResult.setAvgMultiQubitGateError(qpu.getAvgMultiQubitGateError());
+                        qpuSelectionResult.setAvgMultiQubitGateTime(qpu.getAvgMultiQubitGateTime());
+                        qpuSelectionResult.setAvgReadoutError(qpu.getAvgReadoutError());
+                        qpuSelectionResult.setAvgSingleQubitGateError(qpu.getAvgSingleQubitGateError());
+                        qpuSelectionResult.setAvgSingleQubitGateTime(qpu.getAvgSingleQubitGateTime());
+                        qpuSelectionResult.setT1(qpu.getT1());
+                        qpuSelectionResult.setT2(qpu.getT2());
+                        qpuSelectionResult.setMaxGateTime(qpu.getMaxGateTime());
+                        qpuSelectionResult.setQubitCount(qpu.getQubitCount());
+                        qpuSelectionResult.setSimulator(qpu.isSimulator());
+                        qpuSelectionResult.setUserId(job.getUserId());
+                        qpuSelectionResult.setOriginalCircuitResultId(originalCircuitResult.getId());
+
+                        qpuSelectionResult = qpuSelectionResultRepository.save(qpuSelectionResult);
+                        job.getJobResults().add(qpuSelectionResult);
+
+                        if (qpuSelectionResult.getQpu().contains("qasm_simulator")) {
+                            simulatorQpuSelectionResult = qpuSelectionResult;
+                        }
+                    }
+                }
+            }
+        }
+
+        // user prefers only short waiting times
+        if (shortWaitingTimesPreference && !preciseResultsPreference) {
+            job.getJobResults().sort(Comparator.comparing(QpuSelectionResult::getQueueSize));
+            // trim list of possible combinations
+            if (maxNumberOfCompiledCircuits > 0 && job.getJobResults().size() > maxNumberOfCompiledCircuits) {
+                job.getJobResults().subList(maxNumberOfCompiledCircuits, job.getJobResults().size()).clear();
+
+                // add one compilation candidate for the simulator to calculate the histogram intersection after execution
+                AtomicBoolean simulatorAlreadyContained = new AtomicBoolean(false);
+                job.getJobResults().forEach(qpuSelectionResult -> {
+                    if (qpuSelectionResult.getQpu().contains("simulator")) {
+                        simulatorAlreadyContained.set(true);
+                    }
+                });
+                if (!simulatorAlreadyContained.get()) {
+                    job.getJobResults().add(simulatorQpuSelectionResult);
+                }
+            }
+        } else if (preciseResultsPreference) {
+            // look up if there is prior data for pre-selection based on prediction of precise execution results available
+            boolean priorDataAvailable = false;
+            List<ExecutionResult> executionResultList = executionResultRepository.findAll();
+            for (ExecutionResult executionResult : executionResultList) {
+                // ignore simulator results that are equal to 1 and non-calculated values
+                if (executionResult.getHistogramIntersectionValue() > 0 && executionResult.getHistogramIntersectionValue() < 1) {
+                    priorDataAvailable = true;
+                    break;
+                }
+            }
+            if (priorDataAvailable) {
+                List<String> qpuSelectionResultIdList =
+                    prioritizationService.executePredictionForCompilerAnQpuPreSelection(originalCircuitResult, job, queueImportanceRatio,
+                        predictionAlgorithm, metaOptimizer, shortWaitingTimesPreference);
+
+                if (qpuSelectionResultIdList != null) {
+                    // trim list of possible combinations
+                    if (maxNumberOfCompiledCircuits > 0 && qpuSelectionResultIdList.size() > maxNumberOfCompiledCircuits) {
+                        qpuSelectionResultIdList.subList(maxNumberOfCompiledCircuits, qpuSelectionResultIdList.size()).clear();
+                        List<QpuSelectionResult> listOfSelectedQpuSelectionResults = new ArrayList<>();
+                        qpuSelectionResultIdList.forEach(id -> {
+                            job.getJobResults().forEach(qpuSelectionResult -> {
+                                if (qpuSelectionResult.getId().equals(UUID.fromString(id))) {
+                                    listOfSelectedQpuSelectionResults.add(qpuSelectionResult);
+                                }
+                            });
+                        });
+                        job.setJobResults(listOfSelectedQpuSelectionResults);
+                        // add one compilation candidate for the simulator to calculate the histogram intersection
+                        job.getJobResults().add(simulatorQpuSelectionResult);
+                    }
+                }
+            }
+        }
+
+        // delete compilation candidates that will not be considered
+        qpuSelectionResultRepository.findAllByQpuSelectionJobId(job.getId()).forEach(qpuSelectionResult -> {
+            AtomicBoolean resultIsContained = new AtomicBoolean(false);
+            job.getJobResults().forEach(qpuSelectionResult1 -> {
+                if (qpuSelectionResult.getId().equals(qpuSelectionResult1.getId())) {
+                    resultIsContained.set(true);
+                }
+            });
+            if (!resultIsContained.get()) {
+                qpuSelectionResultRepository.delete(qpuSelectionResult);
+            }
+        });
+
+        // overwrite old, non-updated qpuSelectionResults in the job, after prediction
+        List<QpuSelectionResult> remainingQpuSelectionResultList = new ArrayList<>();
+        job.getJobResults().forEach(qpuSelectionResultOld -> {
+            Optional<QpuSelectionResult> qpuSelectionResultOptional = qpuSelectionResultRepository.findById(qpuSelectionResultOld.getId());
+            qpuSelectionResultOptional.ifPresent(remainingQpuSelectionResultList::add);
+        });
+        job.setJobResults(remainingQpuSelectionResultList);
+
+        job.getJobResults().forEach(qpuSelectionResult -> {
+            Map<String, String> tokensOfProvider = caseInsensitiveTokens.get(qpuSelectionResult.getProvider());
+            if (Objects.isNull(tokensOfProvider)) {
+                LOG.debug("No suited access token for this provider available. Skipping!");
+            }
+
+            List<String> compilerNames = new ArrayList<>();
+            compilerNames.add(qpuSelectionResult.getCompiler());
+            // perform compiler selection for the given QPU and circuit
+            List<CompilationResult> compilationResults =
+                selectCompiler(qpuSelectionResult.getProvider(), qpuSelectionResult.getQpu(), circuitLanguage, circuitCode,
+                    qpuSelectionResult.getCircuitName(), compilerNames, tokensOfProvider);
+            LOG.debug("Retrieved {} compilation results!", compilationResults.size());
+
+            if (compilationResults.size() > 0) {
+                CompilationResult result = compilationResults.get(0);
+                // add compilation result to the database
+                qpuSelectionResult.setTranspiledCircuit(result.getTranspiledCircuit());
+                qpuSelectionResult.setTranspiledLanguage(result.getTranspiledLanguage());
+                qpuSelectionResult.setAnalyzedDepth(result.getAnalyzedDepth());
+                qpuSelectionResult.setAnalyzedWidth(result.getAnalyzedWidth());
+                qpuSelectionResult.setAnalyzedTotalNumberOfOperations(result.getAnalyzedTotalNumberOfOperations());
+                qpuSelectionResult.setAnalyzedNumberOfSingleQubitGates(result.getAnalyzedNumberOfSingleQubitGates());
+                qpuSelectionResult.setAnalyzedNumberOfMeasurementOperations(result.getAnalyzedNumberOfMeasurementOperations());
+                qpuSelectionResult.setAnalyzedNumberOfMultiQubitGates(result.getAnalyzedNumberOfMultiQubitGates());
+                qpuSelectionResult.setAnalyzedMultiQubitGateDepth(result.getAnalyzedMultiQubitGateDepth());
+
+                qpuSelectionResultRepository.save(qpuSelectionResult);
+            }
+        });
+
+        //delete qpuSelectionResults that are not executable because they were not compilable as too many qubits are required
+        qpuSelectionResultRepository.findAllByQpuSelectionJobId(job.getId()).forEach(qpuSelectionResult -> {
+            if (qpuSelectionResult.getAnalyzedWidth() == 0 && qpuSelectionResult.getAnalyzedDepth() == 0) {
+                qpuSelectionResultRepository.delete(qpuSelectionResult);
+            }
+        });
+        List<QpuSelectionResult> allOverRemainingQpuSelectionResultList = new ArrayList<>();
+        job.getJobResults().forEach(qpuSelectionResultOld -> {
+            Optional<QpuSelectionResult> qpuSelectionResultOptional = qpuSelectionResultRepository.findById(qpuSelectionResultOld.getId());
+            qpuSelectionResultOptional.ifPresent(allOverRemainingQpuSelectionResultList::add);
+        });
+        job.setJobResults(allOverRemainingQpuSelectionResultList);
+
+        // store updated result object
+        LOG.debug("Results: " + job.getJobResults().size());
+        job.setReady(true);
+        qpuSelectionJobRepository.save(job);
 
         // Iterate over all providers listed in QProv
         for (Provider provider : qProvService.getProviders()) {
@@ -982,5 +1199,26 @@ public class NisqAnalyzerControlService {
 
         // return a list of all supporting compilers
         return connectors.stream().flatMap(connector -> connector.supportedSdks().stream()).distinct().collect(Collectors.toList());
+    }
+
+    public File createQasmFileFromUrlOrString(URL url, String qasm, String refreshToken) throws IOException, IllegalArgumentException {
+        if (Objects.isNull(url) == Objects.isNull(qasm)) {
+            throw new IllegalArgumentException("Either circuitUrl or qasmCode needs to be specified.");
+        }
+
+        File circuitFile;
+
+        // create circuit file from string or URL
+        if (Objects.isNull(url)) {
+            circuitFile = Utils.inputStreamToFile(new ByteArrayInputStream(qasm.getBytes(StandardCharsets.UTF_8)), "qasm");
+        } else {
+            // get file from passed URL
+            circuitFile = Utils.getFileObjectFromUrl(url, refreshToken);
+            if (Objects.isNull(circuitFile)) {
+                throw new IOException("Unable to load file from given URL");
+            }
+        }
+
+        return circuitFile;
     }
 }

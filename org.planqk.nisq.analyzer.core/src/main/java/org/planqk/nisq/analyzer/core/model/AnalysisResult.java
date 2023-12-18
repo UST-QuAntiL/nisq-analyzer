@@ -47,4 +47,11 @@ public class AnalysisResult extends CircuitResult {
 
     @ElementCollection
     private Map<String, String> inputParameters;
+
+    private int queueSize;
+
+    private UUID originalCircuitResultId;
+
+    private Float predictedHistogramIntersectionValue;
+
 }

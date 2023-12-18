@@ -40,8 +40,4 @@ public class CompilationResult extends CircuitResult {
     @Lob
     private String initialCircuit;
 
-    @Lob
-    private String transpiledCircuit;
-
-    private String transpiledLanguage;
 }

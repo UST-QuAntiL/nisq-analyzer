@@ -40,11 +40,6 @@ public class QpuSelectionResult extends CircuitResult {
 
     private int queueSize;
 
-    @Lob
-    private String transpiledCircuit;
-
-    private String transpiledLanguage;
-
     private UUID qpuSelectionJobId;
 
     private UUID originalCircuitResultId;

@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.model;
 
 import java.time.OffsetDateTime;
+import javax.persistence.Lob;
 import javax.persistence.MappedSuperclass;
 
 import lombok.AllArgsConstructor;
@@ -50,6 +51,15 @@ public abstract class CircuitResult extends HasId {
     @Getter
     @Setter
     private String circuitName;
+
+    @Lob
+    @Getter
+    @Setter
+    private String transpiledCircuit;
+
+    @Getter
+    @Setter
+    private String transpiledLanguage;
 
     @Getter
     @Setter
