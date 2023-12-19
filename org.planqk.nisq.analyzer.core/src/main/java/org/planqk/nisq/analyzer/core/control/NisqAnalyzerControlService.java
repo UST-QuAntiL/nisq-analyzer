@@ -1024,7 +1024,8 @@ public class NisqAnalyzerControlService {
             }
 
             // check if QPU is simulator or can handle the depth in the current decoherence time
-            if (Objects.isNull(qpu) || (qpu.isSimulator() || qpu.getT1() / qpu.getMaxGateTime() >= circuitInformation.getCircuitDepth())) {
+            if (Objects.isNull(qpu) || (qpu.isSimulator() || (qpu.getT1() / qpu.getMaxGateTime() >= circuitInformation.getCircuitDepth()
+                && qpu.getQubitCount() >= circuitInformation.getCircuitWidth()))) {
 
                 // add resulting compiled circuit to result list
                 CompilationResult compilationResult = new CompilationResult();
