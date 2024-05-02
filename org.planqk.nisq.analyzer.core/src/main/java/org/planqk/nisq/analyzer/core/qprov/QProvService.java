@@ -22,7 +22,6 @@ package org.planqk.nisq.analyzer.core.qprov;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -50,6 +49,8 @@ public class QProvService {
 
     // API Endpoints
     private String providerAPIEnpoint;
+
+    private List<Qpu> requiredQpuList;
 
     public QProvService(
         @Value("${org.planqk.nisq.analyzer.qprov.hostname}") String hostname,
@@ -84,7 +85,7 @@ public class QProvService {
             QpuListDto qpuListDto =
                 restTemplate.getForObject(URI.create(String.format(providerAPIEnpoint + "/%s/qpus", provider.getId())), QpuListDto.class);
             if (qpuListDto != null) {
-                return qpuListDto.getQpuDtoList().stream().map(dto -> QpuDto.Converter.convert(dto, provider.getName())).collect(Collectors.toList());
+                return requiredQpuList = qpuListDto.getQpuDtoList().stream().map(dto -> QpuDto.Converter.convert(dto, provider.getName())).collect(Collectors.toList());
             } else {
                 return new ArrayList<>();
             }
@@ -95,12 +96,14 @@ public class QProvService {
     }
 
     public Optional<Qpu> getQpuByName(String name, String provider) {
-        Optional<Provider> prov = getProviders().stream().filter(p -> p.getName().equals(provider)).findFirst();
-        if (prov.isPresent()) {
-            return getQPUs(prov.get()).stream().filter(q -> q.getName().equalsIgnoreCase(name)).findFirst();
-        } else {
-            return Optional.empty();
+        if (requiredQpuList != null) {
+            Optional<Qpu> givenQpu = requiredQpuList.stream().filter(p -> p.getName().equals(name)).findFirst();
+            if (givenQpu.isPresent()) {
+                return givenQpu;
+            }
         }
+        Optional<Provider> prov = getProviders().stream().filter(p -> p.getName().equals(provider)).findFirst();
+        return prov.flatMap(value -> getQPUs(value).stream().filter(q -> q.getName().equalsIgnoreCase(name)).findFirst());
     }
 
     public Integer getQueueSizeOfQpu(String qpuName, String provider) {

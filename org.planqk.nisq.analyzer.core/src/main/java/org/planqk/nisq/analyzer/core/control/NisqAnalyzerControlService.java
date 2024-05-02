@@ -621,7 +621,9 @@ public class NisqAnalyzerControlService {
                         });
                         job.setJobResults(listOfSelectedQpuSelectionResults);
                         // add one compilation candidate for the simulator to calculate the histogram intersection
-                        job.getJobResults().add(simulatorQpuSelectionResult);
+                        if (simulatorQpuSelectionResult.getId() != null) {
+                            job.getJobResults().add(simulatorQpuSelectionResult);
+                        }
                     }
                 }
             }
