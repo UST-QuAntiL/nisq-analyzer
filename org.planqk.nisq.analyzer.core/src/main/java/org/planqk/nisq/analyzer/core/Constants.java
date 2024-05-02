@@ -87,6 +87,7 @@ public class Constants {
     // provider
     public static final String IBMQ = "ibmq";
     public static final String RIGETTI = "rigetti";
+    public static final String IONQ = "ionq";
 
     // sdks
     public static final String QISKIT = "qiskit";
@@ -95,4 +96,6 @@ public class Constants {
 
     // parameter
     public static final String TOKEN_PARAMETER = "token";
+    public static final String AWS_ACCESS_TOKEN_PARAMETER = "aws-access-key-id";
+    public static final String AWS_ACCESS_SECRET_PARAMETER = "aws-secret-access-key";
 }

@@ -142,7 +142,7 @@ public class JobDataExtractor {
 
         for (CircuitResult result : circuitResults) {
 
-            int backendQueueSize = qProvService.getQueueSizeOfQpu(result.getQpu());
+            int backendQueueSize = qProvService.getQueueSizeOfQpu(result.getQpu(), result.getProvider());
 
             // add alternative representing the analysis result
             String name = result.getQpu() + "-" + result.getCompiler() + "-" + result.getCircuitName();

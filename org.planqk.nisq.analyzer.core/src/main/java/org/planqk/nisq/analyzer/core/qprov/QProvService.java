@@ -50,6 +50,8 @@ public class QProvService {
     // API Endpoints
     private String providerAPIEnpoint;
 
+    private List<Qpu> requiredQpuList;
+
     public QProvService(
         @Value("${org.planqk.nisq.analyzer.qprov.hostname}") String hostname,
         @Value("${org.planqk.nisq.analyzer.qprov.port}") int port
@@ -75,57 +77,68 @@ public class QProvService {
         }
     }
 
-    public List<Qpu> getQPUs(Provider provider, String token) {
+    public List<Qpu> getQPUs(Provider provider) {
 
         RestTemplate restTemplate = new RestTemplate();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("token", token);
-
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        ResponseEntity<QpuListDto> response =
-            restTemplate.exchange(URI.create(String.format(providerAPIEnpoint + "/%s/qpus", provider.getId())), HttpMethod.GET, entity,
-                QpuListDto.class);
-
-        QpuListDto qpuListDto = response.getBody();
-
-        return qpuListDto.getQpuDtoList().stream().map(dto -> QpuDto.Converter.convert(dto, provider.getName())).collect(Collectors.toList());
-    }
-
-    public Optional<Qpu> getQpuByName(String name, String provider, String token) {
-        Optional<Provider> prov = getProviders().stream().filter(p -> p.getName().equals(provider)).findFirst();
-        if (prov.isPresent()) {
-            return getQPUs(prov.get(), token).stream().filter(q -> q.getName().equals(name)).findFirst();
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    public Integer getQueueSizeOfQpu(String qpuName) {
-        URI ibmqQueueSizeUrl = URI.create(String.format("https://api.quantum-computing.ibm.com/api/Backends/%s/queue/status?", qpuName));
-        LOG.debug("Requesting IBMQ for queue size");
-        RestTemplate restTemplate = new RestTemplate();
-
-        // fake user agent, as IBMQ blocks Java/1.8
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("user-agent", "python-requests/2.27.1");
-
-        HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
-            ResponseEntity<IbmqQpuQueue> response =
-                restTemplate.exchange(ibmqQueueSizeUrl, HttpMethod.GET, entity, IbmqQpuQueue.class);
-
-            IbmqQpuQueue ibmqQpuQueue = response.getBody();
-
-            if (ibmqQpuQueue != null) {
-                return ibmqQpuQueue.getLengthQueue();
+            QpuListDto qpuListDto =
+                restTemplate.getForObject(URI.create(String.format(providerAPIEnpoint + "/%s/qpus", provider.getId())), QpuListDto.class);
+            if (qpuListDto != null) {
+                return requiredQpuList = qpuListDto.getQpuDtoList().stream().map(dto -> QpuDto.Converter.convert(dto, provider.getName())).collect(Collectors.toList());
             } else {
-                return 100;
+                return new ArrayList<>();
             }
         } catch (RestClientException e) {
-            return 100;
+            LOG.error("Error while connecting to QPROV: " + e.getMessage());
+            return new ArrayList<>();
         }
+    }
+
+    public Optional<Qpu> getQpuByName(String name, String provider) {
+        if (requiredQpuList != null) {
+            Optional<Qpu> givenQpu = requiredQpuList.stream().filter(p -> p.getName().equals(name)).findFirst();
+            if (givenQpu.isPresent()) {
+                return givenQpu;
+            }
+        }
+        Optional<Provider> prov = getProviders().stream().filter(p -> p.getName().equals(provider)).findFirst();
+        return prov.flatMap(value -> getQPUs(value).stream().filter(q -> q.getName().equalsIgnoreCase(name)).findFirst());
+    }
+
+    public Integer getQueueSizeOfQpu(String qpuName, String provider) {
+        if (provider.equalsIgnoreCase("ionq")) {
+            Optional<Qpu> optionalQpu = getQpuByName(qpuName, provider);
+            if (optionalQpu.isPresent()) {
+                Qpu qpu = optionalQpu.get();
+                return qpu.getQueueSize();
+            }
+        } else {
+            URI ibmqQueueSizeUrl = URI.create(String.format("https://api.quantum-computing.ibm.com/api/Backends/%s/queue/status?", qpuName));
+            LOG.debug("Requesting IBMQ for queue size");
+            RestTemplate restTemplate = new RestTemplate();
+
+            // fake user agent, as IBMQ blocks Java/1.8
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("user-agent", "python-requests/2.27.1");
+
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            try {
+                ResponseEntity<IbmqQpuQueue> response =
+                    restTemplate.exchange(ibmqQueueSizeUrl, HttpMethod.GET, entity, IbmqQpuQueue.class);
+
+                IbmqQpuQueue ibmqQpuQueue = response.getBody();
+
+                if (ibmqQpuQueue != null) {
+                    return ibmqQpuQueue.getLengthQueue();
+                } else {
+                    return 100;
+                }
+            } catch (RestClientException e) {
+                return 100;
+            }
+        }
+        return 100;
     }
 }

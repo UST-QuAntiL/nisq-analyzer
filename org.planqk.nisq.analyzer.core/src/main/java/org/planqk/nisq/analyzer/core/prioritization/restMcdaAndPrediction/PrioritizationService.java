@@ -781,7 +781,7 @@ public class PrioritizationService {
         List<McdaCriteriaPerformances> mcdaCriteriaPerformancesList = new ArrayList<>();
 
         results.forEach(result -> {
-            int backendQueueSize = qProvService.getQueueSizeOfQpu(result.getQpu());
+            int backendQueueSize = qProvService.getQueueSizeOfQpu(result.getQpu(), result.getProvider());
 
             McdaCriteriaPerformances mcdaCriteriaPerformances = new McdaCriteriaPerformances();
             mcdaCriteriaPerformances.setId(result.getId().toString());

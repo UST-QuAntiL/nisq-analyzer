@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
@@ -98,7 +97,8 @@ public class QiskitSdkConnector implements SdkConnector {
         LOG.debug("Executing quantum algorithm implementation with Qiskit Sdk connector plugin!");
         String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
         QiskitRequest request =
-            new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters, bearerToken);
+            new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), qpu.getProvider(), parameters,
+                bearerToken);
         executeQuantumCircuit(request, executionResult, resultRepository, null);
     }
 
@@ -108,7 +108,7 @@ public class QiskitSdkConnector implements SdkConnector {
                                                 ExecutionResultRepository resultRepository,
                                                 QpuSelectionResultRepository qpuSelectionResultRepository) {
         LOG.debug("Executing circuit passed as file with provider '{}' and qpu '{}'.", providerName, qpuName);
-        QiskitRequest request = new QiskitRequest(transpiledCircuit, qpuName, parameters);
+        QiskitRequest request = new QiskitRequest(transpiledCircuit, qpuName, providerName, parameters);
         executeQuantumCircuit(request, executionResult, resultRepository, qpuSelectionResultRepository);
     }
 
@@ -152,9 +152,7 @@ public class QiskitSdkConnector implements SdkConnector {
                                 // check if current execution result is already of a simulator otherwise get all qpu-selection-results of same job
                                 if (!qResult.getQpu().contains(simulator)) {
                                     List<QpuSelectionResult> jobResults =
-                                        qpuSelectionResultRepository.findAll().stream()
-                                            .filter(res -> res.getQpuSelectionJobId().equals(qResult.getQpuSelectionJobId()))
-                                            .collect(Collectors.toList());
+                                        qpuSelectionResultRepository.findAllByQpuSelectionJobId(qResult.getQpuSelectionJobId());
                                     // get qpuSelectionResult of simulator if available
                                     QpuSelectionResult simulatorQpuSelectionResult =
                                         jobResults.stream().filter(jobResult -> jobResult.getQpu().contains(simulator)).findFirst().orElse(null);
@@ -168,6 +166,7 @@ public class QiskitSdkConnector implements SdkConnector {
                                                     resultRepository
                                                         .findAll()
                                                         .stream()
+                                                        .filter(exResults -> Objects.nonNull(exResults.getQpuSelectionResult()))
                                                         .filter(exeResult -> exeResult.getQpuSelectionResult().getId()
                                                             .equals(simulatorQpuSelectionResult.getId()))
                                                         .findFirst()
@@ -273,7 +272,8 @@ public class QiskitSdkConnector implements SdkConnector {
                                                    Map<String, ParameterValue> parameters, String refreshToken) {
         LOG.debug("Analysing quantum algorithm implementation with Qiskit Sdk connector plugin!");
         String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
-        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, parameters, bearerToken);
+        QiskitRequest request = new QiskitRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, providerName, parameters,
+            bearerToken);
         return executeCircuitPropertiesRequest(request);
     }
 
@@ -286,7 +286,7 @@ public class QiskitSdkConnector implements SdkConnector {
             // retrieve content form file and encode base64
             String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
             String encodedCircuit = Base64.getEncoder().encodeToString(fileContent.getBytes());
-            QiskitRequest request = new QiskitRequest(language, encodedCircuit, qpuName, parameters);
+            QiskitRequest request = new QiskitRequest(language, encodedCircuit, qpuName, providerName, parameters);
             return executeCircuitPropertiesRequest(request);
         } catch (IOException e) {
             LOG.error("Unable to read file content from circuit file!");
@@ -338,7 +338,7 @@ public class QiskitSdkConnector implements SdkConnector {
 
     @Override
     public List<String> supportedProviders() {
-        return Arrays.asList(Constants.IBMQ);
+        return Arrays.asList(Constants.IBMQ, Constants.IONQ);
     }
 
     @Override

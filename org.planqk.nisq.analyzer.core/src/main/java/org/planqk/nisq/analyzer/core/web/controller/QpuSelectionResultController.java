@@ -46,6 +46,7 @@ import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuSelectionJobDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuSelectionJobListDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuSelectionResultDto;
 import org.planqk.nisq.analyzer.core.web.dtos.entities.QpuSelectionResultListDto;
+import org.planqk.nisq.analyzer.core.web.dtos.requests.ExecuteAnalysisResultRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -55,6 +56,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -154,7 +156,8 @@ public class QpuSelectionResultController {
     @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
         @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute a compilation result")
     @PostMapping("/{resId}/" + Constants.EXECUTION)
-    public HttpEntity<ExecutionResultDto> executeQpuSelectionResult(@PathVariable UUID resId, @RequestParam String token) {
+    public HttpEntity<ExecutionResultDto> executeQpuSelectionResult(@PathVariable UUID resId,
+                                                                    @RequestBody ExecuteAnalysisResultRequestDto executeAnalysisResultRequestDto) {
         LOG.debug("Post to execute qpu-selection-result with id: {}", resId);
 
         Optional<QpuSelectionResult> result = qpuSelectionResultRepository.findById(resId);
@@ -191,7 +194,8 @@ public class QpuSelectionResultController {
                 if (simulatorExecutionResults.size() == 0) {
 
                     Map<String, ParameterValue> simulatorParams = new HashMap<>();
-                    simulatorParams.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
+                    simulatorParams.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown,
+                        executeAnalysisResultRequestDto.getTokens().get("ibmq").get("ibmq")));
 
                     ExecutionResult simulatorExecutionResult =
                         controlService.executeCompiledQpuSelectionCircuit(simulatorQpuSelectionResult, simulatorParams);
@@ -212,7 +216,18 @@ public class QpuSelectionResultController {
         }
 
         Map<String, ParameterValue> params = new HashMap<>();
-        params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
+        if (qpuSelectionResult.getProvider().equalsIgnoreCase("ibmq")) {
+            params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown,
+                executeAnalysisResultRequestDto.getTokens().get("ibmq").get("ibmq")));
+        } else if (qpuSelectionResult.getProvider().equalsIgnoreCase("ionq")) {
+                params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown,
+                    executeAnalysisResultRequestDto.getTokens().get("ionq").get("ionq")));
+        } else if (qpuSelectionResult.getProvider().equalsIgnoreCase("aws")) {
+            params.put(Constants.AWS_ACCESS_TOKEN_PARAMETER, new ParameterValue(DataType.Unknown,
+                executeAnalysisResultRequestDto.getTokens().get("aws").get("awsAccessKey")));
+            params.put(Constants.AWS_ACCESS_SECRET_PARAMETER, new ParameterValue(DataType.Unknown,
+                executeAnalysisResultRequestDto.getTokens().get("aws").get("awsSecretKey")));
+        }
 
         ExecutionResult executionResult = controlService.executeCompiledQpuSelectionCircuit(qpuSelectionResult, params);
         ExecutionResultDto dto = ExecutionResultDto.Converter.convert(executionResult);

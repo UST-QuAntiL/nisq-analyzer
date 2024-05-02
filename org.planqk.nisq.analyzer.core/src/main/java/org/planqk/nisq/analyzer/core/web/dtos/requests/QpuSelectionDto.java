@@ -36,7 +36,7 @@ public class QpuSelectionDto {
 
     String qasmCode;
 
-    Map<String, String> tokens;
+    Map<String, Map<String, String>> tokens;
 
     String refreshToken;
 

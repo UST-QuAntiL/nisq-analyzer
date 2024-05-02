@@ -136,7 +136,7 @@ public class CompilerAnalysisResultController {
     @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
         @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute a compilation result")
     @PostMapping("/{resId}/" + Constants.EXECUTION)
-    public HttpEntity<ExecutionResultDto> executeCompilationResult(@PathVariable UUID resId, @RequestParam String token) {
+    public HttpEntity<ExecutionResultDto> executeCompilationResult(@PathVariable UUID resId, @RequestParam Map<String, String> tokens) {
         LOG.debug("Post to execute compilation result with id: {}", resId);
 
         Optional<CompilationResult> result = compilerAnalysisResultRepository.findById(resId);
@@ -148,7 +148,14 @@ public class CompilerAnalysisResultController {
         // get token for the execution
         CompilationResult compilationResult = result.get();
         Map<String, ParameterValue> params = new HashMap<>();
-        params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
+        if (compilationResult.getProvider().equalsIgnoreCase("ibmq")) {
+            params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ibmq")));
+        } else if (compilationResult.getProvider().equalsIgnoreCase("ionq")) {
+            params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ionq")));
+        } else if (compilationResult.getProvider().equalsIgnoreCase("aws")) {
+            params.put(Constants.AWS_ACCESS_TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("awsAccessKey")));
+            params.put(Constants.AWS_ACCESS_SECRET_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("awsSecretKey")));
+        }
 
         ExecutionResult executionResult = controlService.executeCompiledQuantumCircuit(compilationResult, params);
         ExecutionResultDto dto = ExecutionResultDto.Converter.convert(executionResult);

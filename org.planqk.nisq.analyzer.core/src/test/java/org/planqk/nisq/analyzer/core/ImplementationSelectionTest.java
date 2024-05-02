@@ -53,7 +53,7 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         ibmq.setName("IBMQ");
 
         Mockito.when(qProvService.getProviders()).thenReturn(Arrays.asList(ibmq));
-        Mockito.when(qProvService.getQPUs(ibmq, System.getenv("token"))).thenReturn(Arrays.asList(
+        Mockito.when(qProvService.getQPUs(ibmq)).thenReturn(Arrays.asList(
             createDummyQPU("IBMQ", "ibmq_16_melbourne", 15, 1696, 54502.2906f),
             createDummySimulator("IBMQ", "ibmq_qasm_simulator", 32)
         ));

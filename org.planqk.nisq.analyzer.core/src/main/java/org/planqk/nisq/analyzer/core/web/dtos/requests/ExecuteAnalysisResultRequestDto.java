@@ -19,6 +19,8 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.requests;
 
+import java.util.Map;
+
 import lombok.Data;
 
 @Data
@@ -26,5 +28,5 @@ public class ExecuteAnalysisResultRequestDto {
 
     String refreshToken;
 
-    String token;
+    Map<String, Map<String, String>> tokens;
 }

@@ -177,7 +177,7 @@ public class NisqAnalyzerControlService {
         }
 
         // Retrieve the QPU from Qiskit-Service
-        Optional<Qpu> qpu = qProvService.getQpuByName(result.getQpu(), result.getProvider(), inputParameters.get("token").getRawValue());
+        Optional<Qpu> qpu = qProvService.getQpuByName(result.getQpu(), result.getProvider());
         if (!qpu.isPresent()) {
             LOG.error("Unable to find qpu with name {}.", result.getQpu());
             throw new RuntimeException("Unable to find qpu with name " + result.getQpu());
@@ -300,7 +300,7 @@ public class NisqAnalyzerControlService {
         for (Provider provider : qProvService.getProviders()) {
 
             // Get available QPUs
-            List<Qpu> qpus = qProvService.getQPUs(provider, token);
+            List<Qpu> qpus = qProvService.getQPUs(provider);
 
             // Rebuild the Prolog files for the QPU candidates
             rebuildQPUPrologFiles(qpus);
@@ -448,14 +448,14 @@ public class NisqAnalyzerControlService {
      * @param circuitCode     the file containing the circuit to compile
      * @param circuitName     user defined name to (partly) distinguish circuits
      * @param compilerNames   an optional list of compiler names to restrict the compilers to use. If not set, all supported compilers are used
-     * @param token           the token to access the specified QPU
+     * @param tokens           the tokens to access the specified QPU
      */
     public void performCompilerSelection(CompilationJob job, String providerName, String qpuName, String circuitLanguage,
-                                         File circuitCode, String circuitName, List<String> compilerNames, String token) {
+                                         File circuitCode, String circuitName, List<String> compilerNames, Map<String, String> tokens) {
 
         // analyze compilers and retrieve suitable compilation results
         List<CompilationResult> compilerAnalysisResults =
-                selectCompiler(providerName, qpuName, circuitLanguage, circuitCode, circuitName, compilerNames, token);
+                selectCompiler(providerName, qpuName, circuitLanguage, circuitCode, circuitName, compilerNames, tokens);
 
         // add result to DB and connect with CompilationJob
         for (CompilationResult result : compilerAnalysisResults) {
@@ -481,12 +481,12 @@ public class NisqAnalyzerControlService {
      */
     @Transactional
     public void performQpuSelectionForCircuit(QpuSelectionJob job, List<String> allowedProviders, String circuitLanguage, File circuitCode,
-                                              Map<String, String> tokens, String circuitName, List<String> compilers,
+                                              Map<String, Map<String, String>> tokens, String circuitName, List<String> compilers,
                                               boolean preciseResultsPreference, boolean shortWaitingTimesPreference, Float queueImportanceRatio,
                                               int maxNumberOfCompiledCircuits, String predictionAlgorithm, String metaOptimizer) {
 
         // make name of providers case-insensitive
-        TreeMap<String, String> caseInsensitiveTokens = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        TreeMap<String, Map<String, String>> caseInsensitiveTokens = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         caseInsensitiveTokens.putAll(tokens);
 
         if (circuitName == null) {
@@ -521,7 +521,7 @@ public class NisqAnalyzerControlService {
             LOG.debug("Performing QPU selection for provider with name: {}", provider.getName());
 
             // get available QPUs
-            List<Qpu> qpus = qProvService.getQPUs(provider, caseInsensitiveTokens.get(provider.getName()));
+            List<Qpu> qpus = qProvService.getQPUs(provider);
             LOG.debug("Found {} QPUs from provider '{}'!", qpus.size(), provider.getName());
 
             for (Qpu qpu : qpus) {
@@ -621,7 +621,9 @@ public class NisqAnalyzerControlService {
                         });
                         job.setJobResults(listOfSelectedQpuSelectionResults);
                         // add one compilation candidate for the simulator to calculate the histogram intersection
-                        job.getJobResults().add(simulatorQpuSelectionResult);
+                        if (simulatorQpuSelectionResult.getId() != null) {
+                            job.getJobResults().add(simulatorQpuSelectionResult);
+                        }
                     }
                 }
             }
@@ -649,8 +651,8 @@ public class NisqAnalyzerControlService {
         job.setJobResults(remainingQpuSelectionResultList);
 
         job.getJobResults().forEach(qpuSelectionResult -> {
-            String token = caseInsensitiveTokens.get(qpuSelectionResult.getProvider());
-            if (Objects.isNull(token)) {
+            Map<String, String> tokensOfProvider = caseInsensitiveTokens.get(qpuSelectionResult.getProvider());
+            if (Objects.isNull(tokensOfProvider)) {
                 LOG.debug("No suited access token for this provider available. Skipping!");
             }
 
@@ -659,7 +661,7 @@ public class NisqAnalyzerControlService {
             // perform compiler selection for the given QPU and circuit
             List<CompilationResult> compilationResults =
                 selectCompiler(qpuSelectionResult.getProvider(), qpuSelectionResult.getQpu(), circuitLanguage, circuitCode,
-                    qpuSelectionResult.getCircuitName(), compilerNames, token);
+                    qpuSelectionResult.getCircuitName(), compilerNames, tokensOfProvider);
             LOG.debug("Retrieved {} compilation results!", compilationResults.size());
 
             if (compilationResults.size() > 0) {
@@ -708,14 +710,14 @@ public class NisqAnalyzerControlService {
      * @param circuitCode     the file containing the circuit to compile
      * @param circuitName     user defined name to (partly) distinguish circuits
      * @param compilerNames   an optional list of compiler names to restrict the compilers to use. If not set, all supported compilers are used
-     * @param token           the token to access the specified QPU
+     * @param tokens          the tokens to access the specified QPU
      * @return the List of compilation results
      */
     private List<CompilationResult> selectCompiler(String providerName, String qpuName, String circuitLanguage,
-                                                   File circuitCode, String circuitName, List<String> compilerNames, String token) {
+                                                   File circuitCode, String circuitName, List<String> compilerNames, Map<String, String> tokens) {
         List<CompilationResult> compilerAnalysisResults = new ArrayList<>();
         LOG.debug("Performing compiler selection for QPU with name '{}' from provider with name '{}'!", qpuName, providerName);
-        Qpu qpu = qProvService.getQpuByName(qpuName, providerName, token).orElse(null);
+        Qpu qpu = qProvService.getQpuByName(qpuName, providerName).orElse(null);
 
         String initialCircuitAsString = "";
         try {
@@ -786,9 +788,16 @@ public class NisqAnalyzerControlService {
             // compile circuit for the QPU
             LOG.debug("Invoking compilation with circuit language: {}", circuitToCompileLanguage);
             Map<String, ParameterValue> params = new HashMap<>();
-            params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
+            if (providerName.equalsIgnoreCase("ibmq")) {
+                params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ibmq")));
+            } else if (providerName.equalsIgnoreCase("ionq")) {
+                params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ionq")));
+            } else if (providerName.equalsIgnoreCase("aws")) {
+                params.put(Constants.AWS_ACCESS_TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("awsAccessKey")));
+                params.put(Constants.AWS_ACCESS_SECRET_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("awsSecretKey")));
+            }
             CircuitInformation circuitInformation =
-                    connector.getCircuitProperties(circuitToCompile, circuitToCompileLanguage, providerName, qpuName, params);
+                    connector.getCircuitProperties(circuitToCompile, circuitToCompileLanguage, providerName, qpu.getName(), params);
 
             if (Objects.isNull(circuitInformation) || Objects.nonNull(circuitInformation.getError())) {
                 if (Objects.nonNull(circuitInformation)) {
@@ -800,7 +809,8 @@ public class NisqAnalyzerControlService {
             }
 
             // check if QPU is simulator or can handle the depth in the current decoherence time
-            if (Objects.isNull(qpu) || (qpu.isSimulator() || qpu.getT1() / qpu.getMaxGateTime() >= circuitInformation.getCircuitDepth())) {
+            if (Objects.isNull(qpu) || (qpu.isSimulator() || (qpu.getT1() / qpu.getMaxGateTime() >= circuitInformation.getCircuitDepth()
+                && qpu.getQubitCount() >= circuitInformation.getCircuitWidth()))) {
 
                 // add resulting compiled circuit to result list
                 CompilationResult compilationResult = new CompilationResult();
