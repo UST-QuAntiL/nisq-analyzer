@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -43,11 +43,6 @@ import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.OriginalCircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
-import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologFactUpdater;
-import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologKnowledgeBaseHandler;
-import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologQueryEngine;
-import org.planqk.nisq.analyzer.core.knowledge.prolog.PrologUtility;
-import org.planqk.nisq.analyzer.core.model.AnalysisCandidate;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
@@ -55,7 +50,6 @@ import org.planqk.nisq.analyzer.core.model.CompilationResult;
 import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
-import org.planqk.nisq.analyzer.core.model.HasId;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.OriginalCircuitResult;
 import org.planqk.nisq.analyzer.core.model.Parameter;
@@ -103,10 +97,6 @@ public class NisqAnalyzerControlService {
 
     final private OriginalCircuitResultRepository originalCircuitResultRepository;
 
-    final private PrologQueryEngine prologQueryEngine;
-
-    final private PrologKnowledgeBaseHandler prologKnowledgeBaseHandler;
-
     final private QProvService qProvService;
 
     final private TranslatorService translatorService;
@@ -121,31 +111,35 @@ public class NisqAnalyzerControlService {
 
     final private QpuSelectionResultRepository qpuSelectionResultRepository;
 
-    public OriginalCircuitResult analyzeOriginalCircuit(String circuitName, File circuitFile, String circuitLanguage) throws UnsatisfiedLinkError {
+    public OriginalCircuitResult analyzeOriginalCircuit(String circuitName, File circuitFile, String circuitLanguage)
+        throws UnsatisfiedLinkError {
 
         // analysis of original circuit with an SDK connector that supports the language
-        List<SdkConnector> connectorMatchingList = connectorList.stream().filter(sdkConnector ->
-            sdkConnector.getSupportedLanguages().contains(circuitLanguage.toLowerCase())).collect(Collectors.toList());
+        List<SdkConnector> connectorMatchingList = connectorList.stream()
+            .filter(sdkConnector -> sdkConnector.getSupportedLanguages().contains(circuitLanguage.toLowerCase()))
+            .collect(Collectors.toList());
 
-        Optional<SdkConnector> connectorOptional = connectorMatchingList.stream().filter(sdk -> sdk.getName().equalsIgnoreCase("qiskit")).findFirst();
+        Optional<SdkConnector> connectorOptional =
+            connectorMatchingList.stream().filter(sdk -> sdk.getName().equalsIgnoreCase("qiskit")).findFirst();
         if (!connectorOptional.isPresent()) {
-            connectorOptional = connectorList.stream().filter(sdkConnector ->
-                sdkConnector.getSupportedLanguages().contains(circuitLanguage.toLowerCase())).findFirst();
+            connectorOptional = connectorList.stream()
+                .filter(sdkConnector -> sdkConnector.getSupportedLanguages().contains(circuitLanguage.toLowerCase()))
+                .findFirst();
         }
 
         if (connectorOptional.isPresent()) {
             SdkConnector connector = connectorOptional.get();
-            OriginalCircuitInformation originalCircuitInformation = connector.getOriginalCircuitProperties(circuitFile, circuitLanguage);
+            OriginalCircuitInformation originalCircuitInformation =
+                connector.getOriginalCircuitProperties(circuitFile, circuitLanguage);
 
-            OriginalCircuitResult originalCircuitResult = new OriginalCircuitResult(
-                circuitName,
-                originalCircuitInformation.getCircuitWidth(),
-                originalCircuitInformation.getCircuitDepth(),
-                originalCircuitInformation.getCircuitMultiQubitGateDepth(),
-                originalCircuitInformation.getCircuitNumberOfSingleQubitGates(),
-                originalCircuitInformation.getCircuitNumberOfMultiQubitGates(),
-                originalCircuitInformation.getCircuitTotalNumberOfOperations(),
-                originalCircuitInformation.getCircuitNumberOfMeasurementOperations());
+            OriginalCircuitResult originalCircuitResult =
+                new OriginalCircuitResult(circuitName, originalCircuitInformation.getCircuitWidth(),
+                    originalCircuitInformation.getCircuitDepth(),
+                    originalCircuitInformation.getCircuitMultiQubitGateDepth(),
+                    originalCircuitInformation.getCircuitNumberOfSingleQubitGates(),
+                    originalCircuitInformation.getCircuitNumberOfMultiQubitGates(),
+                    originalCircuitInformation.getCircuitTotalNumberOfOperations(),
+                    originalCircuitInformation.getCircuitNumberOfMeasurementOperations());
 
             return originalCircuitResultRepository.save(originalCircuitResult);
         }
@@ -154,23 +148,25 @@ public class NisqAnalyzerControlService {
     }
 
     /**
-     * Execute the given quantum algorithm implementation with the given input parameters and return the corresponding output of the execution.
+     * Execute the given quantum algorithm implementation with the given input parameters and return the corresponding
+     * output of the execution.
      *
      * @param result          the analysis result that shall be executed
      * @param inputParameters the input parameters for the execution as key/value pairs
      * @return the ExecutionResult to track the current status and store the result
      * @throws RuntimeException is thrown in case the execution of the algorithm implementation fails
      */
-    public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result, Map<String, ParameterValue> inputParameters,
-                                                                 String refreshToken)
-        throws RuntimeException {
+    public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result,
+                                                                 Map<String, ParameterValue> inputParameters,
+                                                                 String refreshToken) throws RuntimeException {
         final Implementation implementation = result.getImplementation();
-        LOG.debug("Executing quantum algorithm implementation with Id: {} and name: {}", implementation.getId(), implementation.getName());
+        LOG.debug("Executing quantum algorithm implementation with Id: {} and name: {}", implementation.getId(),
+            implementation.getName());
 
         // get suited Sdk connector plugin
-        SdkConnector selectedSdkConnector = connectorList.stream()
-            .filter(executor -> executor.getName().equals(result.getCompiler()))
-            .findFirst().orElse(null);
+        SdkConnector selectedSdkConnector =
+            connectorList.stream().filter(executor -> executor.getName().equals(result.getCompiler())).findFirst()
+                .orElse(null);
         if (Objects.isNull(selectedSdkConnector)) {
             LOG.error("Unable to find connector plugin with name {}.", result.getCompiler());
             throw new RuntimeException("Unable to find connector plugin with name " + result.getCompiler());
@@ -184,15 +180,14 @@ public class NisqAnalyzerControlService {
         }
 
         // create a object to store the execution results
-        ExecutionResult executionResult =
-            executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
-                "Passing execution to executor plugin.", result, null, null,
-                null, 0, 0, implementation));
+        ExecutionResult executionResult = executionResultRepository.save(
+            new ExecutionResult(ExecutionResultStatus.INITIALIZED, "Passing execution to executor plugin.", result,
+                null, null, null, 0, 0, implementation));
 
         // execute implementation
-        new Thread(() -> selectedSdkConnector
-            .executeQuantumAlgorithmImplementation(implementation, qpu.get(), inputParameters, executionResult,
-                executionResultRepository, refreshToken)).start();
+        new Thread(
+            () -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation, qpu.get(), inputParameters,
+                executionResult, executionResultRepository, refreshToken)).start();
 
         return executionResult;
     }
@@ -204,11 +199,12 @@ public class NisqAnalyzerControlService {
      * @param inputParameters the input parameters for the execution
      * @return the ExecutionResult to track the current status and store the result
      */
-    public ExecutionResult executeCompiledQuantumCircuit(CompilationResult result, Map<String, ParameterValue> inputParameters) {
+    public ExecutionResult executeCompiledQuantumCircuit(CompilationResult result,
+                                                         Map<String, ParameterValue> inputParameters) {
 
         // get suited Sdk connector plugin
-        SdkConnector selectedSdkConnector = connectorList.stream()
-                .filter(executor -> executor.supportedSdks().contains(result.getCompiler()))
+        SdkConnector selectedSdkConnector =
+            connectorList.stream().filter(executor -> executor.supportedSdks().contains(result.getCompiler()))
                 .findFirst().orElse(null);
         if (Objects.isNull(selectedSdkConnector)) {
             LOG.error("Unable to find connector plugin with name {}.", result.getCompiler());
@@ -216,16 +212,14 @@ public class NisqAnalyzerControlService {
         }
 
         // create a object to store the execution results
-        ExecutionResult executionResult =
-            executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
-                "Passing execution to executor plugin.", null, result, null,
-                null, 0, 0, null));
+        ExecutionResult executionResult = executionResultRepository.save(
+            new ExecutionResult(ExecutionResultStatus.INITIALIZED, "Passing execution to executor plugin.", null,
+                result, null, null, 0, 0, null));
 
         // execute implementation
-        new Thread(() -> selectedSdkConnector
-            .executeTranspiledQuantumCircuit(result.getTranspiledCircuit(), result.getTranspiledLanguage(), result.getProvider(), result.getQpu(),
-                inputParameters,
-                executionResult, executionResultRepository, null)).start();
+        new Thread(() -> selectedSdkConnector.executeTranspiledQuantumCircuit(result.getTranspiledCircuit(),
+            result.getTranspiledLanguage(), result.getProvider(), result.getQpu(), inputParameters, executionResult,
+            executionResultRepository, null)).start();
 
         return executionResult;
     }
@@ -237,63 +231,92 @@ public class NisqAnalyzerControlService {
      * @param inputParameters the input parameters for the execution
      * @return the ExecutionResult to track the current status and store the result
      */
-    public ExecutionResult executeCompiledQpuSelectionCircuit(QpuSelectionResult result, Map<String, ParameterValue> inputParameters) {
+    public ExecutionResult executeCompiledQpuSelectionCircuit(QpuSelectionResult result,
+                                                              Map<String, ParameterValue> inputParameters) {
 
         // get suited Sdk connector plugin
-        SdkConnector selectedSdkConnector = connectorList.stream()
-            .filter(executor -> executor.supportedSdks().contains(result.getCompiler()))
-            .findFirst().orElse(null);
+        SdkConnector selectedSdkConnector =
+            connectorList.stream().filter(executor -> executor.supportedSdks().contains(result.getCompiler()))
+                .findFirst().orElse(null);
         if (Objects.isNull(selectedSdkConnector)) {
             LOG.error("Unable to find connector plugin with name {}.", result.getCompiler());
             throw new RuntimeException("Unable to find connector plugin with name " + result.getCompiler());
         }
 
         // create a object to store the execution results
-        ExecutionResult executionResult =
-            executionResultRepository.save(new ExecutionResult(ExecutionResultStatus.INITIALIZED,
-                "Passing execution to executor plugin.", null, null, result,
-                null, 0, 0, null));
+        ExecutionResult executionResult = executionResultRepository.save(
+            new ExecutionResult(ExecutionResultStatus.INITIALIZED, "Passing execution to executor plugin.", null, null,
+                result, null, 0, 0, null));
 
         // execute implementation
-        new Thread(() -> selectedSdkConnector
-            .executeTranspiledQuantumCircuit(result.getTranspiledCircuit(), result.getTranspiledLanguage(), result.getProvider(), result.getQpu(),
-                inputParameters,
-                executionResult, executionResultRepository, qpuSelectionResultRepository)).start();
+        new Thread(() -> selectedSdkConnector.executeTranspiledQuantumCircuit(result.getTranspiledCircuit(),
+            result.getTranspiledLanguage(), result.getProvider(), result.getQpu(), inputParameters, executionResult,
+            executionResultRepository, qpuSelectionResultRepository)).start();
 
         return executionResult;
     }
 
     /**
-     * Perform the selection of suitable implementations and corresponding QPUs for the given algorithm and the provided set of input parameters
+     * Perform the selection of suitable implementations and corresponding QPUs for the given algorithm and the provided
+     * set of input parameters
      *
-     * @param algorithm       the id of the algorithm for which an implementation and corresponding QPU should be selected
+     * @param algorithm       the id of the algorithm for which an implementation and corresponding QPU should be
+     *                        selected
      * @param inputParameters the set of input parameters required for the selection
-     * @return a map with all possible implementations and the corresponding list of QPUs that are suitable to execute them
-     * @throws UnsatisfiedLinkError Is thrown if the jpl driver is not on the java class path
+     * @return a map with all possible implementations and the corresponding list of QPUs that are suitable to execute
+     * them
      */
 
-    public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters, String refreshToken)
-        throws UnsatisfiedLinkError {
-        LOG.debug("Performing implementation and QPU selection for algorithm with Id: {}", algorithm);
+    public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters,
+                                 String refreshToken) {
+        LOG.debug("Performing quantum resource recommendation for algorithm with Id: {}", algorithm);
 
         String token = inputParameters.get("token");
         // check all implementation if they can handle the given set of input parameters
         List<Implementation> implementations = implementationRepository.findByImplementedAlgorithm(algorithm);
 
-        // Update the Prolog files for implementations
-        rebuildImplementationPrologFiles();
-        // Activate the Prolog files
-        implementationRepository.findAll().stream().map(HasId::getId).forEach(id -> prologKnowledgeBaseHandler.activatePrologFile(id.toString()));
-
         LOG.debug("Found {} implementations for the algorithm.", implementations.size());
+
         List<Implementation> executableImplementations = implementations.stream()
             .filter(implementation -> parametersAvailable(getRequiredParameters(implementation), inputParameters))
-            .filter(implementation -> prologQueryEngine
-                .checkExecutability(implementation.getSelectionRule(), convertToTypedPrologLiterals(inputParameters, implementation)))
             .collect(Collectors.toList());
-        LOG.debug("{} implementations are executable for the given input parameters after applying the selection rules.",
-            executableImplementations.size());
 
+        for (Implementation implementation : executableImplementations) {
+
+            // Try to infer the type of the parameters for the given implementation
+            Map<String, ParameterValue> execInputParameters =
+                ParameterValue.inferTypedParameterValue(implementation.getInputParameters(), inputParameters);
+
+            if (!execInputParameters.containsKey("token")) {
+                execInputParameters.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
+            }
+
+            // get suited Sdk connector plugin
+            SdkConnector selectedSdkConnector = connectorList.stream()
+                .filter(executor -> executor.supportedSdks().contains(implementation.getSdk().getName())).findFirst()
+                .orElse(null);
+            if (Objects.isNull(selectedSdkConnector)) {
+                LOG.error("Unable to find connector plugin with name {}.", implementation.getSdk().getName());
+                throw new RuntimeException(
+                    "Unable to find connector plugin with name " + implementation.getSdk().getName());
+            }
+
+            new Thread(() -> selectedSdkConnector.getCircuitOfImplementation(implementation, execInputParameters,
+                refreshToken)).start();
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+/*
         List<AnalysisResult> analysisResults = new ArrayList<>();
 
         // Iterate over all providers listed in QProv
@@ -302,30 +325,12 @@ public class NisqAnalyzerControlService {
             // Get available QPUs
             List<Qpu> qpus = qProvService.getQPUs(provider);
 
-            // Rebuild the Prolog files for the QPU candidates
-            rebuildQPUPrologFiles(qpus);
-
-            // Activate the Prolog files
-            implementationRepository.findAll().stream().map(HasId::getId).forEach(id -> prologKnowledgeBaseHandler.activatePrologFile(id.toString()));
-            qpus.stream().forEach(qpu -> prologKnowledgeBaseHandler.activatePrologFile(qpu.getId().toString()));
-            connectorList.stream().map(c -> c.getClass().getSimpleName()).forEach(name -> prologKnowledgeBaseHandler.activatePrologFile(name));
-
             // determine all suitable QPUs for the executable implementations
-            for (Implementation executableImpl : executableImplementations) {
-                LOG.debug("Searching for suitable Qpu for implementation {} (Id: {}) which requires Sdk {}", executableImpl.getName(),
-                        executableImpl.getId(), executableImpl.getSdk().getName());
-
-                // get all suitable QPUs for the implementation based on the provided SDK
-                List<AnalysisCandidate> suitableCandidates = prologQueryEngine.getSuitableCandidates(executableImpl.getId());
-                if (suitableCandidates.isEmpty()) {
-                    LOG.debug("Prolog query returns no suited QPUs. Skipping implementation {} for the selection!", executableImpl.getName());
-                    continue;
-                }
-                LOG.debug("After Prolog query {} QPU candidate(s) exist.", suitableCandidates.size());
+            for (Implementation impl : executableImplementations) {
 
                 // Try to infer the type of the parameters for the given implementation
                 Map<String, ParameterValue> execInputParameters =
-                    ParameterValue.inferTypedParameterValue(executableImpl.getInputParameters(), inputParameters);
+                    ParameterValue.inferTypedParameterValue(impl.getInputParameters(), inputParameters);
 
                 if (!execInputParameters.containsKey("token")) {
                     execInputParameters.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
@@ -350,11 +355,13 @@ public class NisqAnalyzerControlService {
                         continue;
                     }
 
-                    LOG.debug("Checking if QPU {} is suitable for implementation {}.", qpu.getName(), executableImpl.getName());
+                    LOG.debug("Checking if QPU {} is suitable for implementation {}.", qpu.getName(), impl.getName());
 
-                    // analyze the quantum circuit by utilizing the capabilities of the suited plugin and retrieve important circuit properties
+                    // analyze the quantum circuit by utilizing the capabilities of the suited plugin and retrieve
+                    important circuit properties
                     CircuitInformation circuitInformation =
-                            selectedSdkConnector.getCircuitProperties(executableImpl, qpu.getProvider(), qpu.getName(), execInputParameters, refreshToken);
+                            selectedSdkConnector.getCircuitProperties(impl, qpu.getProvider(), qpu.getName(),
+                            execInputParameters, refreshToken);
 
                     // if something unexpected happened
                     if (Objects.isNull(circuitInformation)) {
@@ -365,31 +372,36 @@ public class NisqAnalyzerControlService {
                     // skip qpu if some (expected) error occured during transpilation,
                     // e.g. too many qubits required or the input wasn't suitable for the implementation
                     if (!circuitInformation.wasTranspilationSuccessfull()) {
-                        LOG.debug("Transpilation of circuit impossible: {}. Skipping Qpu.", circuitInformation.getError());
+                        LOG.debug("Transpilation of circuit impossible: {}. Skipping Qpu.", circuitInformation
+                        .getError());
                         continue;
                     }
 
-                    if (prologQueryEngine.isQpuSuitable(executableImpl.getId(), qpu.getId(), circuitInformation.getCircuitWidth(),
+                    if (prologQueryEngine.isQpuSuitable(impl.getId(), qpu.getId(), circuitInformation.getCircuitWidth(),
                             circuitInformation.getCircuitDepth())) {
 
                         inputParameters.remove("token");
 
                         // qpu is suited candidate to execute the implementation
                         AnalysisResult result = new AnalysisResult();
-                        result.setImplementation(executableImpl);
+                        result.setImplementation(impl);
                         result.setImplementedAlgorithm(algorithm);
                         result.setTime(OffsetDateTime.now());
                         result.setInputParameters(inputParameters);
                         result.setQpu(qpu.getName());
-                        result.setCircuitName(executableImpl.getName());
+                        result.setCircuitName(impl.getName());
                         result.setProvider(provider.getName());
                         result.setCompiler(selectedSdkConnector.getName());
                         result.setAnalyzedDepth(circuitInformation.getCircuitDepth());
                         result.setAnalyzedWidth(circuitInformation.getCircuitWidth());
-                        result.setAnalyzedTotalNumberOfOperations(circuitInformation.getCircuitTotalNumberOfOperations());
-                        result.setAnalyzedNumberOfSingleQubitGates(circuitInformation.getCircuitNumberOfSingleQubitGates());
-                        result.setAnalyzedNumberOfMeasurementOperations(circuitInformation.getCircuitNumberOfMeasurementOperations());
-                        result.setAnalyzedNumberOfMultiQubitGates(circuitInformation.getCircuitNumberOfMultiQubitGates());
+                        result.setAnalyzedTotalNumberOfOperations(circuitInformation
+                        .getCircuitTotalNumberOfOperations());
+                        result.setAnalyzedNumberOfSingleQubitGates(circuitInformation
+                        .getCircuitNumberOfSingleQubitGates());
+                        result.setAnalyzedNumberOfMeasurementOperations(circuitInformation
+                        .getCircuitNumberOfMeasurementOperations());
+                        result.setAnalyzedNumberOfMultiQubitGates(circuitInformation
+                        .getCircuitNumberOfMultiQubitGates());
                         result.setAnalyzedMultiQubitGateDepth(circuitInformation.getCircuitMultiQubitGateDepth());
                         result.setAvgMultiQubitGateError(qpu.getAvgMultiQubitGateError());
                         result.setAvgMultiQubitGateTime(qpu.getAvgMultiQubitGateTime());
@@ -407,19 +419,20 @@ public class NisqAnalyzerControlService {
                         job.setJobResults(analysisResults);
                         job = analysisJobRepository.save(job);
 
-                        LOG.debug("QPU {} suitable for implementation {}.", qpu.getName(), executableImpl.getName());
+                        LOG.debug("QPU {} suitable for implementation {}.", qpu.getName(), impl.getName());
                     } else {
-                        LOG.debug("QPU {} not suitable for implementation {}.", qpu.getName(), executableImpl.getName());
+                        LOG.debug("QPU {} not suitable for implementation {}.", qpu.getName(), impl.getName());
                     }
                 }
             }
         }
 
         job.setReady(true);
-        analysisJobRepository.save(job);
+        analysisJobRepository.save(job);*/
     }
 
-    public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters) throws UnsatisfiedLinkError {
+    public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters)
+        throws UnsatisfiedLinkError {
         performSelection(job, algorithm, inputParameters, "");
     }
 
@@ -432,14 +445,15 @@ public class NisqAnalyzerControlService {
     public Set<Parameter> getRequiredSelectionParameters(UUID algorithm) {
         Set<Parameter> requiredParameters = new HashSet<>();
         connectorList.forEach(connector -> requiredParameters.addAll(connector.getSdkSpecificParameters()));
-        implementationRepository.findByImplementedAlgorithm(algorithm).forEach(impl -> requiredParameters.addAll(getRequiredParameters(impl)));
+        implementationRepository.findByImplementedAlgorithm(algorithm)
+            .forEach(impl -> requiredParameters.addAll(getRequiredParameters(impl)));
 
         return requiredParameters;
     }
 
     /**
-     * Compile the given circuit for the given QPU with all supported or a subset of the supported compilers and return the resulting compiled
-     * circuits as well as some analysis details
+     * Compile the given circuit for the given QPU with all supported or a subset of the supported compilers and return
+     * the resulting compiled circuits as well as some analysis details
      *
      * @param job             the compilation job object for the long-running task
      * @param providerName    the name of the provider of the QPU
@@ -447,15 +461,17 @@ public class NisqAnalyzerControlService {
      * @param circuitLanguage the language of the quantum circuit
      * @param circuitCode     the file containing the circuit to compile
      * @param circuitName     user defined name to (partly) distinguish circuits
-     * @param compilerNames   an optional list of compiler names to restrict the compilers to use. If not set, all supported compilers are used
-     * @param tokens           the tokens to access the specified QPU
+     * @param compilerNames   an optional list of compiler names to restrict the compilers to use. If not set, all
+     *                        supported compilers are used
+     * @param tokens          the tokens to access the specified QPU
      */
-    public void performCompilerSelection(CompilationJob job, String providerName, String qpuName, String circuitLanguage,
-                                         File circuitCode, String circuitName, List<String> compilerNames, Map<String, String> tokens) {
+    public void performCompilerSelection(CompilationJob job, String providerName, String qpuName,
+                                         String circuitLanguage, File circuitCode, String circuitName,
+                                         List<String> compilerNames, Map<String, String> tokens) {
 
         // analyze compilers and retrieve suitable compilation results
         List<CompilationResult> compilerAnalysisResults =
-                selectCompiler(providerName, qpuName, circuitLanguage, circuitCode, circuitName, compilerNames, tokens);
+            selectCompiler(providerName, qpuName, circuitLanguage, circuitCode, circuitName, compilerNames, tokens);
 
         // add result to DB and connect with CompilationJob
         for (CompilationResult result : compilerAnalysisResults) {
@@ -472,18 +488,22 @@ public class NisqAnalyzerControlService {
     /**
      * Perform the selection of a suitable QPUs for the given quantum circuit
      *
-     * @param job               the QPU selection job for the long-running task
-     * @param allowedProviders  an optional list with providers to include into the selection. If not specified all providers are taken into account.
-     * @param circuitLanguage   the language of the circuit for which the QPU selection should be performed
-     * @param circuitCode       the file containing the circuit
-     * @param tokens            a map with access tokens for the different quantum hardware providers
-     * @param circuitName     user defined name to (partly) distinguish circuits
+     * @param job              the QPU selection job for the long-running task
+     * @param allowedProviders an optional list with providers to include into the selection. If not specified all
+     *                         providers are taken into account.
+     * @param circuitLanguage  the language of the circuit for which the QPU selection should be performed
+     * @param circuitCode      the file containing the circuit
+     * @param tokens           a map with access tokens for the different quantum hardware providers
+     * @param circuitName      user defined name to (partly) distinguish circuits
      */
     @Transactional
-    public void performQpuSelectionForCircuit(QpuSelectionJob job, List<String> allowedProviders, String circuitLanguage, File circuitCode,
-                                              Map<String, Map<String, String>> tokens, String circuitName, List<String> compilers,
-                                              boolean preciseResultsPreference, boolean shortWaitingTimesPreference, Float queueImportanceRatio,
-                                              int maxNumberOfCompiledCircuits, String predictionAlgorithm, String metaOptimizer) {
+    public void performQpuSelectionForCircuit(QpuSelectionJob job, List<String> allowedProviders,
+                                              String circuitLanguage, File circuitCode,
+                                              Map<String, Map<String, String>> tokens, String circuitName,
+                                              List<String> compilers, boolean preciseResultsPreference,
+                                              boolean shortWaitingTimesPreference, Float queueImportanceRatio,
+                                              int maxNumberOfCompiledCircuits, String predictionAlgorithm,
+                                              String metaOptimizer) {
 
         // make name of providers case-insensitive
         TreeMap<String, Map<String, String>> caseInsensitiveTokens = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -504,16 +524,18 @@ public class NisqAnalyzerControlService {
             LOG.debug("User restricted compiler usage to {} compilers: {}", compilers.size(), compilers.toString());
             compilersToUse = compilers;
         } else {
-            compilersToUse = connectorList.stream().flatMap(connector -> connector.supportedSdks().stream()).distinct().collect(Collectors.toList());
-            LOG.debug("No restriction for compilers defined. Using all ({}) supported compilers!", compilersToUse.size());
+            compilersToUse = connectorList.stream().flatMap(connector -> connector.supportedSdks().stream()).distinct()
+                .collect(Collectors.toList());
+            LOG.debug("No restriction for compilers defined. Using all ({}) supported compilers!",
+                compilersToUse.size());
         }
 
         // iterate over all providers listed in QProv for the QPU selection
         for (Provider provider : qProvService.getProviders()) {
 
             // filter providers that are not contained in the list of allowed providers
-            if (Objects.nonNull(allowedProviders) &&
-                allowedProviders.stream().noneMatch(allowedProvider -> allowedProvider.equalsIgnoreCase(provider.getName()))) {
+            if (Objects.nonNull(allowedProviders) && allowedProviders.stream()
+                .noneMatch(allowedProvider -> allowedProvider.equalsIgnoreCase(provider.getName()))) {
                 LOG.debug("Provider '{}' is not contained in list of allowed providers. Skipping!", provider.getName());
                 continue;
             }
@@ -533,14 +555,16 @@ public class NisqAnalyzerControlService {
 //                }
 
                 // only consider standard simulator
-                if (provider.getName().equalsIgnoreCase("ibmq") && qpu.isSimulator() && !Objects.equals(qpu.getName(), "ibmq_qasm_simulator")) {
+                if (provider.getName().equalsIgnoreCase("ibmq") && qpu.isSimulator() &&
+                    !Objects.equals(qpu.getName(), "ibmq_qasm_simulator")) {
                     continue;
                 }
 
                 // create all possible combinations of QPUs and compilers and retrieve actual QPU data
                 for (String compilerName : compilersToUse) {
                     // use only qiskit transpiler when compiling with the simulator
-                    if (!(compilerName.equalsIgnoreCase("pytket") && qpu.getName().equalsIgnoreCase("ibmq_qasm_simulator"))) {
+                    if (!(compilerName.equalsIgnoreCase("pytket") &&
+                        qpu.getName().equalsIgnoreCase("ibmq_qasm_simulator"))) {
                         QpuSelectionResult qpuSelectionResult = new QpuSelectionResult();
                         qpuSelectionResult.setCircuitName(circuitName);
                         qpuSelectionResult.setTime(OffsetDateTime.now());
@@ -580,7 +604,8 @@ public class NisqAnalyzerControlService {
             if (maxNumberOfCompiledCircuits > 0 && job.getJobResults().size() > maxNumberOfCompiledCircuits) {
                 job.getJobResults().subList(maxNumberOfCompiledCircuits, job.getJobResults().size()).clear();
 
-                // add one compilation candidate for the simulator to calculate the histogram intersection after execution
+                // add one compilation candidate for the simulator to calculate the histogram intersection after
+                // execution
                 AtomicBoolean simulatorAlreadyContained = new AtomicBoolean(false);
                 job.getJobResults().forEach(qpuSelectionResult -> {
                     if (qpuSelectionResult.getQpu().contains("simulator")) {
@@ -592,25 +617,29 @@ public class NisqAnalyzerControlService {
                 }
             }
         } else if (preciseResultsPreference) {
-            // look up if there is prior data for pre-selection based on prediction of precise execution results available
+            // look up if there is prior data for pre-selection based on prediction of precise execution results
+            // available
             boolean priorDataAvailable = false;
             List<ExecutionResult> executionResultList = executionResultRepository.findAll();
             for (ExecutionResult executionResult : executionResultList) {
                 // ignore simulator results that are equal to 1 and non-calculated values
-                if (executionResult.getHistogramIntersectionValue() > 0 && executionResult.getHistogramIntersectionValue() < 1) {
+                if (executionResult.getHistogramIntersectionValue() > 0 &&
+                    executionResult.getHistogramIntersectionValue() < 1) {
                     priorDataAvailable = true;
                     break;
                 }
             }
             if (priorDataAvailable) {
                 List<String> qpuSelectionResultIdList =
-                    prioritizationService.executePredictionForCompilerAnQpuPreSelection(originalCircuitResult, job, queueImportanceRatio,
-                        predictionAlgorithm, metaOptimizer, shortWaitingTimesPreference);
+                    prioritizationService.executePredictionForCompilerAnQpuPreSelection(originalCircuitResult, job,
+                        queueImportanceRatio, predictionAlgorithm, metaOptimizer, shortWaitingTimesPreference);
 
                 if (qpuSelectionResultIdList != null) {
                     // trim list of possible combinations
-                    if (maxNumberOfCompiledCircuits > 0 && qpuSelectionResultIdList.size() > maxNumberOfCompiledCircuits) {
-                        qpuSelectionResultIdList.subList(maxNumberOfCompiledCircuits, qpuSelectionResultIdList.size()).clear();
+                    if (maxNumberOfCompiledCircuits > 0 &&
+                        qpuSelectionResultIdList.size() > maxNumberOfCompiledCircuits) {
+                        qpuSelectionResultIdList.subList(maxNumberOfCompiledCircuits, qpuSelectionResultIdList.size())
+                            .clear();
                         List<QpuSelectionResult> listOfSelectedQpuSelectionResults = new ArrayList<>();
                         qpuSelectionResultIdList.forEach(id -> {
                             job.getJobResults().forEach(qpuSelectionResult -> {
@@ -645,7 +674,8 @@ public class NisqAnalyzerControlService {
         // overwrite old, non-updated qpuSelectionResults in the job, after prediction
         List<QpuSelectionResult> remainingQpuSelectionResultList = new ArrayList<>();
         job.getJobResults().forEach(qpuSelectionResultOld -> {
-            Optional<QpuSelectionResult> qpuSelectionResultOptional = qpuSelectionResultRepository.findById(qpuSelectionResultOld.getId());
+            Optional<QpuSelectionResult> qpuSelectionResultOptional =
+                qpuSelectionResultRepository.findById(qpuSelectionResultOld.getId());
             qpuSelectionResultOptional.ifPresent(remainingQpuSelectionResultList::add);
         });
         job.setJobResults(remainingQpuSelectionResultList);
@@ -660,8 +690,8 @@ public class NisqAnalyzerControlService {
             compilerNames.add(qpuSelectionResult.getCompiler());
             // perform compiler selection for the given QPU and circuit
             List<CompilationResult> compilationResults =
-                selectCompiler(qpuSelectionResult.getProvider(), qpuSelectionResult.getQpu(), circuitLanguage, circuitCode,
-                    qpuSelectionResult.getCircuitName(), compilerNames, tokensOfProvider);
+                selectCompiler(qpuSelectionResult.getProvider(), qpuSelectionResult.getQpu(), circuitLanguage,
+                    circuitCode, qpuSelectionResult.getCircuitName(), compilerNames, tokensOfProvider);
             LOG.debug("Retrieved {} compilation results!", compilationResults.size());
 
             if (compilationResults.size() > 0) {
@@ -673,7 +703,8 @@ public class NisqAnalyzerControlService {
                 qpuSelectionResult.setAnalyzedWidth(result.getAnalyzedWidth());
                 qpuSelectionResult.setAnalyzedTotalNumberOfOperations(result.getAnalyzedTotalNumberOfOperations());
                 qpuSelectionResult.setAnalyzedNumberOfSingleQubitGates(result.getAnalyzedNumberOfSingleQubitGates());
-                qpuSelectionResult.setAnalyzedNumberOfMeasurementOperations(result.getAnalyzedNumberOfMeasurementOperations());
+                qpuSelectionResult.setAnalyzedNumberOfMeasurementOperations(
+                    result.getAnalyzedNumberOfMeasurementOperations());
                 qpuSelectionResult.setAnalyzedNumberOfMultiQubitGates(result.getAnalyzedNumberOfMultiQubitGates());
                 qpuSelectionResult.setAnalyzedMultiQubitGateDepth(result.getAnalyzedMultiQubitGateDepth());
 
@@ -681,7 +712,8 @@ public class NisqAnalyzerControlService {
             }
         });
 
-        //delete qpuSelectionResults that are not executable because they were not compilable as too many qubits are required
+        //delete qpuSelectionResults that are not executable because they were not compilable as too many qubits are
+        // required
         qpuSelectionResultRepository.findAllByQpuSelectionJobId(job.getId()).forEach(qpuSelectionResult -> {
             if (qpuSelectionResult.getAnalyzedWidth() == 0 && qpuSelectionResult.getAnalyzedDepth() == 0) {
                 qpuSelectionResultRepository.delete(qpuSelectionResult);
@@ -689,7 +721,8 @@ public class NisqAnalyzerControlService {
         });
         List<QpuSelectionResult> allOverRemainingQpuSelectionResultList = new ArrayList<>();
         job.getJobResults().forEach(qpuSelectionResultOld -> {
-            Optional<QpuSelectionResult> qpuSelectionResultOptional = qpuSelectionResultRepository.findById(qpuSelectionResultOld.getId());
+            Optional<QpuSelectionResult> qpuSelectionResultOptional =
+                qpuSelectionResultRepository.findById(qpuSelectionResultOld.getId());
             qpuSelectionResultOptional.ifPresent(allOverRemainingQpuSelectionResultList::add);
         });
         job.setJobResults(allOverRemainingQpuSelectionResultList);
@@ -701,22 +734,25 @@ public class NisqAnalyzerControlService {
     }
 
     /**
-     * Compile the given circuit for the given QPU with all supported or a subset of the supported compilers and return the resulting compiled
-     * circuits as well as some analysis details
+     * Compile the given circuit for the given QPU with all supported or a subset of the supported compilers and return
+     * the resulting compiled circuits as well as some analysis details
      *
      * @param providerName    the name of the provider of the QPU
      * @param qpuName         the name of the QPU for which the circuit should be compiled
      * @param circuitLanguage the language of the quantum circuit
      * @param circuitCode     the file containing the circuit to compile
      * @param circuitName     user defined name to (partly) distinguish circuits
-     * @param compilerNames   an optional list of compiler names to restrict the compilers to use. If not set, all supported compilers are used
+     * @param compilerNames   an optional list of compiler names to restrict the compilers to use. If not set, all
+     *                        supported compilers are used
      * @param tokens          the tokens to access the specified QPU
      * @return the List of compilation results
      */
     private List<CompilationResult> selectCompiler(String providerName, String qpuName, String circuitLanguage,
-                                                   File circuitCode, String circuitName, List<String> compilerNames, Map<String, String> tokens) {
+                                                   File circuitCode, String circuitName, List<String> compilerNames,
+                                                   Map<String, String> tokens) {
         List<CompilationResult> compilerAnalysisResults = new ArrayList<>();
-        LOG.debug("Performing compiler selection for QPU with name '{}' from provider with name '{}'!", qpuName, providerName);
+        LOG.debug("Performing compiler selection for QPU with name '{}' from provider with name '{}'!", qpuName,
+            providerName);
         Qpu qpu = qProvService.getQpuByName(qpuName, providerName).orElse(null);
 
         String initialCircuitAsString = "";
@@ -729,19 +765,22 @@ public class NisqAnalyzerControlService {
         // retrieve list of compilers that should be used for the comparison
         List<String> compilersToUse;
         if (Objects.nonNull(compilerNames)) {
-            LOG.debug("User restricted compiler usage to {} compilers: {}", compilerNames.size(), compilerNames.toString());
+            LOG.debug("User restricted compiler usage to {} compilers: {}", compilerNames.size(),
+                compilerNames.toString());
             compilersToUse = compilerNames;
         } else {
-            compilersToUse = connectorList.stream().flatMap(connector -> connector.supportedSdks().stream()).distinct().collect(Collectors.toList());
-            LOG.debug("No restriction for compilers defined. Using all ({}) supported compilers!", compilersToUse.size());
+            compilersToUse = connectorList.stream().flatMap(connector -> connector.supportedSdks().stream()).distinct()
+                .collect(Collectors.toList());
+            LOG.debug("No restriction for compilers defined. Using all ({}) supported compilers!",
+                compilersToUse.size());
         }
 
         for (String compilerName : compilersToUse) {
             LOG.debug("Evaluating compiler with name: {}", compilerName);
 
             // retrieve corresponding connector for the compiler
-            Optional<SdkConnector> connectorOptional =
-                    connectorList.stream().filter(connector -> connector.supportedSdks().contains(compilerName.toLowerCase())).findFirst();
+            Optional<SdkConnector> connectorOptional = connectorList.stream()
+                .filter(connector -> connector.supportedSdks().contains(compilerName.toLowerCase())).findFirst();
             if (!connectorOptional.isPresent()) {
                 LOG.warn("Unable to find suitable connector for compiler with name: {}", compilerName);
                 continue;
@@ -759,7 +798,8 @@ public class NisqAnalyzerControlService {
             File circuitToCompile = circuitCode;
             String circuitToCompileLanguage = circuitLanguage;
             if (!connector.getLanguagesForSdk(compilerName).contains(circuitLanguage.toLowerCase())) {
-                LOG.debug("Circuit language '{}' not supported by the compiler. Translating circuit...", circuitLanguage);
+                LOG.debug("Circuit language '{}' not supported by the compiler. Translating circuit...",
+                    circuitLanguage);
 
                 // check if source language is supported by translator
                 if (!translatorService.getSupportedLanguages().contains(circuitLanguage.toLowerCase())) {
@@ -769,9 +809,11 @@ public class NisqAnalyzerControlService {
 
                 // get target language that is supported by the translator and the compiler
                 String targetLanguage = connector.getLanguagesForSdk(compilerName.toLowerCase()).stream()
-                        .filter(language -> translatorService.getSupportedLanguages().contains(language)).findFirst().orElse(null);
+                    .filter(language -> translatorService.getSupportedLanguages().contains(language)).findFirst()
+                    .orElse(null);
                 if (Objects.isNull(targetLanguage)) {
-                    LOG.warn("Unable to find target language that is supported by translator and compiler '{}'!", compilerName);
+                    LOG.warn("Unable to find target language that is supported by translator and compiler '{}'!",
+                        compilerName);
                     continue;
                 }
 
@@ -780,7 +822,9 @@ public class NisqAnalyzerControlService {
 
                 // skip the compiler if translation into required language failed
                 if (Objects.isNull(circuitToCompile)) {
-                    LOG.warn("Unable to translate quantum circuit into required language for compiler '{}'. Skipping...", compilerName);
+                    LOG.warn(
+                        "Unable to translate quantum circuit into required language for compiler '{}'. Skipping...",
+                        compilerName);
                     continue;
                 }
             }
@@ -793,11 +837,14 @@ public class NisqAnalyzerControlService {
             } else if (providerName.equalsIgnoreCase("ionq")) {
                 params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("ionq")));
             } else if (providerName.equalsIgnoreCase("aws")) {
-                params.put(Constants.AWS_ACCESS_TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("awsAccessKey")));
-                params.put(Constants.AWS_ACCESS_SECRET_PARAMETER, new ParameterValue(DataType.Unknown, tokens.get("awsSecretKey")));
+                params.put(Constants.AWS_ACCESS_TOKEN_PARAMETER,
+                    new ParameterValue(DataType.Unknown, tokens.get("awsAccessKey")));
+                params.put(Constants.AWS_ACCESS_SECRET_PARAMETER,
+                    new ParameterValue(DataType.Unknown, tokens.get("awsSecretKey")));
             }
             CircuitInformation circuitInformation =
-                    connector.getCircuitProperties(circuitToCompile, circuitToCompileLanguage, providerName, qpu.getName(), params);
+                connector.getCircuitProperties(circuitToCompile, circuitToCompileLanguage, providerName, qpu.getName(),
+                    params);
 
             if (Objects.isNull(circuitInformation) || Objects.nonNull(circuitInformation.getError())) {
                 if (Objects.nonNull(circuitInformation)) {
@@ -809,8 +856,9 @@ public class NisqAnalyzerControlService {
             }
 
             // check if QPU is simulator or can handle the depth in the current decoherence time
-            if (Objects.isNull(qpu) || (qpu.isSimulator() || (qpu.getT1() / qpu.getMaxGateTime() >= circuitInformation.getCircuitDepth()
-                && qpu.getQubitCount() >= circuitInformation.getCircuitWidth()))) {
+            if (Objects.isNull(qpu) || (qpu.isSimulator() ||
+                (qpu.getT1() / qpu.getMaxGateTime() >= circuitInformation.getCircuitDepth() &&
+                    qpu.getQubitCount() >= circuitInformation.getCircuitWidth()))) {
 
                 // add resulting compiled circuit to result list
                 CompilationResult compilationResult = new CompilationResult();
@@ -824,10 +872,14 @@ public class NisqAnalyzerControlService {
                 compilationResult.setCompiler(compilerName);
                 compilationResult.setAnalyzedDepth(circuitInformation.getCircuitDepth());
                 compilationResult.setAnalyzedWidth(circuitInformation.getCircuitWidth());
-                compilationResult.setAnalyzedTotalNumberOfOperations(circuitInformation.getCircuitTotalNumberOfOperations());
-                compilationResult.setAnalyzedNumberOfSingleQubitGates(circuitInformation.getCircuitNumberOfSingleQubitGates());
-                compilationResult.setAnalyzedNumberOfMeasurementOperations(circuitInformation.getCircuitNumberOfMeasurementOperations());
-                compilationResult.setAnalyzedNumberOfMultiQubitGates(circuitInformation.getCircuitNumberOfMultiQubitGates());
+                compilationResult.setAnalyzedTotalNumberOfOperations(
+                    circuitInformation.getCircuitTotalNumberOfOperations());
+                compilationResult.setAnalyzedNumberOfSingleQubitGates(
+                    circuitInformation.getCircuitNumberOfSingleQubitGates());
+                compilationResult.setAnalyzedNumberOfMeasurementOperations(
+                    circuitInformation.getCircuitNumberOfMeasurementOperations());
+                compilationResult.setAnalyzedNumberOfMultiQubitGates(
+                    circuitInformation.getCircuitNumberOfMultiQubitGates());
                 compilationResult.setAnalyzedMultiQubitGateDepth(circuitInformation.getCircuitMultiQubitGateDepth());
                 if (Objects.nonNull(qpu)) {
                     compilationResult.setAvgMultiQubitGateError(qpu.getAvgMultiQubitGateError());
@@ -847,44 +899,6 @@ public class NisqAnalyzerControlService {
         return compilerAnalysisResults;
     }
 
-    private void rebuildImplementationPrologFiles() {
-        PrologFactUpdater prologFactUpdater = new PrologFactUpdater(prologKnowledgeBaseHandler);
-        if (implementationRepository.findAll().isEmpty()) {
-            LOG.debug("No implementations found in database");
-        }
-        for (Implementation impl : implementationRepository.findAll()) {
-            if (!prologKnowledgeBaseHandler.doesPrologFileExist(impl.getId().toString())) {
-                prologFactUpdater.handleImplementationInsertion(impl);
-                LOG.debug("Rebuild prolog file for implementation {}", impl.getName());
-            }
-        }
-
-        for (SdkConnector connector : connectorList) {
-
-            String connectorName = connector.getName();
-
-            if (!prologKnowledgeBaseHandler.doesPrologFileExist(connectorName)) {
-                prologFactUpdater.handleSDKConnectorInsertion(connector);
-                LOG.debug("Rebuild prolog file for connector {}", connectorName);
-            }
-        }
-    }
-
-    /**
-     * rebuild the prolog files for the implementations and qpus, if the app crashs or no prolog files are in temp folder.
-     */
-    private void rebuildQPUPrologFiles(List<Qpu> qpus) {
-        PrologFactUpdater prologFactUpdater = new PrologFactUpdater(prologKnowledgeBaseHandler);
-
-        // Add Prolog files for the provided QPUs
-        for (Qpu qpu : qpus) {
-            if (!prologKnowledgeBaseHandler.doesPrologFileExist(qpu.getId().toString())) {
-                prologFactUpdater.handleQpuInsertion(qpu);
-                LOG.debug("Rebuild prolog file for qpu {}", qpu.getName());
-            }
-        }
-    }
-
     /**
      * Get all required parameters for an implementation
      *
@@ -897,51 +911,7 @@ public class NisqAnalyzerControlService {
         // add parameters from the implementation
         requiredParameters.addAll(impl.getInputParameters());
 
-        // add parameters from rules
-        requiredParameters.addAll(PrologUtility.getParametersForRule(impl.getSelectionRule(), false));
-
         return requiredParameters;
-    }
-
-    /**
-     * Converts the given parameters to typed literals using the provided data type definition in the implementation.
-     */
-    private Map<String, String> convertToTypedPrologLiterals(Map<String, String> parameters, Implementation implementation) {
-
-        class EntryParameterPair {
-
-            private Map.Entry<String, String> entry;
-
-            private Optional<Parameter> parameter;
-
-            public EntryParameterPair(Map.Entry<String, String> entry, Optional<Parameter> parameter) {
-                this.entry = entry;
-                this.parameter = parameter;
-            }
-
-            public Optional<Parameter> getParameter() {
-                return this.parameter;
-            }
-
-            public String getKey() {
-                return this.entry.getKey();
-            }
-
-            public String getValue() {
-                return this.entry.getValue();
-            }
-        }
-
-        return parameters.entrySet().stream().map(
-                // map parameters that are defined in the implementation
-                e -> new EntryParameterPair(e, implementation.getInputParameters().stream().filter(p -> p.getName().equals(e.getKey())).findFirst())
-        ).filter(
-                // filter undefined parameters
-                e -> e.getParameter().isPresent()
-        ).collect(
-                // collect the new map of typed Prolog literals
-                Collectors.toMap(e -> e.getKey(), e -> e.getParameter().get().getType() == DataType.String ? "'" + e.getValue() + "'" : e.getValue())
-        );
     }
 
     /**
@@ -965,8 +935,8 @@ public class NisqAnalyzerControlService {
      * otherwise
      */
     private boolean parametersAvailable(Set<Parameter> requiredParameters, Set<String> providedParameterNames) {
-        LOG.debug("Checking if {} required parameters are available in the input map with {} provided parameters!", requiredParameters.size(),
-            providedParameterNames.size());
+        LOG.debug("Checking if {} required parameters are available in the input map with {} provided parameters!",
+            requiredParameters.size(), providedParameterNames.size());
         return requiredParameters.stream().allMatch(param -> providedParameterNames.contains(param.getName()));
     }
 
@@ -980,10 +950,11 @@ public class NisqAnalyzerControlService {
 
         // collect all SDK connectors that support the given provider
         List<SdkConnector> connectors =
-            connectorList.stream().filter(connector -> connector.supportedProviders().contains(provider.toLowerCase())).collect(
-                Collectors.toList());
+            connectorList.stream().filter(connector -> connector.supportedProviders().contains(provider.toLowerCase()))
+                .collect(Collectors.toList());
 
         // return a list of all supporting compilers
-        return connectors.stream().flatMap(connector -> connector.supportedSdks().stream()).distinct().collect(Collectors.toList());
+        return connectors.stream().flatMap(connector -> connector.supportedSdks().stream()).distinct()
+            .collect(Collectors.toList());
     }
 }

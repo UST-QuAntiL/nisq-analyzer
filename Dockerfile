@@ -34,19 +34,6 @@ sed -i 's/port="8080"/port="'${NISQ_ANALYZER_PORT}'"/g' /opt/tomcat/conf/server.
 ENV CATALINA_HOME /opt/tomcat
 ENV PATH $PATH:$CATALINA_HOME/bin
 
-# setup SWI prolog
-RUN apt-get update && apt-get install -qqy swi-prolog swi-prolog-java
-ENV SWI_HOME_DIR /usr/bin/swipl
-RUN swipl --version
-RUN echo "?- true.\n\
-	  ?- [library(prolog_pack)].\n\
-          ?- set_setting(prolog_pack:server, 'https://www.swi-prolog.org/pack/').\n\
-	  ?- pack_install(regex, [interactive(false)]).\n\
-          ?- pack_info(regex).\n\
-          ?- halt." > /tmp/prolog_setup.pl
-RUN swipl /tmp/prolog_setup.pl
-RUN rm /tmp/prolog_setup.pl
-
 # install dockerize for configuration templating
 RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
     && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \

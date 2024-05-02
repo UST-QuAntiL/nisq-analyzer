@@ -17,36 +17,22 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
+package org.planqk.nisq.analyzer.core.connector.qiskit;
 
-import java.util.Map;
-import java.util.UUID;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
+import org.planqk.nisq.analyzer.core.connector.OriginalCircuitInformation;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-/**
- * Object to represent the result of an analysis for a certain qpu and implementation
- */
-@EqualsAndHashCode(callSuper = true)
-@Entity
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AnalysisResult extends CircuitResult {
+public class CircuitInformationOfImplementation extends OriginalCircuitInformation {
+    @JsonAlias({"generated-circuit"})
+    private String generatedCircuit;
 
-    private UUID implementedAlgorithm;
-
-    @ManyToOne
-    private Implementation implementation;
-
-    private UUID originalCircuitResultId;
-
-    @ElementCollection
-    private Map<String, String> inputParameters;
+    @JsonProperty("language")
+    private String circuitLanguage;
 }
