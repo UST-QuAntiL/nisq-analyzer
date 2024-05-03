@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -36,6 +36,7 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
+import org.planqk.nisq.analyzer.core.connector.CircuitInformationOfImplementation;
 import org.planqk.nisq.analyzer.core.connector.ExecutionRequestResult;
 import org.planqk.nisq.analyzer.core.connector.OriginalCircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
@@ -73,29 +74,34 @@ public class ForestSdkConnector implements SdkConnector {
 
     private URI executeAPIEndpoint;
 
-    public ForestSdkConnector(
-        @Value("${org.planqk.nisq.analyzer.connector.forest.hostname}") String hostname,
-        @Value("${org.planqk.nisq.analyzer.connector.forest.port}") int port,
-        @Value("${org.planqk.nisq.analyzer.connector.forest.version}") String version
-    ) {
+    public ForestSdkConnector(@Value("${org.planqk.nisq.analyzer.connector.forest.hostname}") String hostname,
+                              @Value("${org.planqk.nisq.analyzer.connector.forest.port}") int port,
+                              @Value("${org.planqk.nisq.analyzer.connector.forest.version}") String version) {
         // compile the API endpoints
-        analyzeOriginalAPIEndpoint =
-            URI.create(String.format("http://%s:%d/forest-service/api/%s/analyze-original-circuit", hostname, port, version));
-        transpileAPIEndpoint = URI.create(String.format("http://%s:%d/forest-service/api/%s/transpile", hostname, port, version));
-        executeAPIEndpoint = URI.create(String.format("http://%s:%d/forest-service/api/%s/execute", hostname, port, version));
+        analyzeOriginalAPIEndpoint = URI.create(
+            String.format("http://%s:%d/forest-service/api/%s/analyze-original-circuit", hostname, port, version));
+        transpileAPIEndpoint =
+            URI.create(String.format("http://%s:%d/forest-service/api/%s/transpile", hostname, port, version));
+        executeAPIEndpoint =
+            URI.create(String.format("http://%s:%d/forest-service/api/%s/execute", hostname, port, version));
     }
 
     @Override
-    public void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters,
-                                                      ExecutionResult executionResult, ExecutionResultRepository resultRepository, String refreshToken) {
+    public void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu,
+                                                      Map<String, ParameterValue> parameters,
+                                                      ExecutionResult executionResult,
+                                                      ExecutionResultRepository resultRepository, String refreshToken) {
         LOG.debug("Executing quantum algorithm implementation with Forest Sdk connector plugin!");
         String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
-        ForestRequest request = new ForestRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters, bearerToken);
+        ForestRequest request =
+            new ForestRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters,
+                bearerToken);
         executeQuantumCircuit(request, executionResult, resultRepository);
     }
 
     @Override
-    public void executeTranspiledQuantumCircuit(String transpiledCircuit, String transpiledLanguage, String providerName, String qpuName,
+    public void executeTranspiledQuantumCircuit(String transpiledCircuit, String transpiledLanguage,
+                                                String providerName, String qpuName,
                                                 Map<String, ParameterValue> parameters, ExecutionResult executionResult,
                                                 ExecutionResultRepository resultRepository,
                                                 QpuSelectionResultRepository qpuSelectionResultRepository) {
@@ -104,7 +110,8 @@ public class ForestSdkConnector implements SdkConnector {
         executeQuantumCircuit(request, executionResult, resultRepository);
     }
 
-    private void executeQuantumCircuit(ForestRequest request, ExecutionResult executionResult, ExecutionResultRepository resultRepository) {
+    private void executeQuantumCircuit(ForestRequest request, ExecutionResult executionResult,
+                                       ExecutionResultRepository resultRepository) {
         RestTemplate restTemplate = new RestTemplate();
         try {
             // make the execution request
@@ -116,9 +123,11 @@ public class ForestSdkConnector implements SdkConnector {
             resultRepository.save(executionResult);
 
             // poll the Forest service frequently
-            while (executionResult.getStatus() != ExecutionResultStatus.FINISHED && executionResult.getStatus() != ExecutionResultStatus.FAILED) {
+            while (executionResult.getStatus() != ExecutionResultStatus.FINISHED &&
+                executionResult.getStatus() != ExecutionResultStatus.FAILED) {
                 try {
-                    ExecutionRequestResult result = restTemplate.getForObject(resultLocation, ExecutionRequestResult.class);
+                    ExecutionRequestResult result =
+                        restTemplate.getForObject(resultLocation, ExecutionRequestResult.class);
 
                     // Check if execution is completed
                     if (result.isComplete()) {
@@ -155,15 +164,18 @@ public class ForestSdkConnector implements SdkConnector {
                                                    Map<String, ParameterValue> parameters, String refreshToken) {
         LOG.debug("Analysing quantum algorithm implementation with Forest Sdk connector plugin!");
         String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
-        ForestRequest request = new ForestRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, parameters, bearerToken);
+        ForestRequest request =
+            new ForestRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, parameters,
+                bearerToken);
         return executeCircuitPropertiesRequest(request);
     }
 
     @Override
     public CircuitInformation getCircuitProperties(File circuit, String language, String providerName, String qpuName,
                                                    Map<String, ParameterValue> parameters) {
-        LOG.debug("Retrieving circuit properties for circuit passed as file with provider '{}', qpu '{}', and language '{}'.", providerName, qpuName,
-                language);
+        LOG.debug(
+            "Retrieving circuit properties for circuit passed as file with provider '{}', qpu '{}', and language '{}'.",
+            providerName, qpuName, language);
         try {
             // retrieve content form file and encode base64
             String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
@@ -180,7 +192,8 @@ public class ForestSdkConnector implements SdkConnector {
         RestTemplate restTemplate = new RestTemplate();
         try {
             // Transpile the given algorithm implementation using Forest service
-            ResponseEntity<CircuitInformation> response = restTemplate.postForEntity(transpileAPIEndpoint, request, CircuitInformation.class);
+            ResponseEntity<CircuitInformation> response =
+                restTemplate.postForEntity(transpileAPIEndpoint, request, CircuitInformation.class);
 
             // Check if the Forest service was successful
             if (response.getStatusCode().is2xxSuccessful()) {
@@ -274,6 +287,13 @@ public class ForestSdkConnector implements SdkConnector {
         } catch (IOException e) {
             LOG.error("Unable to read file content from circuit file!");
         }
+        return null;
+    }
+
+    @Override
+    public CircuitInformationOfImplementation getCircuitOfImplementation(Implementation implementation,
+                                                                         Map<String, ParameterValue> parameters,
+                                                                         String refreshToken) {
         return null;
     }
 }

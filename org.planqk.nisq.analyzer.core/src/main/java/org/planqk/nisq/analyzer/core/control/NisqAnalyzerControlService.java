@@ -342,6 +342,13 @@ public class NisqAnalyzerControlService {
         job.setJobResults(analysisResults);
         job.setReady(true);
         analysisJobRepository.save(job);
+
+        //TODO: Pre-Selection für alle Impls
+        //TODO ggf. Übersetzung
+        //TODO Compilation
+        //TODO Executable?
+        //TODO Prioritization
+        //TODO Execution
     }
 
     public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters)

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -38,6 +38,7 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
+import org.planqk.nisq.analyzer.core.connector.CircuitInformationOfImplementation;
 import org.planqk.nisq.analyzer.core.connector.ExecutionRequestResult;
 import org.planqk.nisq.analyzer.core.connector.OriginalCircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
@@ -77,31 +78,35 @@ public class PyTketSdkConnector implements SdkConnector {
 
     private URI analyzeOriginalAPIEndpoint;
 
-    public PyTketSdkConnector(
-        @Value("${org.planqk.nisq.analyzer.connector.pytket.hostname}") String hostname,
-        @Value("${org.planqk.nisq.analyzer.connector.pytket.port}") int port,
-        @Value("${org.planqk.nisq.analyzer.connector.pytket.version}") String version
-    ) {
+    public PyTketSdkConnector(@Value("${org.planqk.nisq.analyzer.connector.pytket.hostname}") String hostname,
+                              @Value("${org.planqk.nisq.analyzer.connector.pytket.port}") int port,
+                              @Value("${org.planqk.nisq.analyzer.connector.pytket.version}") String version) {
         // compile the API endpoints
-        analyzeOriginalAPIEndpoint =
-            URI.create(String.format("http://%s:%d/pytket-service/api/%s/analyze-original-circuit", hostname, port, version));
-        this.transpileAPIEndpoint = URI.create(String.format("http://%s:%d/pytket-service/api/%s/transpile", hostname, port, version));
-        this.executeAPIEndpoint = URI.create(String.format("http://%s:%d/pytket-service/api/%s/execute", hostname, port, version));
+        analyzeOriginalAPIEndpoint = URI.create(
+            String.format("http://%s:%d/pytket-service/api/%s/analyze-original-circuit", hostname, port, version));
+        this.transpileAPIEndpoint =
+            URI.create(String.format("http://%s:%d/pytket-service/api/%s/transpile", hostname, port, version));
+        this.executeAPIEndpoint =
+            URI.create(String.format("http://%s:%d/pytket-service/api/%s/execute", hostname, port, version));
     }
 
     @Override
-    public void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters,
-                                                      ExecutionResult executionResult, ExecutionResultRepository resultRepository, String refreshToken) {
+    public void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu,
+                                                      Map<String, ParameterValue> parameters,
+                                                      ExecutionResult executionResult,
+                                                      ExecutionResultRepository resultRepository, String refreshToken) {
 
         LOG.debug("Executing quantum algorithm implementation with PyTKet Sdk connector plugin!");
         String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
         PyTketRequest request =
-                new PyTketRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), qpu.getProvider(), parameters, bearerToken);
+            new PyTketRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(),
+                qpu.getProvider(), parameters, bearerToken);
         executeQuantumCircuit(request, executionResult, resultRepository, null);
     }
 
     @Override
-    public void executeTranspiledQuantumCircuit(String transpiledCircuit, String transpiledLanguage, String providerName, String qpuName,
+    public void executeTranspiledQuantumCircuit(String transpiledCircuit, String transpiledLanguage,
+                                                String providerName, String qpuName,
                                                 Map<String, ParameterValue> parameters, ExecutionResult executionResult,
                                                 ExecutionResultRepository resultRepository,
                                                 QpuSelectionResultRepository qpuSelectionResultRepository) {
@@ -111,10 +116,12 @@ public class PyTketSdkConnector implements SdkConnector {
 
         switch (transpiledLanguage.toLowerCase()) {
             case "openqasm":
-                request = new PyTketRequest(qpuName, parameters, transpiledCircuit, providerName, PyTketRequest.TranspiledLanguage.OpenQASM);
+                request = new PyTketRequest(qpuName, parameters, transpiledCircuit, providerName,
+                    PyTketRequest.TranspiledLanguage.OpenQASM);
                 break;
             case "quil":
-                request = new PyTketRequest(qpuName, parameters, transpiledCircuit, providerName, PyTketRequest.TranspiledLanguage.Quil);
+                request = new PyTketRequest(qpuName, parameters, transpiledCircuit, providerName,
+                    PyTketRequest.TranspiledLanguage.Quil);
                 break;
         }
 
@@ -123,13 +130,15 @@ public class PyTketSdkConnector implements SdkConnector {
         } else {
             // change the result status
             executionResult.setStatus(ExecutionResultStatus.FAILED);
-            executionResult.setStatusCode("Failed to create execution request for provided transpiled language: " + transpiledLanguage);
+            executionResult.setStatusCode(
+                "Failed to create execution request for provided transpiled language: " + transpiledLanguage);
             resultRepository.save(executionResult);
         }
     }
 
-    private void executeQuantumCircuit(PyTketRequest request, ExecutionResult executionResult, ExecutionResultRepository resultRepository,
-                                      QpuSelectionResultRepository qpuSelectionResultRepository) {
+    private void executeQuantumCircuit(PyTketRequest request, ExecutionResult executionResult,
+                                       ExecutionResultRepository resultRepository,
+                                       QpuSelectionResultRepository qpuSelectionResultRepository) {
         try {
             // make the execution request
             RestTemplate restTemplate = new RestTemplate();
@@ -141,9 +150,11 @@ public class PyTketSdkConnector implements SdkConnector {
             resultRepository.save(executionResult);
 
             // poll the PyTKet service frequently
-            while (executionResult.getStatus() != ExecutionResultStatus.FINISHED && executionResult.getStatus() != ExecutionResultStatus.FAILED) {
+            while (executionResult.getStatus() != ExecutionResultStatus.FINISHED &&
+                executionResult.getStatus() != ExecutionResultStatus.FAILED) {
                 try {
-                    ExecutionRequestResult result = restTemplate.getForObject(resultLocation, ExecutionRequestResult.class);
+                    ExecutionRequestResult result =
+                        restTemplate.getForObject(resultLocation, ExecutionRequestResult.class);
 
                     // Check if execution is completed
                     if (result.isComplete()) {
@@ -161,7 +172,8 @@ public class PyTketSdkConnector implements SdkConnector {
                                 // get stored token for the execution
                                 QpuSelectionResult qResult = qpuSelectionResult.get();
 
-                                // check if target machine is of Rigetti or IBMQ, consider accordingly qvm simulator or ibmq_qasm_simulator
+                                // check if target machine is of Rigetti or IBMQ, consider accordingly qvm simulator
+                                // or ibmq_qasm_simulator
                                 String simulator;
                                 if (Objects.equals(qResult.getProvider(), Constants.RIGETTI)) {
                                     simulator = "qvm";
@@ -169,35 +181,39 @@ public class PyTketSdkConnector implements SdkConnector {
                                     simulator = "qasm_simulator";
                                 }
 
-                                // check if current execution result is already of a simulator otherwise get all qpu-selection-results of same job
+                                // check if current execution result is already of a simulator otherwise get all
+                                // qpu-selection-results of same job
                                 if (!qResult.getQpu().contains(simulator)) {
                                     List<QpuSelectionResult> jobResults =
-                                        qpuSelectionResultRepository.findAllByQpuSelectionJobId(qResult.getQpuSelectionJobId());
+                                        qpuSelectionResultRepository.findAllByQpuSelectionJobId(
+                                            qResult.getQpuSelectionJobId());
                                     // get qpuSelectionResult of simulator if available
                                     QpuSelectionResult simulatorQpuSelectionResult =
-                                        jobResults.stream().filter(jobResult -> jobResult.getQpu().contains(simulator)).findFirst().orElse(null);
+                                        jobResults.stream().filter(jobResult -> jobResult.getQpu().contains(simulator))
+                                            .findFirst().orElse(null);
                                     if (Objects.nonNull(simulatorQpuSelectionResult)) {
-                                        //check if qpu-selection result of simulator was already executed otherwise wait max 1 minute
+                                        //check if qpu-selection result of simulator was already executed otherwise
+                                        // wait max 1 minute
                                         int iterator = 60;
                                         while (iterator > 0) {
                                             try {
                                                 Thread.sleep(1000);
                                                 ExecutionResult simulatorExecutionResult =
-                                                    resultRepository
-                                                        .findAll()
-                                                        .stream()
-                                                        .filter(exResults -> Objects.nonNull(exResults.getQpuSelectionResult()))
+                                                    resultRepository.findAll().stream().filter(
+                                                            exResults -> Objects.nonNull(exResults.getQpuSelectionResult()))
                                                         .filter(exeResult -> exeResult.getQpuSelectionResult().getId()
-                                                            .equals(simulatorQpuSelectionResult.getId()))
-                                                        .findFirst()
+                                                            .equals(simulatorQpuSelectionResult.getId())).findFirst()
                                                         .orElse(null);
 
-                                                // as soon as execution result of simulator is returned calculate histogram intersection
+                                                // as soon as execution result of simulator is returned calculate
+                                                // histogram intersection
                                                 if (Objects.nonNull(simulatorExecutionResult)) {
                                                     // convert stored execution result of simulator to Map
-                                                    String simulatorExecutionResultString = simulatorExecutionResult.getResult();
+                                                    String simulatorExecutionResultString =
+                                                        simulatorExecutionResult.getResult();
                                                     Map<String, Integer> simulatorCountsOfResults = new HashMap<>();
-                                                    String rawData = simulatorExecutionResultString.replaceAll("[\\{\\}\\s+]", "");
+                                                    String rawData =
+                                                        simulatorExecutionResultString.replaceAll("[\\{\\}\\s+]", "");
                                                     String[] instances = rawData.split(",");
                                                     for (String instance : instances) {
                                                         String[] resultsData = instance.split("=");
@@ -269,15 +285,17 @@ public class PyTketSdkConnector implements SdkConnector {
         LOG.debug("Analysing quantum algorithm implementation with PyTket Sdk connector plugin!");
         String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
         PyTketRequest request =
-                new PyTketRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, providerName, parameters, bearerToken);
+            new PyTketRequest(implementation.getFileLocation(), implementation.getLanguage(), qpuName, providerName,
+                parameters, bearerToken);
         return executeCircuitPropertiesRequest(request);
     }
 
     @Override
     public CircuitInformation getCircuitProperties(File circuit, String language, String providerName, String qpuName,
                                                    Map<String, ParameterValue> parameters) {
-        LOG.debug("Retrieving circuit properties for circuit passed as file with provider '{}', qpu '{}', and language '{}'.", providerName, qpuName,
-                language);
+        LOG.debug(
+            "Retrieving circuit properties for circuit passed as file with provider '{}', qpu '{}', and language '{}'.",
+            providerName, qpuName, language);
         try {
             // retrieve content form file and encode base64
             String fileContent = FileUtils.readFileToString(circuit, StandardCharsets.UTF_8);
@@ -296,7 +314,8 @@ public class PyTketSdkConnector implements SdkConnector {
 
         try {
             // Transpile the given algorithm implementation using PyTket service
-            ResponseEntity<CircuitInformation> response = restTemplate.postForEntity(transpileAPIEndpoint, request, CircuitInformation.class);
+            ResponseEntity<CircuitInformation> response =
+                restTemplate.postForEntity(transpileAPIEndpoint, request, CircuitInformation.class);
 
             // Check if the PyTket service was successful
             if (response.getStatusCode().is2xxSuccessful()) {
@@ -360,7 +379,8 @@ public class PyTketSdkConnector implements SdkConnector {
     @Override
     public Set<Parameter> getSdkSpecificParameters() {
         // only the token is required
-        return new HashSet<>(Arrays.asList(new Parameter(TOKEN_PARAMETER, DataType.String, null, "Parameter for Qiskit SDK Plugin")));
+        return new HashSet<>(
+            Arrays.asList(new Parameter(TOKEN_PARAMETER, DataType.String, null, "Parameter for Qiskit SDK Plugin")));
     }
 
     @Override
@@ -384,6 +404,13 @@ public class PyTketSdkConnector implements SdkConnector {
         } catch (IOException e) {
             LOG.error("Unable to read file content from circuit file!");
         }
+        return null;
+    }
+
+    @Override
+    public CircuitInformationOfImplementation getCircuitOfImplementation(Implementation implementation,
+                                                                         Map<String, ParameterValue> parameters,
+                                                                         String refreshToken) {
         return null;
     }
 }
