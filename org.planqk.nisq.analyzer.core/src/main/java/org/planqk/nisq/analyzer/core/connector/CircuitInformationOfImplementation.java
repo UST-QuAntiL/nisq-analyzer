@@ -17,9 +17,9 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.connector.qiskit;
+package org.planqk.nisq.analyzer.core.connector;
 
-import org.planqk.nisq.analyzer.core.connector.OriginalCircuitInformation;
+import javax.persistence.Lob;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -30,6 +30,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CircuitInformationOfImplementation extends OriginalCircuitInformation {
+
+    @Lob
     @JsonAlias({"generated-circuit"})
     private String generatedCircuit;
 

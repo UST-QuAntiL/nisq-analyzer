@@ -39,6 +39,7 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
+import org.planqk.nisq.analyzer.core.connector.CircuitInformationOfImplementation;
 import org.planqk.nisq.analyzer.core.connector.ExecutionRequestResult;
 import org.planqk.nisq.analyzer.core.connector.OriginalCircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;

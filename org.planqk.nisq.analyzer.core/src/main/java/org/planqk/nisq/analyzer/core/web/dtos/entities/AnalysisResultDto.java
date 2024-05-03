@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
 import org.springframework.hateoas.server.core.Relation;
@@ -36,34 +37,19 @@ public class AnalysisResultDto extends CircuitResultDto {
 
     private Map<String, String> inputParameters;
 
+    private UUID originalCircuitResultId;
+
+    private UUID qpuSelectionJobId;
+
     public static final class Converter {
 
         public static AnalysisResultDto convert(final AnalysisResult object) {
             AnalysisResultDto dto = new AnalysisResultDto();
             dto.setId(object.getId());
-            dto.setQpu(object.getQpu());
-            dto.setProvider(object.getProvider());
-            dto.setCompiler(object.getCompiler());
             dto.setImplementation(ImplementationDto.Converter.convert(object.getImplementation()));
-            dto.setAnalyzedDepth(object.getAnalyzedDepth());
-            dto.setAnalyzedWidth(object.getAnalyzedWidth());
-            dto.setAnalyzedTotalNumberOfOperations(object.getAnalyzedTotalNumberOfOperations());
-            dto.setAnalyzedNumberOfSingleQubitGates(object.getAnalyzedNumberOfSingleQubitGates());
-            dto.setAnalyzedNumberOfMeasurementOperations(object.getAnalyzedNumberOfMeasurementOperations());
-            dto.setAnalyzedNumberOfMultiQubitGates(object.getAnalyzedNumberOfMultiQubitGates());
-            dto.setAnalyzedMultiQubitGateDepth(object.getAnalyzedMultiQubitGateDepth());
             dto.setInputParameters(object.getInputParameters());
-            dto.setAvgMultiQubitGateError(object.getAvgMultiQubitGateError());
-            dto.setAvgMultiQubitGateTime(object.getAvgMultiQubitGateTime());
-            dto.setAvgSingleQubitGateError(object.getAvgSingleQubitGateError());
-            dto.setAvgSingleQubitGateTime(object.getAvgSingleQubitGateTime());
-            dto.setAvgReadoutError(object.getAvgReadoutError());
-            dto.setMaxGateTime(object.getMaxGateTime());
-            dto.setT1(object.getT1());
-            dto.setT2(object.getT2());
-            dto.setNumberOfQubits(object.getQubitCount());
-            dto.setSimulator(object.isSimulator());
-            dto.setTime(object.getTime());
+            dto.setOriginalCircuitResultId(object.getOriginalCircuitResultId());
+            dto.setQpuSelectionJobId(object.getQpuSelectionJobId());
             return dto;
         }
     }

@@ -41,6 +41,7 @@ import javax.transaction.Transactional;
 import org.apache.commons.io.FileUtils;
 import org.planqk.nisq.analyzer.core.Constants;
 import org.planqk.nisq.analyzer.core.connector.CircuitInformation;
+import org.planqk.nisq.analyzer.core.connector.CircuitInformationOfImplementation;
 import org.planqk.nisq.analyzer.core.connector.OriginalCircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
@@ -156,7 +157,7 @@ public class NisqAnalyzerControlService {
      * @return the ExecutionResult to track the current status and store the result
      * @throws RuntimeException is thrown in case the execution of the algorithm implementation fails
      */
-    public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result,
+    /*public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result,
                                                                  Map<String, ParameterValue> inputParameters,
                                                                  String refreshToken) throws RuntimeException {
         final Implementation implementation = result.getImplementation();
@@ -281,6 +282,8 @@ public class NisqAnalyzerControlService {
             .filter(implementation -> parametersAvailable(getRequiredParameters(implementation), inputParameters))
             .collect(Collectors.toList());
 
+        List<AnalysisResult> analysisResults = new ArrayList<>();
+
         for (Implementation implementation : executableImplementations) {
 
             // Try to infer the type of the parameters for the given implementation
@@ -301,134 +304,44 @@ public class NisqAnalyzerControlService {
                     "Unable to find connector plugin with name " + implementation.getSdk().getName());
             }
 
-            new Thread(() -> selectedSdkConnector.getCircuitOfImplementation(implementation, execInputParameters,
-                refreshToken)).start();
-        }
+            // generate circuit of implementation based on input parameters and analyze its properties
+            CircuitInformationOfImplementation circuitInformationOfImplementation =
+                selectedSdkConnector.getCircuitOfImplementation(implementation, execInputParameters, refreshToken);
 
-
-
-
-
-
-
-
-
-
-
-
-/*
-        List<AnalysisResult> analysisResults = new ArrayList<>();
-
-        // Iterate over all providers listed in QProv
-        for (Provider provider : qProvService.getProviders()) {
-
-            // Get available QPUs
-            List<Qpu> qpus = qProvService.getQPUs(provider);
-
-            // determine all suitable QPUs for the executable implementations
-            for (Implementation impl : executableImplementations) {
-
-                // Try to infer the type of the parameters for the given implementation
-                Map<String, ParameterValue> execInputParameters =
-                    ParameterValue.inferTypedParameterValue(impl.getInputParameters(), inputParameters);
-
-                if (!execInputParameters.containsKey("token")) {
-                    execInputParameters.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown, token));
-                }
-
-                for (AnalysisCandidate candidate : suitableCandidates) {
-
-                    Qpu qpu = qpus.stream().filter(q -> q.getId().equals(candidate.getQpu())).findFirst().orElse(null);
-
-                    if (Objects.isNull(qpu)) {
-                        LOG.warn("Unable to find Qpu with UUID: {}.", candidate.getQpu());
-                        continue;
-                    }
-
-                    // get suited Sdk connector
-                    SdkConnector selectedSdkConnector = connectorList.stream()
-                            .filter(executor -> executor.getName().equals(candidate.getCompiler()))
-                            .findFirst().orElse(null);
-
-                    if (Objects.isNull(selectedSdkConnector)) {
-                        LOG.warn("Unable to find Sdk connector: {}.", candidate.getCompiler());
-                        continue;
-                    }
-
-                    LOG.debug("Checking if QPU {} is suitable for implementation {}.", qpu.getName(), impl.getName());
-
-                    // analyze the quantum circuit by utilizing the capabilities of the suited plugin and retrieve
-                    important circuit properties
-                    CircuitInformation circuitInformation =
-                            selectedSdkConnector.getCircuitProperties(impl, qpu.getProvider(), qpu.getName(),
-                            execInputParameters, refreshToken);
-
-                    // if something unexpected happened
-                    if (Objects.isNull(circuitInformation)) {
-                        LOG.error("Circuit analysis by compiler unexpectedly failed.");
-                        continue;
-                    }
-
-                    // skip qpu if some (expected) error occured during transpilation,
-                    // e.g. too many qubits required or the input wasn't suitable for the implementation
-                    if (!circuitInformation.wasTranspilationSuccessfull()) {
-                        LOG.debug("Transpilation of circuit impossible: {}. Skipping Qpu.", circuitInformation
-                        .getError());
-                        continue;
-                    }
-
-                    if (prologQueryEngine.isQpuSuitable(impl.getId(), qpu.getId(), circuitInformation.getCircuitWidth(),
-                            circuitInformation.getCircuitDepth())) {
-
-                        inputParameters.remove("token");
-
-                        // qpu is suited candidate to execute the implementation
-                        AnalysisResult result = new AnalysisResult();
-                        result.setImplementation(impl);
-                        result.setImplementedAlgorithm(algorithm);
-                        result.setTime(OffsetDateTime.now());
-                        result.setInputParameters(inputParameters);
-                        result.setQpu(qpu.getName());
-                        result.setCircuitName(impl.getName());
-                        result.setProvider(provider.getName());
-                        result.setCompiler(selectedSdkConnector.getName());
-                        result.setAnalyzedDepth(circuitInformation.getCircuitDepth());
-                        result.setAnalyzedWidth(circuitInformation.getCircuitWidth());
-                        result.setAnalyzedTotalNumberOfOperations(circuitInformation
-                        .getCircuitTotalNumberOfOperations());
-                        result.setAnalyzedNumberOfSingleQubitGates(circuitInformation
-                        .getCircuitNumberOfSingleQubitGates());
-                        result.setAnalyzedNumberOfMeasurementOperations(circuitInformation
-                        .getCircuitNumberOfMeasurementOperations());
-                        result.setAnalyzedNumberOfMultiQubitGates(circuitInformation
-                        .getCircuitNumberOfMultiQubitGates());
-                        result.setAnalyzedMultiQubitGateDepth(circuitInformation.getCircuitMultiQubitGateDepth());
-                        result.setAvgMultiQubitGateError(qpu.getAvgMultiQubitGateError());
-                        result.setAvgMultiQubitGateTime(qpu.getAvgMultiQubitGateTime());
-                        result.setAvgReadoutError(qpu.getAvgReadoutError());
-                        result.setAvgSingleQubitGateError(qpu.getAvgSingleQubitGateError());
-                        result.setAvgSingleQubitGateTime(qpu.getAvgSingleQubitGateTime());
-                        result.setT1(qpu.getT1());
-                        result.setT2(qpu.getT2());
-                        result.setMaxGateTime(qpu.getMaxGateTime());
-                        result.setQubitCount(qpu.getQubitCount());
-                        result.setSimulator(qpu.isSimulator());
-                        result = analysisResultRepository.save(result);
-
-                        analysisResults.add(result);
-                        job.setJobResults(analysisResults);
-                        job = analysisJobRepository.save(job);
-
-                        LOG.debug("QPU {} suitable for implementation {}.", qpu.getName(), impl.getName());
-                    } else {
-                        LOG.debug("QPU {} not suitable for implementation {}.", qpu.getName(), impl.getName());
-                    }
-                }
+            // if something unexpected happened
+            if (Objects.isNull(circuitInformationOfImplementation)) {
+                LOG.error("Circuit generation and analysis by SDK unexpectedly failed.");
+                continue;
             }
+
+            inputParameters.remove("token");
+
+            OriginalCircuitResult originalCircuitResult = new OriginalCircuitResult(implementation.getName(),
+                circuitInformationOfImplementation.getCircuitWidth(),
+                circuitInformationOfImplementation.getCircuitDepth(),
+                circuitInformationOfImplementation.getCircuitMultiQubitGateDepth(),
+                circuitInformationOfImplementation.getCircuitNumberOfSingleQubitGates(),
+                circuitInformationOfImplementation.getCircuitNumberOfMultiQubitGates(),
+                circuitInformationOfImplementation.getCircuitTotalNumberOfOperations(),
+                circuitInformationOfImplementation.getCircuitNumberOfMeasurementOperations());
+
+            originalCircuitResultRepository.save(originalCircuitResult);
+
+            AnalysisResult analysisResult = new AnalysisResult();
+
+            analysisResult.setImplementation(implementation);
+            analysisResult.setImplementedAlgorithm(algorithm);
+            analysisResult.setInputParameters(inputParameters);
+            analysisResult.setOriginalCircuitResultId(originalCircuitResult.getId());
+            analysisResult = analysisResultRepository.save(analysisResult);
+            analysisResults.add(analysisResult);
+
+            LOG.debug("Generated and analyzed circuit for implementation {}.", implementation.getName());
         }
 
+        job.setJobResults(analysisResults);
         job.setReady(true);
-        analysisJobRepository.save(job);*/
+        analysisJobRepository.save(job);
     }
 
     public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters)

@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.planqk.nisq.analyzer.core.connector.qiskit.CircuitInformationOfImplementation;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;

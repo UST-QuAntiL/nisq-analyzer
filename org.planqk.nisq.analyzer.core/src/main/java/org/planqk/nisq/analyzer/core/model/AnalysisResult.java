@@ -38,15 +38,17 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AnalysisResult extends CircuitResult {
+public class AnalysisResult extends HasId {
 
     private UUID implementedAlgorithm;
 
     @ManyToOne
     private Implementation implementation;
 
-    private UUID originalCircuitResultId;
-
     @ElementCollection
     private Map<String, String> inputParameters;
+
+    private UUID originalCircuitResultId;
+
+    private UUID qpuSelectionJobId;
 }
