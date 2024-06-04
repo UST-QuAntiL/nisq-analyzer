@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -120,8 +120,10 @@ public class PrioritizationService {
     private String version;
 
     @Transactional
-    public List<String> executePredictionForCompilerAnQpuPreSelection(OriginalCircuitResult originalCircuitResult, QpuSelectionJob qpuSelectionJob,
-                                                                      Float queueImportanceRatio, String predictionAlgorithm, String metaOptimizer,
+    public List<String> executePredictionForCompilerAnQpuPreSelection(OriginalCircuitResult originalCircuitResult,
+                                                                      QpuSelectionJob qpuSelectionJob,
+                                                                      Float queueImportanceRatio,
+                                                                      String predictionAlgorithm, String metaOptimizer,
                                                                       boolean shortWaitingTimesPreference) {
 
         PreSelectionPredictionRequest preSelectionPredictionRequest = new PreSelectionPredictionRequest();
@@ -140,23 +142,27 @@ public class PrioritizationService {
 
             priorQpuSelectionJob.getJobResults().forEach(qpuSelectionResult -> {
                 if (qpuSelectionResult.getOriginalCircuitResultId() != null) {
-                    List<ExecutionResult> executionResultList = executionResultRepository.findByQpuSelectionResult(qpuSelectionResult);
+                    List<ExecutionResult> executionResultList =
+                        executionResultRepository.findByQpuSelectionResult(qpuSelectionResult);
                     Optional<ExecutionResult> executionResultOptional = executionResultList.stream().filter(
-                            exeResult -> exeResult.getShots() > 0 && exeResult.getHistogramIntersectionValue() > 0 &&
-                                exeResult.getHistogramIntersectionValue() < 1 &&
-                                exeResult.getStatus().equals(ExecutionResultStatus.FINISHED))
-                        .findFirst();
-                    if (executionResultOptional.isPresent() &&
-                        !qpuSelectionResult.getQpu().contains("simulator")) {  // TODO: add a better check if the result is from a simulator
+                        exeResult -> exeResult.getShots() > 0 && exeResult.getHistogramIntersectionValue() > 0 &&
+                            exeResult.getHistogramIntersectionValue() < 1 &&
+                            exeResult.getStatus().equals(ExecutionResultStatus.FINISHED)).findFirst();
+                    if (executionResultOptional.isPresent() && !qpuSelectionResult.getQpu()
+                        .contains("simulator")) {  // TODO: add a better check if the result is from a simulator
                         Optional<OriginalCircuitResult> originalCircuitResultOptional =
                             originalCircuitResultRepository.findById(qpuSelectionResult.getOriginalCircuitResultId());
                         if (originalCircuitResultOptional.isPresent()) {
-                            OriginalCircuitResult originalCircuitResultTrainingDataPoint = originalCircuitResultOptional.get();
+                            OriginalCircuitResult originalCircuitResultTrainingDataPoint =
+                                originalCircuitResultOptional.get();
                             ExecutionResult executionResult = executionResultOptional.get();
-                            OriginalCircuitAndQpuMetrics originalCircuitAndQpuMetricsPriorCircuit = new OriginalCircuitAndQpuMetrics();
+                            OriginalCircuitAndQpuMetrics originalCircuitAndQpuMetricsPriorCircuit =
+                                new OriginalCircuitAndQpuMetrics();
                             originalCircuitAndQpuMetricsPriorCircuit.setId(qpuSelectionResult.getId().toString());
-                            originalCircuitAndQpuMetricsPriorCircuit.setOriginalDepth(originalCircuitResultTrainingDataPoint.getOriginalDepth());
-                            originalCircuitAndQpuMetricsPriorCircuit.setOriginalWidth(originalCircuitResultTrainingDataPoint.getOriginalWidth());
+                            originalCircuitAndQpuMetricsPriorCircuit.setOriginalDepth(
+                                originalCircuitResultTrainingDataPoint.getOriginalDepth());
+                            originalCircuitAndQpuMetricsPriorCircuit.setOriginalWidth(
+                                originalCircuitResultTrainingDataPoint.getOriginalWidth());
                             originalCircuitAndQpuMetricsPriorCircuit.setOriginalMultiQubitGateDepth(
                                 originalCircuitResultTrainingDataPoint.getOriginalMultiQubitGateDepth());
                             originalCircuitAndQpuMetricsPriorCircuit.setOriginalNumberOfMeasurementOperations(
@@ -169,11 +175,16 @@ public class PrioritizationService {
                                 originalCircuitResultTrainingDataPoint.getOriginalTotalNumberOfOperations());
                             originalCircuitAndQpuMetricsPriorCircuit.setT1(qpuSelectionResult.getT1());
                             originalCircuitAndQpuMetricsPriorCircuit.setT2(qpuSelectionResult.getT2());
-                            originalCircuitAndQpuMetricsPriorCircuit.setAvgSingleQubitGateError(qpuSelectionResult.getAvgSingleQubitGateError());
-                            originalCircuitAndQpuMetricsPriorCircuit.setAvgMultiQubitGateError(qpuSelectionResult.getAvgMultiQubitGateError());
-                            originalCircuitAndQpuMetricsPriorCircuit.setAvgSingleQubitGateTime(qpuSelectionResult.getAvgSingleQubitGateTime());
-                            originalCircuitAndQpuMetricsPriorCircuit.setAvgMultiQubitGateTime(qpuSelectionResult.getAvgMultiQubitGateTime());
-                            originalCircuitAndQpuMetricsPriorCircuit.setAvgReadoutError(qpuSelectionResult.getAvgReadoutError());
+                            originalCircuitAndQpuMetricsPriorCircuit.setAvgSingleQubitGateError(
+                                qpuSelectionResult.getAvgSingleQubitGateError());
+                            originalCircuitAndQpuMetricsPriorCircuit.setAvgMultiQubitGateError(
+                                qpuSelectionResult.getAvgMultiQubitGateError());
+                            originalCircuitAndQpuMetricsPriorCircuit.setAvgSingleQubitGateTime(
+                                qpuSelectionResult.getAvgSingleQubitGateTime());
+                            originalCircuitAndQpuMetricsPriorCircuit.setAvgMultiQubitGateTime(
+                                qpuSelectionResult.getAvgMultiQubitGateTime());
+                            originalCircuitAndQpuMetricsPriorCircuit.setAvgReadoutError(
+                                qpuSelectionResult.getAvgReadoutError());
                             originalCircuitAndQpuMetricsPriorCircuit.setQpu(qpuSelectionResult.getQpu());
                             originalCircuitAndQpuMetricsPriorCircuit.setCompiler(qpuSelectionResult.getCompiler());
                             originalCircuitAndQpuMetricsPriorCircuit.setHistogramIntersection(
@@ -199,23 +210,31 @@ public class PrioritizationService {
 
         qpuSelectionJob.getJobResults().forEach(qpuSelectionResult -> {
             if (!qpuSelectionResult.getQpu().contains("simulator")) {
-                OriginalCircuitAndQpuMetrics originalCircuitAndQpuMetricsNewCircuit = new OriginalCircuitAndQpuMetrics();
+                OriginalCircuitAndQpuMetrics originalCircuitAndQpuMetricsNewCircuit =
+                    new OriginalCircuitAndQpuMetrics();
                 originalCircuitAndQpuMetricsNewCircuit.setId(qpuSelectionResult.getId().toString());
                 originalCircuitAndQpuMetricsNewCircuit.setOriginalDepth(originalCircuitResult.getOriginalDepth());
                 originalCircuitAndQpuMetricsNewCircuit.setOriginalWidth(originalCircuitResult.getOriginalWidth());
-                originalCircuitAndQpuMetricsNewCircuit.setOriginalMultiQubitGateDepth(originalCircuitResult.getOriginalMultiQubitGateDepth());
+                originalCircuitAndQpuMetricsNewCircuit.setOriginalMultiQubitGateDepth(
+                    originalCircuitResult.getOriginalMultiQubitGateDepth());
                 originalCircuitAndQpuMetricsNewCircuit.setOriginalNumberOfMeasurementOperations(
                     originalCircuitResult.getOriginalNumberOfMeasurementOperations());
-                originalCircuitAndQpuMetricsNewCircuit.setOriginalNumberOfMultiQubitGates(originalCircuitResult.getOriginalNumberOfMultiQubitGates());
+                originalCircuitAndQpuMetricsNewCircuit.setOriginalNumberOfMultiQubitGates(
+                    originalCircuitResult.getOriginalNumberOfMultiQubitGates());
                 originalCircuitAndQpuMetricsNewCircuit.setOriginalNumberOfSingleQubitGates(
                     originalCircuitResult.getOriginalNumberOfSingleQubitGates());
-                originalCircuitAndQpuMetricsNewCircuit.setOriginalTotalNumberOfOperations(originalCircuitResult.getOriginalTotalNumberOfOperations());
+                originalCircuitAndQpuMetricsNewCircuit.setOriginalTotalNumberOfOperations(
+                    originalCircuitResult.getOriginalTotalNumberOfOperations());
                 originalCircuitAndQpuMetricsNewCircuit.setT1(qpuSelectionResult.getT1());
                 originalCircuitAndQpuMetricsNewCircuit.setT2(qpuSelectionResult.getT2());
-                originalCircuitAndQpuMetricsNewCircuit.setAvgSingleQubitGateError(qpuSelectionResult.getAvgSingleQubitGateError());
-                originalCircuitAndQpuMetricsNewCircuit.setAvgMultiQubitGateError(qpuSelectionResult.getAvgMultiQubitGateError());
-                originalCircuitAndQpuMetricsNewCircuit.setAvgSingleQubitGateTime(qpuSelectionResult.getAvgSingleQubitGateTime());
-                originalCircuitAndQpuMetricsNewCircuit.setAvgMultiQubitGateTime(qpuSelectionResult.getAvgMultiQubitGateTime());
+                originalCircuitAndQpuMetricsNewCircuit.setAvgSingleQubitGateError(
+                    qpuSelectionResult.getAvgSingleQubitGateError());
+                originalCircuitAndQpuMetricsNewCircuit.setAvgMultiQubitGateError(
+                    qpuSelectionResult.getAvgMultiQubitGateError());
+                originalCircuitAndQpuMetricsNewCircuit.setAvgSingleQubitGateTime(
+                    qpuSelectionResult.getAvgSingleQubitGateTime());
+                originalCircuitAndQpuMetricsNewCircuit.setAvgMultiQubitGateTime(
+                    qpuSelectionResult.getAvgMultiQubitGateTime());
                 originalCircuitAndQpuMetricsNewCircuit.setAvgReadoutError(qpuSelectionResult.getAvgReadoutError());
                 originalCircuitAndQpuMetricsNewCircuit.setQpu(qpuSelectionResult.getQpu());
                 originalCircuitAndQpuMetricsNewCircuit.setCompiler(qpuSelectionResult.getCompiler());
@@ -232,13 +251,14 @@ public class PrioritizationService {
         // send request
         RestTemplate restTemplate = new RestTemplate();
         try {
-            URI resultLocationRedirect =
-                restTemplate.postForLocation(URI.create(String.format("http://%s:%d/plugins/es-optimizer@%s/prediction", hostname, port, version)),
-                    preSelectionPredictionRequest);
+            URI resultLocationRedirect = restTemplate.postForLocation(
+                URI.create(String.format("http://%s:%d/plugins/es-optimizer@%s/prediction", hostname, port, version)),
+                preSelectionPredictionRequest);
 
             if (resultLocationRedirect != null) {
                 PrioritizationServiceResultLocationResponse prioritizationServiceResultLocationResponse =
-                    restTemplate.getForObject(resultLocationRedirect, PrioritizationServiceResultLocationResponse.class);
+                    restTemplate.getForObject(resultLocationRedirect,
+                        PrioritizationServiceResultLocationResponse.class);
 
                 while (!prioritizationServiceResultLocationResponse.getLog().equalsIgnoreCase("finished")) {
                     // Wait for next poll
@@ -247,20 +267,21 @@ public class PrioritizationService {
                     } catch (InterruptedException e) {
                         // pass
                     }
-                    prioritizationServiceResultLocationResponse =
-                        restTemplate.getForObject(resultLocationRedirect, PrioritizationServiceResultLocationResponse.class);
+                    prioritizationServiceResultLocationResponse = restTemplate.getForObject(resultLocationRedirect,
+                        PrioritizationServiceResultLocationResponse.class);
                 }
 
                 try {
                     if (prioritizationServiceResultLocationResponse.getStatus().equalsIgnoreCase("success")) {
-                        PredictionResultResponse predictionResultResponse =
-                            restTemplate.getForObject(URI.create(prioritizationServiceResultLocationResponse.getOutputs().get(0).getHref()),
-                                PredictionResultResponse.class);
+                        PredictionResultResponse predictionResultResponse = restTemplate.getForObject(
+                            URI.create(prioritizationServiceResultLocationResponse.getOutputs().get(0).getHref()),
+                            PredictionResultResponse.class);
 
                         if (predictionResultResponse != null) {
                             //store predicted histogram intersection values
                             predictionResultResponse.getPredictedHistogramIntersections().forEach((id, value) -> {
-                                Optional<QpuSelectionResult> qpuSelectionResultOptional = qpuSelectionResultRepository.findById(UUID.fromString(id));
+                                Optional<QpuSelectionResult> qpuSelectionResultOptional =
+                                    qpuSelectionResultRepository.findById(UUID.fromString(id));
                                 if (qpuSelectionResultOptional.isPresent()) {
                                     QpuSelectionResult qpuSelectionResult = qpuSelectionResultOptional.get();
                                     qpuSelectionResult.setPredictedHistogramIntersectionValue(value);
@@ -270,10 +291,12 @@ public class PrioritizationService {
                                 }
                             });
                             if (shortWaitingTimesPreference && queueImportanceRatio > 0) {
-                                qpuSelectionResultIdList.sort(Comparator.comparingInt(predictionResultResponse.getBordaCountRanking()::indexOf));
+                                qpuSelectionResultIdList.sort(
+                                    Comparator.comparingInt(predictionResultResponse.getBordaCountRanking()::indexOf));
                                 return qpuSelectionResultIdList;
                             } else {
-                                qpuSelectionResultIdList.sort(Comparator.comparingInt(predictionResultResponse.getRanking()::indexOf));
+                                qpuSelectionResultIdList.sort(
+                                    Comparator.comparingInt(predictionResultResponse.getRanking()::indexOf));
                                 return qpuSelectionResultIdList;
                             }
                         }
@@ -304,24 +327,23 @@ public class PrioritizationService {
         List<McdaCriteriaPerformances> criteriaPerformancesList = new ArrayList<>();
 
         mcdaInformation.getAlternativePerformances().forEach(compiledCircuit -> {
-            McdaCriteriaPerformances mcdaCriteriaPerformances = new McdaCriteriaPerformances(
-                compiledCircuit.getAlternativeID(),
-                0.0f,
-                compiledCircuit.getPerformance().get(0).getValue().getInteger(),
-                compiledCircuit.getPerformance().get(1).getValue().getInteger(),
-                compiledCircuit.getPerformance().get(2).getValue().getInteger(),
-                compiledCircuit.getPerformance().get(3).getValue().getInteger(),
-                compiledCircuit.getPerformance().get(4).getValue().getInteger(),
-                compiledCircuit.getPerformance().get(5).getValue().getInteger(),
-                compiledCircuit.getPerformance().get(6).getValue().getInteger(),
-                compiledCircuit.getPerformance().get(7).getValue().getReal().floatValue(),
-                compiledCircuit.getPerformance().get(8).getValue().getReal().floatValue(),
-                compiledCircuit.getPerformance().get(9).getValue().getReal().floatValue(),
-                compiledCircuit.getPerformance().get(10).getValue().getReal().floatValue(),
-                compiledCircuit.getPerformance().get(11).getValue().getReal().floatValue(),
-                compiledCircuit.getPerformance().get(12).getValue().getReal().floatValue(),
-                compiledCircuit.getPerformance().get(13).getValue().getReal().floatValue(),
-                compiledCircuit.getPerformance().get(14).getValue().getInteger());
+            McdaCriteriaPerformances mcdaCriteriaPerformances =
+                new McdaCriteriaPerformances(compiledCircuit.getAlternativeID(), 0.0f,
+                    compiledCircuit.getPerformance().get(0).getValue().getInteger(),
+                    compiledCircuit.getPerformance().get(1).getValue().getInteger(),
+                    compiledCircuit.getPerformance().get(2).getValue().getInteger(),
+                    compiledCircuit.getPerformance().get(3).getValue().getInteger(),
+                    compiledCircuit.getPerformance().get(4).getValue().getInteger(),
+                    compiledCircuit.getPerformance().get(5).getValue().getInteger(),
+                    compiledCircuit.getPerformance().get(6).getValue().getInteger(),
+                    compiledCircuit.getPerformance().get(7).getValue().getReal().floatValue(),
+                    compiledCircuit.getPerformance().get(8).getValue().getReal().floatValue(),
+                    compiledCircuit.getPerformance().get(9).getValue().getReal().floatValue(),
+                    compiledCircuit.getPerformance().get(10).getValue().getReal().floatValue(),
+                    compiledCircuit.getPerformance().get(11).getValue().getReal().floatValue(),
+                    compiledCircuit.getPerformance().get(12).getValue().getReal().floatValue(),
+                    compiledCircuit.getPerformance().get(13).getValue().getReal().floatValue(),
+                    compiledCircuit.getPerformance().get(14).getValue().getInteger());
             criteriaPerformancesList.add(mcdaCriteriaPerformances);
         });
         circuits.add(new McdaCompiledCircuitJob(mcdaJob.getJobId(), criteriaPerformancesList));
@@ -338,7 +360,8 @@ public class PrioritizationService {
             if (crit.isPresent()) {
                 Criterion criterion = crit.get();
                 Scale optimum = (Scale) criterion.getActiveOrScaleOrCriterionFunction().get(1);
-                LOG.debug("Used weight for metric {} to rank with {}: {}", criterion.getName(), mcdaJob.getMethod(), value.getReal());
+                LOG.debug("Used weight for metric {} to rank with {}: {}", criterion.getName(), mcdaJob.getMethod(),
+                    value.getReal());
 
                 if (mcdaJob.isUseBordaCount() && criterion.getName().equals("queue-size")) {
                     bordaCountMetrics.put(criterion.getName(), new McdaCriterionWeight(0.0f,
@@ -357,17 +380,19 @@ public class PrioritizationService {
         }
 
         McdaRankRestRequest request =
-            new McdaRankRestRequest(mcdaMethodName, metricWeights, bordaCountMetrics, mcdaJob.getBordaCountWeights(), circuits);
+            new McdaRankRestRequest(mcdaMethodName, metricWeights, bordaCountMetrics, mcdaJob.getBordaCountWeights(),
+                circuits);
 
         RestTemplate restTemplate = new RestTemplate();
         try {
-            URI resultLocationRedirect =
-                restTemplate.postForLocation(URI.create(String.format("http://%s:%d/plugins/es-optimizer@%s/rank", hostname, port, version)),
-                    request);
+            URI resultLocationRedirect = restTemplate.postForLocation(
+                URI.create(String.format("http://%s:%d/plugins/es-optimizer@%s/rank", hostname, port, version)),
+                request);
 
             if (resultLocationRedirect != null) {
                 PrioritizationServiceResultLocationResponse prioritizationServiceResultLocationResponse =
-                    restTemplate.getForObject(resultLocationRedirect, PrioritizationServiceResultLocationResponse.class);
+                    restTemplate.getForObject(resultLocationRedirect,
+                        PrioritizationServiceResultLocationResponse.class);
 
                 while (!prioritizationServiceResultLocationResponse.getLog().equalsIgnoreCase("finished")) {
                     // Wait for next poll
@@ -376,28 +401,29 @@ public class PrioritizationService {
                     } catch (InterruptedException e) {
                         // pass
                     }
-                    prioritizationServiceResultLocationResponse =
-                        restTemplate.getForObject(resultLocationRedirect, PrioritizationServiceResultLocationResponse.class);
+                    prioritizationServiceResultLocationResponse = restTemplate.getForObject(resultLocationRedirect,
+                        PrioritizationServiceResultLocationResponse.class);
                 }
 
                 try {
                     if (prioritizationServiceResultLocationResponse.getStatus().equalsIgnoreCase("success")) {
-                        RankResultResponse rankResultResponse =
-                            restTemplate.getForObject(URI.create(prioritizationServiceResultLocationResponse.getOutputs().get(0).getHref()),
-                                RankResultResponse.class);
+                        RankResultResponse rankResultResponse = restTemplate.getForObject(
+                            URI.create(prioritizationServiceResultLocationResponse.getOutputs().get(0).getHref()),
+                            RankResultResponse.class);
 
                         List<McdaResult> mcdaResultList = new ArrayList<>();
                         if (mcdaJob.isUseBordaCount()) {
                             rankResultResponse.getScores().forEach((id, score) -> {
-                                McdaResult result =
-                                    new McdaResult(UUID.fromString(id), rankResultResponse.getBordaCountRanking().indexOf(id) + 1, (double) score);
+                                McdaResult result = new McdaResult(UUID.fromString(id),
+                                    rankResultResponse.getBordaCountRanking().indexOf(id) + 1, (double) score);
                                 result = mcdaResultRepository.save(result);
                                 mcdaResultList.add(result);
                             });
                         } else {
                             rankResultResponse.getScores().forEach((id, score) -> {
                                 McdaResult result =
-                                    new McdaResult(UUID.fromString(id), rankResultResponse.getRanking().indexOf(id) + 1, (double) score);
+                                    new McdaResult(UUID.fromString(id), rankResultResponse.getRanking().indexOf(id) + 1,
+                                        (double) score);
                                 result = mcdaResultRepository.save(result);
                                 mcdaResultList.add(result);
                             });
@@ -418,14 +444,16 @@ public class PrioritizationService {
 
     @Transactional
     public void learnWeights(McdaWeightLearningJob mcdaWeightLearningJob) {
-        LOG.debug("Starting {} MCDA method and {} learning method to learn weights", mcdaWeightLearningJob.getMcdaMethod(),
-            mcdaWeightLearningJob.getWeightLearningMethod());
+        LOG.debug("Starting {} MCDA method and {} learning method to learn weights",
+            mcdaWeightLearningJob.getMcdaMethod(), mcdaWeightLearningJob.getWeightLearningMethod());
         mcdaWeightLearningJob.setState(ExecutionResultStatus.RUNNING.toString());
         mcdaWeightLearningJobRepository.save(mcdaWeightLearningJob);
         List<McdaCompiledCircuitJob> circuits = new ArrayList<>();
 
-        //Fixme: also enable weight learning for Impl-QPU-Selection (Analysis)Results and Compiler-Comparison (Compilation)Results.
-        //       Therefore, Histogram Intersection is also required for execution of these Result models. Consider to unify different result models!
+        //Fixme: also enable weight learning for Impl-QPU-Selection (Analysis)Results and Compiler-Comparison
+        // (Compilation)Results.
+        //       Therefore, Histogram Intersection is also required for execution of these Result models. Consider to
+        //       unify different result models!
 
         // collect all QpuSelectionJobs with executed Results
         qpuSelectionJobRepository.findAll().forEach(qpuSelectionJob -> {
@@ -434,28 +462,38 @@ public class PrioritizationService {
                 mcdaCompiledCircuitJob.setId(qpuSelectionJob.getId());
                 List<McdaCriteriaPerformances> compiledCircuits = new ArrayList<>();
                 qpuSelectionJob.getJobResults().forEach(qpuSelectionResult -> {
-                    List<ExecutionResult> executionResultList = executionResultRepository.findByQpuSelectionResult(qpuSelectionResult);
+                    List<ExecutionResult> executionResultList =
+                        executionResultRepository.findByQpuSelectionResult(qpuSelectionResult);
                     Optional<ExecutionResult> executionResultOptional = executionResultList.stream().filter(
-                            exeResult -> exeResult.getShots() > 0 && exeResult.getHistogramIntersectionValue() > 0 &&
-                                exeResult.getStatus().equals(ExecutionResultStatus.FINISHED))
-                        .findFirst();
-                    if (executionResultOptional.isPresent() && !qpuSelectionResult.getQpu().contains("simulator")) {  // TODO: add a better check if the result is from a simulator
+                        exeResult -> exeResult.getShots() > 0 && exeResult.getHistogramIntersectionValue() > 0 &&
+                            exeResult.getStatus().equals(ExecutionResultStatus.FINISHED)).findFirst();
+                    if (executionResultOptional.isPresent() && !qpuSelectionResult.getQpu()
+                        .contains("simulator")) {  // TODO: add a better check if the result is from a simulator
                         ExecutionResult executionResult = executionResultOptional.get();
                         McdaCriteriaPerformances mcdaCriteriaPerformances = new McdaCriteriaPerformances();
                         mcdaCriteriaPerformances.setId(qpuSelectionResult.getId().toString());
-                        mcdaCriteriaPerformances.setHistogramIntersection((float) executionResult.getHistogramIntersectionValue());
+                        mcdaCriteriaPerformances.setHistogramIntersection(
+                            (float) executionResult.getHistogramIntersectionValue());
                         mcdaCriteriaPerformances.setAnalyzedWidth(qpuSelectionResult.getAnalyzedWidth());
                         mcdaCriteriaPerformances.setAnalyzedDepth(qpuSelectionResult.getAnalyzedDepth());
-                        mcdaCriteriaPerformances.setAnalyzedMultiQubitGateDepth(qpuSelectionResult.getAnalyzedMultiQubitGateDepth());
-                        mcdaCriteriaPerformances.setAnalyzedTotalNumberOfOperations(qpuSelectionResult.getAnalyzedTotalNumberOfOperations());
-                        mcdaCriteriaPerformances.setAnalyzedNumberOfSingleQubitGates(qpuSelectionResult.getAnalyzedNumberOfSingleQubitGates());
-                        mcdaCriteriaPerformances.setAnalyzedNumberOfMultiQubitGates(qpuSelectionResult.getAnalyzedNumberOfMultiQubitGates());
+                        mcdaCriteriaPerformances.setAnalyzedMultiQubitGateDepth(
+                            qpuSelectionResult.getAnalyzedMultiQubitGateDepth());
+                        mcdaCriteriaPerformances.setAnalyzedTotalNumberOfOperations(
+                            qpuSelectionResult.getAnalyzedTotalNumberOfOperations());
+                        mcdaCriteriaPerformances.setAnalyzedNumberOfSingleQubitGates(
+                            qpuSelectionResult.getAnalyzedNumberOfSingleQubitGates());
+                        mcdaCriteriaPerformances.setAnalyzedNumberOfMultiQubitGates(
+                            qpuSelectionResult.getAnalyzedNumberOfMultiQubitGates());
                         mcdaCriteriaPerformances.setAnalyzedNumberOfMeasurementOperations(
                             qpuSelectionResult.getAnalyzedNumberOfMeasurementOperations());
-                        mcdaCriteriaPerformances.setAvgSingleQubitGateError(qpuSelectionResult.getAvgSingleQubitGateError());
-                        mcdaCriteriaPerformances.setAvgMultiQubitGateError(qpuSelectionResult.getAvgMultiQubitGateError());
-                        mcdaCriteriaPerformances.setAvgSingleQubitGateTime(qpuSelectionResult.getAvgSingleQubitGateTime());
-                        mcdaCriteriaPerformances.setAvgMultiQubitGateTime(qpuSelectionResult.getAvgMultiQubitGateTime());
+                        mcdaCriteriaPerformances.setAvgSingleQubitGateError(
+                            qpuSelectionResult.getAvgSingleQubitGateError());
+                        mcdaCriteriaPerformances.setAvgMultiQubitGateError(
+                            qpuSelectionResult.getAvgMultiQubitGateError());
+                        mcdaCriteriaPerformances.setAvgSingleQubitGateTime(
+                            qpuSelectionResult.getAvgSingleQubitGateTime());
+                        mcdaCriteriaPerformances.setAvgMultiQubitGateTime(
+                            qpuSelectionResult.getAvgMultiQubitGateTime());
                         mcdaCriteriaPerformances.setAvgReadoutError(qpuSelectionResult.getAvgReadoutError());
                         mcdaCriteriaPerformances.setT1(qpuSelectionResult.getT1());
                         mcdaCriteriaPerformances.setT2(qpuSelectionResult.getT2());
@@ -464,7 +502,8 @@ public class PrioritizationService {
                     }
                 });
 
-                if (compiledCircuits.size() > 1) {  // a minimum of 2 compiled circuits are required, otherwise ranking doesn't work
+                if (compiledCircuits.size() >
+                    1) {  // a minimum of 2 compiled circuits are required, otherwise ranking doesn't work
                     mcdaCompiledCircuitJob.setCompiledCircuits(compiledCircuits);
                     circuits.add(mcdaCompiledCircuitJob);
                 }
@@ -474,7 +513,8 @@ public class PrioritizationService {
         CriteriaValues criteriaValues = new CriteriaValues();
         Map<String, McdaCriterionWeight> metricWeights = new HashMap<>();
 
-        criteriaValues.getCriterionValue().addAll(xmcdaRepository.findValuesByMcdaMethod(mcdaWeightLearningJob.getMcdaMethod()));
+        criteriaValues.getCriterionValue()
+            .addAll(xmcdaRepository.findValuesByMcdaMethod(mcdaWeightLearningJob.getMcdaMethod()));
         criteriaValues.getCriterionValue().forEach(criterionValue -> {
             Optional<Criterion> crit = xmcdaRepository.findById(criterionValue.getCriterionID());
             if (crit.isPresent()) {
@@ -509,13 +549,14 @@ public class PrioritizationService {
 
         RestTemplate restTemplate = new RestTemplate();
         try {
-            URI resultLocationRedirect =
-                restTemplate.postForLocation(URI.create(String.format("http://%s:%d/plugins/es-optimizer@%s/learn-ranking", hostname, port, version)),
-                    mcdaWeightLearningRequest);
+            URI resultLocationRedirect = restTemplate.postForLocation(URI.create(
+                    String.format("http://%s:%d/plugins/es-optimizer@%s/learn-ranking", hostname, port, version)),
+                mcdaWeightLearningRequest);
 
             if (resultLocationRedirect != null) {
                 PrioritizationServiceResultLocationResponse prioritizationServiceResultLocationResponse =
-                    restTemplate.getForObject(resultLocationRedirect, PrioritizationServiceResultLocationResponse.class);
+                    restTemplate.getForObject(resultLocationRedirect,
+                        PrioritizationServiceResultLocationResponse.class);
 
                 while (!prioritizationServiceResultLocationResponse.getLog().equalsIgnoreCase("finished") &&
                     !prioritizationServiceResultLocationResponse.getStatus().equalsIgnoreCase("failure")) {
@@ -525,8 +566,8 @@ public class PrioritizationService {
                     } catch (InterruptedException e) {
                         // pass
                     }
-                    prioritizationServiceResultLocationResponse =
-                        restTemplate.getForObject(resultLocationRedirect, PrioritizationServiceResultLocationResponse.class);
+                    prioritizationServiceResultLocationResponse = restTemplate.getForObject(resultLocationRedirect,
+                        PrioritizationServiceResultLocationResponse.class);
                 }
 
                 try {
@@ -535,25 +576,27 @@ public class PrioritizationService {
                             new ParameterizedTypeReference<HashMap<String, WeightLearningResponse>>() {
                             };
 
-                        RequestEntity<Void> request =
-                            RequestEntity.get(URI.create(prioritizationServiceResultLocationResponse.getOutputs().get(0).getHref())).build();
+                        RequestEntity<Void> request = RequestEntity.get(
+                                URI.create(prioritizationServiceResultLocationResponse.getOutputs().get(0).getHref()))
+                            .build();
 
-                        Map<String, WeightLearningResponse> learnedWeightsResponse = restTemplate.exchange(request, responseType).getBody();
+                        Map<String, WeightLearningResponse> learnedWeightsResponse =
+                            restTemplate.exchange(request, responseType).getBody();
 
                         learnedWeightsResponse.forEach((String criterion, WeightLearningResponse weight) -> {
                             // find existing entity that should be updated
-                            Optional<Criterion> mcdaCriterionOptional =
-                                xmcdaRepository.findByCriterionName(criterion);
+                            Optional<Criterion> mcdaCriterionOptional = xmcdaRepository.findByCriterionName(criterion);
 
                             Criterion mcdaCrition = mcdaCriterionOptional.get();
 
                             Optional<CriterionValue> mcdaCriterionValueOptional =
-                                xmcdaRepository.findByCriterionIdAndMethod(mcdaCrition.getId(), mcdaWeightLearningJob.getMcdaMethod());
+                                xmcdaRepository.findByCriterionIdAndMethod(mcdaCrition.getId(),
+                                    mcdaWeightLearningJob.getMcdaMethod());
 
                             CriterionValue criterionValue = mcdaCriterionValueOptional.get();
                             Value value = (Value) criterionValue.getValueOrValues().get(0);
-                            LOG.debug("Previous weight of {} ({}) for {}: {}", criterion, mcdaCrition.getId(), mcdaWeightLearningJob.getMcdaMethod(),
-                                value.getReal());
+                            LOG.debug("Previous weight of {} ({}) for {}: {}", criterion, mcdaCrition.getId(),
+                                mcdaWeightLearningJob.getMcdaMethod(), value.getReal());
                             value.setReal((double) weight.getNormalizedWeight());
                             LOG.debug("Updated weight of {} ({}) for {} using {}: {}", criterion, mcdaCrition.getId(),
                                 mcdaWeightLearningJob.getMcdaMethod(), mcdaWeightLearningJob.getWeightLearningMethod(),
@@ -570,7 +613,8 @@ public class PrioritizationService {
                         mcdaWeightLearningJobRepository.save(mcdaWeightLearningJob);
                     }
                 } catch (RestClientException e) {
-                    setWeightLearningJobToFailed(mcdaWeightLearningJob, "Cannot get weight learning result from Prioritization Service.");
+                    setWeightLearningJobToFailed(mcdaWeightLearningJob,
+                        "Cannot get weight learning result from Prioritization Service.");
                 }
             }
         } catch (RestClientException e) {
@@ -579,61 +623,77 @@ public class PrioritizationService {
     }
 
     public void analyzeSensitivity(McdaSensitivityAnalysisJob mcdaSensitivityAnalysisJob) {
-        LOG.debug("Using {} MCDA method to analyze sensitivity of job with ID: {}", mcdaSensitivityAnalysisJob.getMethod(),
-            mcdaSensitivityAnalysisJob.getJobId());
+        LOG.debug("Using {} MCDA method to analyze sensitivity of job with ID: {}",
+            mcdaSensitivityAnalysisJob.getMethod(), mcdaSensitivityAnalysisJob.getJobId());
         mcdaSensitivityAnalysisJob.setState(ExecutionResultStatus.RUNNING.toString());
         mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
 
         // get compiled circuits metric values
         List<McdaCriteriaPerformances> compiledCircuits = new ArrayList<>();
 
-        Optional<QpuSelectionJob> qpuSelectionJobOptional = qpuSelectionJobRepository.findById(mcdaSensitivityAnalysisJob.getJobId());
+        Optional<QpuSelectionJob> qpuSelectionJobOptional =
+            qpuSelectionJobRepository.findById(mcdaSensitivityAnalysisJob.getJobId());
         if (qpuSelectionJobOptional.isPresent()) {
             QpuSelectionJob job = qpuSelectionJobOptional.get();
             if (!job.isReady()) {
-                LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
+                LOG.error(
+                    "MCDA method execution only possible for finished NISQ Analyzer job but provided job is still " +
+                        "running!");
             } else {
                 mcdaSensitivityAnalysisJob.setJobType(JobType.QPU_SELECTION);
                 mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
                 LOG.debug("Retrieving information from QPU selection job!");
-                List<CircuitResult> results = job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
+                List<CircuitResult> results = job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult)
+                    .collect(Collectors.toList());
                 compiledCircuits = getCircuitResults(results);
             }
         } else {
             LOG.debug("{} is no QpuSelectionJob", mcdaSensitivityAnalysisJob.getJobId());
 
-            Optional<AnalysisJob> analysisJobOptional = analysisJobRepository.findById(mcdaSensitivityAnalysisJob.getJobId());
+            Optional<AnalysisJob> analysisJobOptional =
+                analysisJobRepository.findById(mcdaSensitivityAnalysisJob.getJobId());
             if (analysisJobOptional.isPresent()) {
                 AnalysisJob job = analysisJobOptional.get();
                 if (!job.isReady()) {
-                    LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
+                    LOG.error(
+                        "MCDA method execution only possible for finished NISQ Analyzer job but provided job is still" +
+                            " running!");
                 } else {
-                    mcdaSensitivityAnalysisJob.setJobType(JobType.ANALYSIS);
-                    mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
-                    LOG.debug("Retrieving information from analysis job!");
-                    List<CircuitResult> results =
-                        job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
-                    compiledCircuits = getCircuitResults(results);
+                    //TODO loop throug all QPUSelectionResults of all AnalysisResults of one AnalysisJob
+//                    mcdaSensitivityAnalysisJob.setJobType(JobType.ANALYSIS);
+//                    mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
+//                    LOG.debug("Retrieving information from analysis job!");
+//                    List<CircuitResult> results =
+//                        job.getJobResults().stream().map(jobResult -> {
+//
+//                            (CircuitResult) jobResult
+//                        }).collect(Collectors.toList());
+//                    compiledCircuits = getCircuitResults(results);
                 }
             } else {
                 LOG.debug("{} is no AnalysisJob", mcdaSensitivityAnalysisJob.getJobId());
 
-                Optional<CompilationJob> compilationJobOptional = compilationJobRepository.findById(mcdaSensitivityAnalysisJob.getJobId());
+                Optional<CompilationJob> compilationJobOptional =
+                    compilationJobRepository.findById(mcdaSensitivityAnalysisJob.getJobId());
                 if (compilationJobOptional.isPresent()) {
                     CompilationJob job = compilationJobOptional.get();
                     if (!job.isReady()) {
-                        LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
+                        LOG.error(
+                            "MCDA method execution only possible for finished NISQ Analyzer job but provided job is " +
+                                "still running!");
                     } else {
                         mcdaSensitivityAnalysisJob.setJobType(JobType.COMPILATION);
                         mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
                         LOG.debug("Retrieving information from compilation job!");
                         List<CircuitResult> results =
-                            job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
+                            job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult)
+                                .collect(Collectors.toList());
                         compiledCircuits = getCircuitResults(results);
                     }
                 } else {
                     LOG.debug("{} is no CompilationJob", mcdaSensitivityAnalysisJob.getJobId());
-                    LOG.error("Unable to find QPU selection, analysis, or compilation job for ID: {}", mcdaSensitivityAnalysisJob.getJobId());
+                    LOG.error("Unable to find QPU selection, analysis, or compilation job for ID: {}",
+                        mcdaSensitivityAnalysisJob.getJobId());
                     setSensitivityAnalysisJobToFailed(mcdaSensitivityAnalysisJob,
                         "Unable to retrieve information about job with ID: " + mcdaSensitivityAnalysisJob.getJobId());
                 }
@@ -648,7 +708,8 @@ public class PrioritizationService {
         Map<String, McdaCriterionWeight> metricWeights = new HashMap<>();
         Map<String, McdaCriterionWeight> bordaCountMetrics = new HashMap<>();
 
-        criteriaValues.getCriterionValue().addAll(xmcdaRepository.findValuesByMcdaMethod(mcdaSensitivityAnalysisJob.getMethod()));
+        criteriaValues.getCriterionValue()
+            .addAll(xmcdaRepository.findValuesByMcdaMethod(mcdaSensitivityAnalysisJob.getMethod()));
         criteriaValues.getCriterionValue().forEach(criterionValue -> {
             //get metric weight
             Value value = (Value) criterionValue.getValueOrValues().get(0);
@@ -656,8 +717,8 @@ public class PrioritizationService {
             if (crit.isPresent()) {
                 Criterion criterion = crit.get();
                 Scale optimum = (Scale) criterion.getActiveOrScaleOrCriterionFunction().get(1);
-                LOG.debug("Initial weight for metric {} to rank with {}: {}", criterion.getName(), mcdaSensitivityAnalysisJob.getMethod(),
-                    value.getReal());
+                LOG.debug("Initial weight for metric {} to rank with {}: {}", criterion.getName(),
+                    mcdaSensitivityAnalysisJob.getMethod(), value.getReal());
 
                 if (mcdaSensitivityAnalysisJob.isUseBordaCount() && criterion.getName().equals("queue-size")) {
                     bordaCountMetrics.put(criterion.getName(), new McdaCriterionWeight(0.0f,
@@ -687,14 +748,14 @@ public class PrioritizationService {
 
         RestTemplate restTemplate = new RestTemplate();
         try {
-            URI resultLocationRedirect =
-                restTemplate.postForLocation(
-                    URI.create(String.format("http://%s:%d/plugins/es-optimizer@%s/rank-sensitivity", hostname, port, version)),
-                    request);
+            URI resultLocationRedirect = restTemplate.postForLocation(URI.create(
+                    String.format("http://%s:%d/plugins/es-optimizer@%s/rank-sensitivity", hostname, port, version)),
+                request);
 
             if (resultLocationRedirect != null) {
                 PrioritizationServiceResultLocationResponse prioritizationServiceResultLocationResponse =
-                    restTemplate.getForObject(resultLocationRedirect, PrioritizationServiceResultLocationResponse.class);
+                    restTemplate.getForObject(resultLocationRedirect,
+                        PrioritizationServiceResultLocationResponse.class);
 
                 while (!prioritizationServiceResultLocationResponse.getLog().equalsIgnoreCase("finished")) {
                     // Wait for next poll
@@ -703,22 +764,23 @@ public class PrioritizationService {
                     } catch (InterruptedException e) {
                         // pass
                     }
-                    prioritizationServiceResultLocationResponse =
-                        restTemplate.getForObject(resultLocationRedirect, PrioritizationServiceResultLocationResponse.class);
+                    prioritizationServiceResultLocationResponse = restTemplate.getForObject(resultLocationRedirect,
+                        PrioritizationServiceResultLocationResponse.class);
                 }
 
                 try {
                     if (prioritizationServiceResultLocationResponse.getStatus().equalsIgnoreCase("success")) {
                         //get location where html plot is stored
-                        String plotFileLocation = prioritizationServiceResultLocationResponse.getOutputs().get(1).getHref();
+                        String plotFileLocation =
+                            prioritizationServiceResultLocationResponse.getOutputs().get(1).getHref();
                         //FIXME
                         plotFileLocation = plotFileLocation.replaceFirst("qhana-plugin-runner:8080", "localhost:5005");
                         mcdaSensitivityAnalysisJob.setPlotFileLocation(plotFileLocation);
 
                         //get location where sensitivity analysis result is stored
-                        SensitivityAnalysisResultResponse sensitivityAnalysisResultResponse =
-                            restTemplate.getForObject(URI.create(prioritizationServiceResultLocationResponse.getOutputs().get(0).getHref()),
-                                SensitivityAnalysisResultResponse.class);
+                        SensitivityAnalysisResultResponse sensitivityAnalysisResultResponse = restTemplate.getForObject(
+                            URI.create(prioritizationServiceResultLocationResponse.getOutputs().get(0).getHref()),
+                            SensitivityAnalysisResultResponse.class);
 
                         List<McdaResult> mcdaResultList = new ArrayList<>();
 
@@ -726,16 +788,20 @@ public class PrioritizationService {
                         if (mcdaSensitivityAnalysisJob.isUseBordaCount()) {
                             compiledCircuits.forEach(circuit -> {
                                 McdaResult result = new McdaResult(UUID.fromString(circuit.getId()),
-                                    sensitivityAnalysisResultResponse.getOriginalBordaCountRanking().get(compiledCircuitsCopy.indexOf(circuit)) + 1,
-                                    sensitivityAnalysisResultResponse.getOriginalScores().get(compiledCircuitsCopy.indexOf(circuit)));
+                                    sensitivityAnalysisResultResponse.getOriginalBordaCountRanking()
+                                        .get(compiledCircuitsCopy.indexOf(circuit)) + 1,
+                                    sensitivityAnalysisResultResponse.getOriginalScores()
+                                        .get(compiledCircuitsCopy.indexOf(circuit)));
                                 result = mcdaResultRepository.save(result);
                                 mcdaResultList.add(result);
                             });
                         } else {
                             compiledCircuits.forEach(circuit -> {
                                 McdaResult result = new McdaResult(UUID.fromString(circuit.getId()),
-                                    sensitivityAnalysisResultResponse.getOriginalRanking().get(compiledCircuitsCopy.indexOf(circuit)) + 1,
-                                    sensitivityAnalysisResultResponse.getOriginalScores().get(compiledCircuitsCopy.indexOf(circuit)));
+                                    sensitivityAnalysisResultResponse.getOriginalRanking()
+                                        .get(compiledCircuitsCopy.indexOf(circuit)) + 1,
+                                    sensitivityAnalysisResultResponse.getOriginalScores()
+                                        .get(compiledCircuitsCopy.indexOf(circuit)));
                                 result = mcdaResultRepository.save(result);
                                 mcdaResultList.add(result);
                             });
@@ -752,7 +818,8 @@ public class PrioritizationService {
                 }
             }
         } catch (RestClientException e) {
-            setSensitivityAnalysisJobToFailed(mcdaSensitivityAnalysisJob, "Connection to Prioritization Service failed.");
+            setSensitivityAnalysisJobToFailed(mcdaSensitivityAnalysisJob,
+                "Connection to Prioritization Service failed.");
         }
     }
 
@@ -770,7 +837,8 @@ public class PrioritizationService {
         mcdaWeightLearningJobRepository.save(mcdaWeightLearningJob);
     }
 
-    private void setSensitivityAnalysisJobToFailed(McdaSensitivityAnalysisJob mcdaSensitivityAnalysisJob, String errorMessage) {
+    private void setSensitivityAnalysisJobToFailed(McdaSensitivityAnalysisJob mcdaSensitivityAnalysisJob,
+                                                   String errorMessage) {
         LOG.error(errorMessage);
         mcdaSensitivityAnalysisJob.setState(ExecutionResultStatus.FAILED.toString());
         mcdaSensitivityAnalysisJob.setReady(true);

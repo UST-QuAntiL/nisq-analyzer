@@ -25,10 +25,16 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
+@Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class CircuitInformationOfImplementation extends OriginalCircuitInformation {
 
     @Lob
@@ -37,4 +43,9 @@ public class CircuitInformationOfImplementation extends OriginalCircuitInformati
 
     @JsonProperty("language")
     private String circuitLanguage;
+
+    @JsonProperty("id")
+    private String correlationId;
+
+    private boolean complete;
 }

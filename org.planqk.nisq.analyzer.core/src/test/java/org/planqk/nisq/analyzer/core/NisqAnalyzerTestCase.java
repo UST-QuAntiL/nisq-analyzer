@@ -113,9 +113,8 @@ public abstract class NisqAnalyzerTestCase {
         shor15qiskit.setName("shor15-qiskit");
         shor15qiskit.setImplementedAlgorithm(shorAlgorithmUuid);
         shor15qiskit.setFileLocation(URI.create(
-                "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
-                    "/Shor/shor-fix-15-qiskit.py")
-            .toURL());
+            "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
+                "/Shor/shor-fix-15-qiskit.py").toURL());
         shor15qiskit.setSelectionRule("processable(N, shor-fix-15-qiskit) :- N is 15.");
         shor15qiskit.setLanguage("Qiskit");
         shor15qiskit.setSdk(qiskitSDK);
@@ -127,10 +126,9 @@ public abstract class NisqAnalyzerTestCase {
         shor15qiskitPlanQK.setName("shor15-qiskit-PlanQK");
         shor15qiskitPlanQK.setImplementedAlgorithm(shorPlanQKAlgorithmUuid);
         shor15qiskitPlanQK.setFileLocation(URI.create(
-                "https://platform.planqk.de/qc-catalog/algorithms/e7413acf-c25e-4de8-ab78-75bfc836a839" +
-                    "/implementations/1207510f-9007-48b3-93b8-ea51359c0ced/files/1d827208-1976-487e-819b-64df6e990bf3" +
-                    "/content")
-            .toURL());
+            "https://platform.planqk.de/qc-catalog/algorithms/e7413acf-c25e-4de8-ab78-75bfc836a839" +
+                "/implementations/1207510f-9007-48b3-93b8-ea51359c0ced/files/1d827208-1976-487e-819b-64df6e990bf3" +
+                "/content").toURL());
         shor15qiskitPlanQK.setSelectionRule("processable(N, shor-fix-15-qiskit) :- N is 15.");
         shor15qiskitPlanQK.setLanguage("Qiskit");
         shor15qiskitPlanQK.setSdk(qiskitSDK);
@@ -142,9 +140,8 @@ public abstract class NisqAnalyzerTestCase {
         shor15pytket.setName("shor15-pytket");
         shor15pytket.setImplementedAlgorithm(shorAlgorithmUuid);
         shor15pytket.setFileLocation(URI.create(
-                "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
-                    "/Shor/shor-fix-15-qiskit.py")
-            .toURL());
+            "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
+                "/Shor/shor-fix-15-qiskit.py").toURL());
         shor15pytket.setSelectionRule("processable(N, shor-fix-15-pytket) :- N is 15.");
         shor15pytket.setLanguage("Qiskit");
         shor15pytket.setSdk(pytketSDK);
@@ -156,9 +153,8 @@ public abstract class NisqAnalyzerTestCase {
         shorGeneralQiskit.setName("shor-general-qiskit");
         shorGeneralQiskit.setImplementedAlgorithm(shorAlgorithmUuid);
         shorGeneralQiskit.setFileLocation(URI.create(
-                "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
-                    "/Shor/shor-general-qiskit.py")
-            .toURL());
+            "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
+                "/Shor/shor-general-qiskit.py").toURL());
         shorGeneralQiskit.setSelectionRule("processable(N, shor-general-qiskit) :- N > 2, 1 is mod(N, 2).");
         shorGeneralQiskit.setLanguage("Qiskit");
         shorGeneralQiskit.setSdk(qiskitSDK);
@@ -170,9 +166,8 @@ public abstract class NisqAnalyzerTestCase {
         shorGeneralPytket.setName("shor-general-pytket");
         shorGeneralPytket.setImplementedAlgorithm(shorAlgorithmUuid);
         shorGeneralPytket.setFileLocation(URI.create(
-                "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
-                    "/Shor/shor-general-qiskit.py")
-            .toURL());
+            "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
+                "/Shor/shor-general-qiskit.py").toURL());
         shorGeneralPytket.setSelectionRule("processable(N, shor-general-pytket) :- N > 2, 1 is mod(N, 2).");
         shorGeneralPytket.setLanguage("Qiskit");
         shorGeneralPytket.setSdk(pytketSDK);
@@ -186,9 +181,8 @@ public abstract class NisqAnalyzerTestCase {
         groverFixTruthtable.setName("grover-fix-truthtable-qiskit");
         groverFixTruthtable.setImplementedAlgorithm(groverTruthtableUuid);
         groverFixTruthtable.setFileLocation(URI.create(
-                "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
-                    "/Grover-Truthtable/grover-fix-truthtable-qiskit.py")
-            .toURL());
+            "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
+                "/Grover-Truthtable/grover-fix-truthtable-qiskit.py").toURL());
         groverFixTruthtable.setSelectionRule(
             "processable(Oracle, grover-fix-truthtable-qiskit) :- Oracle = '0010000000000000'.");
         groverFixTruthtable.setLanguage("Qiskit");
@@ -202,9 +196,8 @@ public abstract class NisqAnalyzerTestCase {
         groverGeneralTruthtable.setName("grover-general-truthtable-qiskit");
         groverGeneralTruthtable.setImplementedAlgorithm(groverTruthtableUuid);
         groverGeneralTruthtable.setFileLocation(URI.create(
-                "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
-                    "/Grover-Truthtable/grover-general-truthtable-qiskit.py")
-            .toURL());
+            "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
+                "/Grover-Truthtable/grover-general-truthtable-qiskit.py").toURL());
         groverGeneralTruthtable.setSelectionRule(
             "processable(Oracle, grover-general-truthtable-qiskit) :- Oracle =~ '^[01]+$', atom_length(Oracle, X), X " +
                 "is X /\\ (-X).");
@@ -220,9 +213,8 @@ public abstract class NisqAnalyzerTestCase {
         groverFixSAT.setName("grover-fix-sat-qiskit");
         groverFixSAT.setImplementedAlgorithm(groverSatUuid);
         groverFixSAT.setFileLocation(URI.create(
-                "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
-                    "/Grover-SAT/grover-fix-sat-qiskit.py")
-            .toURL());
+            "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
+                "/Grover-SAT/grover-fix-sat-qiskit.py").toURL());
         groverFixSAT.setSelectionRule(
             "processable(Formula, grover-fix-sat-qiskit) :- Formula = '(A | B) & (A | ~B) & (~A | B)'.");
         groverFixSAT.setLanguage("Qiskit");
@@ -236,9 +228,8 @@ public abstract class NisqAnalyzerTestCase {
         groverGeneralSAT.setName("grover-general-sat-qiskit");
         groverGeneralSAT.setImplementedAlgorithm(groverSatUuid);
         groverGeneralSAT.setFileLocation(URI.create(
-                "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
-                    "/Grover-SAT/grover-general-sat-qiskit.py")
-            .toURL());
+            "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
+                "/Grover-SAT/grover-general-sat-qiskit.py").toURL());
         groverGeneralSAT.setSelectionRule(
             "processable(Formula, grover-general-sat-qiskit) :- Formula =~ '^[0-9A-Za-z|&()~^ ]+$'.");
         groverGeneralSAT.setLanguage("Qiskit");
@@ -310,13 +301,13 @@ public abstract class NisqAnalyzerTestCase {
             job.getJobResults().stream().anyMatch(r -> r.getImplementation().getName().contains(impl)));
     }
 
-    protected void assertContainsImplForQpu(AnalysisJob job, String impl, String qpu) {
-        Assertions.assertTrue(job.getJobResults().stream()
-            .anyMatch(r -> r.getImplementation().getName().contains(impl) && r.getQpu().contains(qpu)));
-    }
-
-    protected void assertNotContainsImplForQpu(AnalysisJob job, String impl, String qpu) {
-        Assertions.assertFalse(job.getJobResults().stream()
-            .anyMatch(r -> r.getImplementation().getName().contains(impl) && r.getQpu().contains(qpu)));
-    }
+//    protected void assertContainsImplForQpu(AnalysisJob job, String impl, String qpu) {
+//        Assertions.assertTrue(job.getJobResults().stream()
+//            .anyMatch(r -> r.getImplementation().getName().contains(impl) && r.getQpu().contains(qpu)));
+//    }
+//
+//    protected void assertNotContainsImplForQpu(AnalysisJob job, String impl, String qpu) {
+//        Assertions.assertFalse(job.getJobResults().stream()
+//            .anyMatch(r -> r.getImplementation().getName().contains(impl) && r.getQpu().contains(qpu)));
+//    }
 }

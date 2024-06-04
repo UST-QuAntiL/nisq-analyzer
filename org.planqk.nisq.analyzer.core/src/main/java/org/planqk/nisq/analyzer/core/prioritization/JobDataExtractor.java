@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -88,14 +88,17 @@ public class JobDataExtractor {
         if (qpuSelectionJobOptional.isPresent()) {
             QpuSelectionJob job = qpuSelectionJobOptional.get();
             if (!job.isReady()) {
-                LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
+                LOG.error(
+                    "MCDA method execution only possible for finished NISQ Analyzer job but provided job is still " +
+                        "running!");
                 return null;
             }
 
             mcdaJob.setJobType(JobType.QPU_SELECTION);
             mcdaJobRepository.save(mcdaJob);
             LOG.debug("Retrieving information from QPU selection job!");
-            List<CircuitResult> results = job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
+            List<CircuitResult> results =
+                job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
             return getFromCircuitResults(results, mcdaJob.getMethod());
         }
 
@@ -103,29 +106,36 @@ public class JobDataExtractor {
         if (analysisJobOptional.isPresent()) {
             AnalysisJob job = analysisJobOptional.get();
             if (!job.isReady()) {
-                LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
+                LOG.error(
+                    "MCDA method execution only possible for finished NISQ Analyzer job but provided job is still " +
+                        "running!");
                 return null;
             }
 
-            mcdaJob.setJobType(JobType.ANALYSIS);
-            mcdaJobRepository.save(mcdaJob);
-            LOG.debug("Retrieving information from analysis job!");
-            List<CircuitResult> results = job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
-            return getFromCircuitResults(results, mcdaJob.getMethod());
+            //TODO loop throug all QPUSelectionResults of all AnalysisResults of one AnalysisJob
+//            mcdaJob.setJobType(JobType.ANALYSIS);
+//            mcdaJobRepository.save(mcdaJob);
+//            LOG.debug("Retrieving information from analysis job!");
+//            List<CircuitResult> results = job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult)
+//            .collect(Collectors.toList());
+//            return getFromCircuitResults(results, mcdaJob.getMethod());
         }
 
         Optional<CompilationJob> compilationJobOptional = compilationJobRepository.findById(mcdaJob.getJobId());
         if (compilationJobOptional.isPresent()) {
             CompilationJob job = compilationJobOptional.get();
             if (!job.isReady()) {
-                LOG.error("MCDA method execution only possible for finished NISQ Analyzer job but provided job is still running!");
+                LOG.error(
+                    "MCDA method execution only possible for finished NISQ Analyzer job but provided job is still " +
+                        "running!");
                 return null;
             }
 
             mcdaJob.setJobType(JobType.COMPILATION);
             mcdaJobRepository.save(mcdaJob);
             LOG.debug("Retrieving information from compilation job!");
-            List<CircuitResult> results = job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
+            List<CircuitResult> results =
+                job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult).collect(Collectors.toList());
             return getFromCircuitResults(results, mcdaJob.getMethod());
         }
 
@@ -151,24 +161,28 @@ public class JobDataExtractor {
             // add performances related to the analysis result
             AlternativeOnCriteriaPerformances alternativePerformances = new AlternativeOnCriteriaPerformances();
             alternativePerformances.setAlternativeID(result.getId().toString());
-            List<AlternativeOnCriteriaPerformances.Performance> performanceList = alternativePerformances.getPerformance();
+            List<AlternativeOnCriteriaPerformances.Performance> performanceList =
+                alternativePerformances.getPerformance();
             for (Criterion criterion : xmcdaRepository.findAll()) {
 
                 if (McdaConstants.CIRCUIT_CRITERION.contains(criterion.getName().toLowerCase())) {
-                    LOG.debug("Retrieving performance data for criterion {} from circuit analysis!", criterion.getName());
+                    LOG.debug("Retrieving performance data for criterion {} from circuit analysis!",
+                        criterion.getName());
                     performanceList.add(createPerformanceForCircuitCriterion(result, criterion));
                 } else if (McdaConstants.QPU_CRITERION.contains(criterion.getName().toLowerCase())) {
                     LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName());
                     performanceList.add(createPerformanceForQpuCriterion(backendQueueSize, result, criterion));
                 } else {
-                    LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is currently not supported!",
+                    LOG.error(
+                        "Criterion with name {} defined in criteria.xml but retrieval of corresponding data is " +
+                            "currently not supported!",
                         criterion.getName());
                 }
             }
             performances.getAlternativePerformances().add(alternativePerformances);
         }
-        LOG.debug("Retrieved job information contains {} alternatives and {} performances!", alternatives.getDescriptionOrAlternative().size(),
-            performances.getAlternativePerformances().size());
+        LOG.debug("Retrieved job information contains {} alternatives and {} performances!",
+            alternatives.getDescriptionOrAlternative().size(), performances.getAlternativePerformances().size());
         if (mcdaMethod.equals("electre-III")) {
             return (T) wrapMcdaInformation(alternatives, performances, mcdaMethod);
         } else {
@@ -177,20 +191,23 @@ public class JobDataExtractor {
     }
 
     /**
-     * Wrap the alternatives and performances in XMCDA and JAXB objects and return a corresponding McdaInformation object
+     * Wrap the alternatives and performances in XMCDA and JAXB objects and return a corresponding McdaInformation
+     * object
      *
      * @param alternatives the alternatives retrieved from a NISQ Analyzer job
      * @param performances the performances retrieved from a NISQ Analyzer job
      * @return the McdaInformation object containing all required information to invoke the MCDA web services
      */
-    private McdaInformation wrapMcdaInformation(Alternatives alternatives, PerformanceTable performances, String mcdaMethod) {
+    private McdaInformation wrapMcdaInformation(Alternatives alternatives, PerformanceTable performances,
+                                                String mcdaMethod) {
         ObjectFactory objectFactory = new ObjectFactory();
 
         // create XMCDA wrapper and add criteria
         Criteria criteria = new Criteria();
         criteria.getCriterion().addAll(xmcdaRepository.findAll());
         XMCDA criteriaWrapper = objectFactory.createXMCDA();
-        criteriaWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters().add(objectFactory.createXMCDACriteria(criteria));
+        criteriaWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters()
+            .add(objectFactory.createXMCDACriteria(criteria));
 
         // create XMCDA wrapper and add weights
         CriteriaValues criteriaValues = new CriteriaValues();
@@ -198,13 +215,16 @@ public class JobDataExtractor {
         criteriaValues.setName("significance");
         criteriaValues.getCriterionValue().addAll(xmcdaRepository.findValuesByMcdaMethod(mcdaMethod));
         XMCDA weightsWrapper = objectFactory.createXMCDA();
-        weightsWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters().add(objectFactory.createXMCDACriteriaValues(criteriaValues));
+        weightsWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters()
+            .add(objectFactory.createXMCDACriteriaValues(criteriaValues));
 
         // create XMCDA wrapper containing the alternatives and performances required by the MCDA web services
         XMCDA alternativesWrapper = objectFactory.createXMCDA();
-        alternativesWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters().add(objectFactory.createXMCDAAlternatives(alternatives));
+        alternativesWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters()
+            .add(objectFactory.createXMCDAAlternatives(alternatives));
         XMCDA performancesWrapper = objectFactory.createXMCDA();
-        performancesWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters().add(objectFactory.createXMCDAPerformanceTable(performances));
+        performancesWrapper.getProjectReferenceOrMethodMessagesOrMethodParameters()
+            .add(objectFactory.createXMCDAPerformanceTable(performances));
 
         // return all information to invoke the MCDA services
         McdaInformation mcdaInformation = new McdaInformation();
@@ -224,7 +244,8 @@ public class JobDataExtractor {
         return alternative;
     }
 
-    private AlternativeOnCriteriaPerformances.Performance createPerformanceForCircuitCriterion(CircuitResult result, Criterion criterion) {
+    private AlternativeOnCriteriaPerformances.Performance createPerformanceForCircuitCriterion(CircuitResult result,
+                                                                                               Criterion criterion) {
         AlternativeOnCriteriaPerformances.Performance performance = new AlternativeOnCriteriaPerformances.Performance();
         performance.setCriterionID(criterion.getId());
         Value value = new Value();
@@ -257,7 +278,8 @@ public class JobDataExtractor {
         return performance;
     }
 
-    private AlternativeOnCriteriaPerformances.Performance createPerformanceForQpuCriterion(int backendQueueSize, CircuitResult result,
+    private AlternativeOnCriteriaPerformances.Performance createPerformanceForQpuCriterion(int backendQueueSize,
+                                                                                           CircuitResult result,
                                                                                            Criterion criterion) {
         AlternativeOnCriteriaPerformances.Performance performance = new AlternativeOnCriteriaPerformances.Performance();
         performance.setCriterionID(criterion.getId());

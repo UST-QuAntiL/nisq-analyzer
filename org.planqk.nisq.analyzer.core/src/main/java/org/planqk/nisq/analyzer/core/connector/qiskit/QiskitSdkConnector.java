@@ -107,24 +107,39 @@ public class QiskitSdkConnector implements SdkConnector {
 
         RestTemplate restTemplate = new RestTemplate();
         try {
-            // Transpile the given algorithm implementation using Qiskit service
-            ResponseEntity<CircuitInformationOfImplementation> response =
-                restTemplate.postForEntity(generateAPIEndpoint, request, CircuitInformationOfImplementation.class);
+            // request to generate circuit
+            URI circuitLocation = restTemplate.postForLocation(generateAPIEndpoint, request);
 
-            // Check if the Qiskit service was successful
-            if (response.getStatusCode().is2xxSuccessful()) {
-                LOG.debug("Circuit generated using Qiskit Service.");
+            ExecutionResultStatus generationComplete = ExecutionResultStatus.RUNNING;
 
-                return response.getBody();
-            } else if (response.getStatusCode().is4xxClientError()) {
-                LOG.error(String.format("Qiskit Service rejected request (HTTP %d)", response.getStatusCodeValue()));
-            } else if (response.getStatusCode().is5xxServerError()) {
-                LOG.error(String.format("Internal Qiskit Service error (HTTP %d)", response.getStatusCodeValue()));
+            // poll the Qiskit service frequently
+            while (generationComplete != ExecutionResultStatus.FINISHED &&
+                generationComplete != ExecutionResultStatus.FAILED) {
+                try {
+                    CircuitInformationOfImplementation response =
+                        restTemplate.getForObject(circuitLocation, CircuitInformationOfImplementation.class);
+
+                    // Check if generation is completed
+                    if (response.isComplete()) {
+                        generationComplete = ExecutionResultStatus.FINISHED;
+                        return response;
+                    }
+
+                    // Wait for next poll
+                    try {
+                        Thread.sleep(pollInterval);
+                    } catch (InterruptedException e) {
+                        // pass
+                    }
+                } catch (RestClientException e) {
+                    LOG.error("Polling generation result from Qiskit Service failed.");
+                    generationComplete = ExecutionResultStatus.FAILED;
+                }
             }
         } catch (RestClientException e) {
-            LOG.error("Connection to Qiskit Service failed.");
+            LOG.error("Circuit generation with Qiskit Service failed.");
+            throw new RuntimeException(e);
         }
-
         return null;
     }
 

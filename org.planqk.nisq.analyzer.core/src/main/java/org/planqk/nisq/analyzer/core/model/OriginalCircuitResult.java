@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.model;
 
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -62,4 +63,13 @@ public class OriginalCircuitResult extends HasId {
     @Getter
     @Setter
     private int originalNumberOfMeasurementOperations;
+
+    @Getter
+    @Setter
+    private String correlationID;
+
+    @Lob
+    @Getter
+    @Setter
+    private String circuit;
 }

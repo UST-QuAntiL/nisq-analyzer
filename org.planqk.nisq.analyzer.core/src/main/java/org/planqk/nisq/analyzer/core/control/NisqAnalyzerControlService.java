@@ -140,7 +140,7 @@ public class NisqAnalyzerControlService {
                     originalCircuitInformation.getCircuitNumberOfSingleQubitGates(),
                     originalCircuitInformation.getCircuitNumberOfMultiQubitGates(),
                     originalCircuitInformation.getCircuitTotalNumberOfOperations(),
-                    originalCircuitInformation.getCircuitNumberOfMeasurementOperations());
+                    originalCircuitInformation.getCircuitNumberOfMeasurementOperations(), null, null);
 
             return originalCircuitResultRepository.save(originalCircuitResult);
         }
@@ -296,8 +296,8 @@ public class NisqAnalyzerControlService {
 
             // get suited Sdk connector plugin
             SdkConnector selectedSdkConnector = connectorList.stream()
-                .filter(executor -> executor.supportedSdks().contains(implementation.getSdk().getName())).findFirst()
-                .orElse(null);
+                .filter(executor -> executor.supportedSdks().contains(implementation.getSdk().getName().toLowerCase()))
+                .findFirst().orElse(null);
             if (Objects.isNull(selectedSdkConnector)) {
                 LOG.error("Unable to find connector plugin with name {}.", implementation.getSdk().getName());
                 throw new RuntimeException(
@@ -323,21 +323,22 @@ public class NisqAnalyzerControlService {
                 circuitInformationOfImplementation.getCircuitNumberOfSingleQubitGates(),
                 circuitInformationOfImplementation.getCircuitNumberOfMultiQubitGates(),
                 circuitInformationOfImplementation.getCircuitTotalNumberOfOperations(),
-                circuitInformationOfImplementation.getCircuitNumberOfMeasurementOperations());
+                circuitInformationOfImplementation.getCircuitNumberOfMeasurementOperations(),
+                circuitInformationOfImplementation.getCorrelationId(),
+                circuitInformationOfImplementation.getGeneratedCircuit());
 
             originalCircuitResultRepository.save(originalCircuitResult);
 
-            AnalysisResult analysisResult = new AnalysisResult();
-
-            analysisResult.setImplementation(implementation);
-            analysisResult.setImplementedAlgorithm(algorithm);
-            analysisResult.setInputParameters(inputParameters);
-            analysisResult.setOriginalCircuitResultId(originalCircuitResult.getId());
+            AnalysisResult analysisResult =
+                new AnalysisResult(algorithm, implementation, inputParameters, originalCircuitResult.getId(), null);
             analysisResult = analysisResultRepository.save(analysisResult);
             analysisResults.add(analysisResult);
 
             LOG.debug("Generated and analyzed circuit for implementation {}.", implementation.getName());
         }
+
+        //TODO muss jetzt erst für jede Compiler-QPU-Circuit Kombi ein QPUSelectionResult erzeugt werden, um Pre
+        // Selection machen zu können??
 
         job.setJobResults(analysisResults);
         job.setReady(true);
