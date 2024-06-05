@@ -56,6 +56,7 @@ import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -113,16 +114,32 @@ public class QiskitSdkConnector implements SdkConnector {
             ExecutionResultStatus generationComplete = ExecutionResultStatus.RUNNING;
 
             // poll the Qiskit service frequently
-            while (generationComplete != ExecutionResultStatus.FINISHED &&
-                generationComplete != ExecutionResultStatus.FAILED) {
+            while (generationComplete != ExecutionResultStatus.FAILED) {
                 try {
-                    CircuitInformationOfImplementation response =
-                        restTemplate.getForObject(circuitLocation, CircuitInformationOfImplementation.class);
+                    ResponseEntity<CircuitInformationOfImplementation> response =
+                        restTemplate.exchange(circuitLocation, HttpMethod.GET, null,
+                            CircuitInformationOfImplementation.class);
 
-                    // Check if generation is completed
-                    if (response.isComplete()) {
-                        generationComplete = ExecutionResultStatus.FINISHED;
-                        return response;
+                    CircuitInformationOfImplementation result = null;
+
+                    // Check if the Qiskit service was successful
+                    if (response.getStatusCode().is2xxSuccessful()) {
+                        LOG.debug("Generating circuit using Qiskit Service.");
+                        result = response.getBody();
+
+                        // Check if generation is completed
+                        if (result.isComplete()) {
+                            generationComplete = ExecutionResultStatus.FINISHED;
+                            return result;
+                        }
+                    } else if (response.getStatusCode().is4xxClientError()) {
+                        LOG.error(
+                            String.format("Qiskit Service rejected request (HTTP %d)", response.getStatusCodeValue()));
+                        generationComplete = ExecutionResultStatus.FAILED;
+                    } else if (response.getStatusCode().is5xxServerError()) {
+                        LOG.error(
+                            String.format("Internal Qiskit Service error (HTTP %d)", response.getStatusCodeValue()));
+                        generationComplete = ExecutionResultStatus.FAILED;
                     }
 
                     // Wait for next poll
