@@ -178,7 +178,7 @@ public class RootController {
 
         new Thread(() -> {
             nisqAnalyzerService.performSelection(job, params.getAlgorithmId(), params.getParameters(),
-                params.getRefreshToken());
+                params.getRefreshToken(), params.getAllowedProviders(), params.getCompilers());
         }).start();
 
         AnalysisJobDto dto = AnalysisJobDto.Converter.convert(job);

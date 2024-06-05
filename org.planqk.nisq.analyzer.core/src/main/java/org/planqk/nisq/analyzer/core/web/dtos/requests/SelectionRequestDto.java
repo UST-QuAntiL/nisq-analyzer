@@ -19,12 +19,21 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.requests;
 
+import java.util.List;
 import java.util.UUID;
 
 import lombok.Getter;
 import lombok.Setter;
 
 public class SelectionRequestDto extends ParameterKeyValueDto {
+
+    @Getter
+    @Setter
+    List<String> allowedProviders;
+
+    @Getter
+    @Setter
+    List<String> compilers;
 
     @Getter
     @Setter

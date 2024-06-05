@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
 
 import lombok.Data;
@@ -31,9 +32,11 @@ import lombok.EqualsAndHashCode;
 @Relation(itemRelation = "analysisResult", collectionRelation = "analysisResults")
 @EqualsAndHashCode(callSuper = false)
 @Data
-public class AnalysisResultDto extends CircuitResultDto {
+public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
 
     ImplementationDto implementation;
+
+    private UUID id;
 
     private Map<String, String> inputParameters;
 

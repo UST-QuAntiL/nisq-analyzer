@@ -269,7 +269,7 @@ public class NisqAnalyzerControlService {
      */
 
     public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters,
-                                 String refreshToken) {
+                                 String refreshToken, List<String> allowedProviders, List<String> compilers) {
         LOG.debug("Performing quantum resource recommendation for algorithm with Id: {}", algorithm);
 
         String token = inputParameters.get("token");
@@ -329,16 +329,29 @@ public class NisqAnalyzerControlService {
 
             originalCircuitResultRepository.save(originalCircuitResult);
 
+            QpuSelectionJob qpuSelectionJob = new QpuSelectionJob();
+            qpuSelectionJob.setTime(OffsetDateTime.now());
+
+            if (implementation.getName() == null) {
+                qpuSelectionJob.setCircuitName("temp");
+            } else {
+                qpuSelectionJob.setCircuitName(implementation.getName());
+            }
+
+            qpuSelectionJob = qpuSelectionJobRepository.save(qpuSelectionJob);
+
             AnalysisResult analysisResult =
-                new AnalysisResult(algorithm, implementation, inputParameters, originalCircuitResult.getId(), null);
+                new AnalysisResult(algorithm, implementation, inputParameters, originalCircuitResult.getId(),
+                    qpuSelectionJob.getId());
             analysisResult = analysisResultRepository.save(analysisResult);
             analysisResults.add(analysisResult);
 
+            QpuSelectionResult simulatorQpuSelectionResult =
+                createAllCircuitQpuCompilerCombinations(qpuSelectionJob, originalCircuitResult, compilers,
+                    implementation.getName(), allowedProviders);
+
             LOG.debug("Generated and analyzed circuit for implementation {}.", implementation.getName());
         }
-
-        //TODO muss jetzt erst für jede Compiler-QPU-Circuit Kombi ein QPUSelectionResult erzeugt werden, um Pre
-        // Selection machen zu können??
 
         job.setJobResults(analysisResults);
         job.setReady(true);
@@ -352,9 +365,9 @@ public class NisqAnalyzerControlService {
         //TODO Execution
     }
 
-    public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters)
-        throws UnsatisfiedLinkError {
-        performSelection(job, algorithm, inputParameters, "");
+    public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters,
+                                 List<String> allowedProviders, List<String> compilers) throws UnsatisfiedLinkError {
+        performSelection(job, algorithm, inputParameters, "", allowedProviders, compilers);
     }
 
     /**
