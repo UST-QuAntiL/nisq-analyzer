@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -25,21 +25,27 @@ import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 
+@Setter
+@Getter
 public class SelectionRequestDto extends ParameterKeyValueDto {
 
-    @Getter
-    @Setter
     List<String> allowedProviders;
 
-    @Getter
-    @Setter
     List<String> compilers;
 
-    @Getter
-    @Setter
+    boolean preciseResultsPreference;
+
+    boolean shortWaitingTimesPreference;
+
+    Float queueImportanceRatio;
+
+    int maxNumberOfCompiledCircuits;
+
+    String predictionAlgorithm;
+
+    String metaOptimizer;
+
     private UUID algorithmId;
 
-    @Getter
-    @Setter
     private String refreshToken;
 }

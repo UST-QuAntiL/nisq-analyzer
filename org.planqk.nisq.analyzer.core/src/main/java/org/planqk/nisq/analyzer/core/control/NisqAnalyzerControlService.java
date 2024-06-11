@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -397,7 +398,7 @@ public class NisqAnalyzerControlService {
             // only precise results demanded
             if (!shortWaitingTimesPreference) {
                 allQpuSelectionResultsOfOneAnalysisJob.sort(
-                    Comparator.comparing(QpuSelectionResult::getPredictedHistogramIntersectionValue));
+                    Comparator.comparing(QpuSelectionResult::getPredictedHistogramIntersectionValue).reversed());
             } else {
                 // calculate borda count ranking if results are demanded to be precise and short waiting
                 List<QpuSelectionResult> waitingTimeRanking = new ArrayList<>(allQpuSelectionResultsOfOneAnalysisJob);
@@ -405,12 +406,13 @@ public class NisqAnalyzerControlService {
 
                 // calculate both rankings separately
                 waitingTimeRanking.sort(Comparator.comparing(QpuSelectionResult::getQueueSize));
-                precisionRanking.sort(Comparator.comparing(QpuSelectionResult::getPredictedHistogramIntersectionValue));
+                precisionRanking.sort(
+                    Comparator.comparing(QpuSelectionResult::getPredictedHistogramIntersectionValue).reversed());
 
                 // set points to each QpuSelectionResult
                 float n = allQpuSelectionResultsOfOneAnalysisJob.size() - 1;
 
-                Map<QpuSelectionResult, Float> bordaCountRanking = new HashMap<>();
+                Map<QpuSelectionResult, Float> bordaCountRanking = new LinkedHashMap<>();
 
                 float precisionImportanceRatio = 1 - queueImportanceRatio;
 
@@ -424,12 +426,18 @@ public class NisqAnalyzerControlService {
                     bordaCountRanking.put(qpuSelectionResult, scoreWaitingTime + scorePrecision);
                 });
 
-                // sort based on scores of weighted borda count
-                allQpuSelectionResultsOfOneAnalysisJob.sort(
-                    Comparator.comparing(QpuSelectionResult::bordaCountRanking[QpuSelectionResult]));
+                Map<QpuSelectionResult, Float> sortedBordaCountRanking = new LinkedHashMap<>();
+                // sort QpuSelectionResults in HashMap based on scores of weighted borda count
+                bordaCountRanking.entrySet().stream().sorted((k1, k2) -> -k1.getValue().compareTo(k2.getValue()))
+                    .forEach(k -> sortedBordaCountRanking.put(k.getKey(), k.getValue()));
+
+                allQpuSelectionResultsOfOneAnalysisJob.forEach(qpuSelectionResult -> {
+                    int pos = new ArrayList<>(sortedBordaCountRanking.keySet()).indexOf(qpuSelectionResult);
+                    allQpuSelectionResultsOfOneAnalysisJob.set(pos, qpuSelectionResult);
+                });
             }
         }
-
+/*
         // trim ranking
         if (maxNumberOfCompiledCircuits > 0 &&
             allQpuSelectionResultsOfOneAnalysisJob.size() > maxNumberOfCompiledCircuits) {
@@ -459,7 +467,7 @@ public class NisqAnalyzerControlService {
             qpuSelectionResultOptional.ifPresent(remainingQpuSelectionResultList::add);
         });
         job.setJobResults(remainingQpuSelectionResultList);
-
+*/
         //TODO: Pre-Selection für alle Impls
         //TODO ggf. Übersetzung
         //TODO Compilation
@@ -469,8 +477,13 @@ public class NisqAnalyzerControlService {
     }
 
     public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters,
-                                 List<String> allowedProviders, List<String> compilers) throws UnsatisfiedLinkError {
-        performSelection(job, algorithm, inputParameters, "", allowedProviders, compilers);
+                                 List<String> allowedProviders, List<String> compilers,
+                                 boolean preciseResultsPreference, boolean shortWaitingTimesPreference,
+                                 Float queueImportanceRatio, int maxNumberOfCompiledCircuits,
+                                 String predictionAlgorithm, String metaOptimizer) throws UnsatisfiedLinkError {
+        performSelection(job, algorithm, inputParameters, "", allowedProviders, compilers, preciseResultsPreference,
+            shortWaitingTimesPreference, queueImportanceRatio, maxNumberOfCompiledCircuits, predictionAlgorithm,
+            metaOptimizer);
     }
 
     /**
@@ -971,6 +984,7 @@ public class NisqAnalyzerControlService {
         simulatorQpuSelectionResult.setAvgSingleQubitGateError(0);
         simulatorQpuSelectionResult.setAvgSingleQubitGateTime(0);
         simulatorQpuSelectionResult.setUserId(job.getUserId());
+        simulatorQpuSelectionResult.setPredictedHistogramIntersectionValue(1.0F);
 
         // retrieve list of compilers that should be used for the comparison
         List<String> compilersToUse;
@@ -1054,6 +1068,7 @@ public class NisqAnalyzerControlService {
             .filter(qpuSelectionResult -> qpuSelectionResult.getQpu().contains("simulator"));
         if (!simulatorResult.isPresent()) {
             job.getJobResults().add(simulatorQpuSelectionResult);
+            qpuSelectionResultRepository.save(simulatorQpuSelectionResult);
         }
     }
 }
