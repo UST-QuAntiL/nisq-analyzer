@@ -370,6 +370,8 @@ public class NisqAnalyzerControlService {
             createAllCircuitQpuCompilerCombinations(qpuSelectionJob, originalCircuitResult, compilers,
                 implementation.getName(), allowedProviders);
 
+            qpuSelectionJobRepository.save(qpuSelectionJob);
+
             //prediction of precision of qpu and compiler combinations for given original circuit if asked by user
             if (priorDataAvailable) {
                 prioritizationService.executePredictionForCompilerAnQpuPreSelection(originalCircuitResult,
@@ -393,13 +395,16 @@ public class NisqAnalyzerControlService {
 
         // user prefers only short waiting times
         if (shortWaitingTimesPreference && !preciseResultsPreference) {
+            LOG.debug("Only short waiting times requested.");
             allQpuSelectionResultsOfOneAnalysisJob.sort(Comparator.comparing(QpuSelectionResult::getQueueSize));
         } else if (preciseResultsPreference & priorDataAvailable) {
             // only precise results demanded
             if (!shortWaitingTimesPreference) {
+                LOG.debug("Only precise results requested.");
                 allQpuSelectionResultsOfOneAnalysisJob.sort(
                     Comparator.comparing(QpuSelectionResult::getPredictedHistogramIntersectionValue).reversed());
             } else {
+                LOG.debug("Short waiting times ans precise results requested.");
                 // calculate borda count ranking if results are demanded to be precise and short waiting
                 List<QpuSelectionResult> waitingTimeRanking = new ArrayList<>(allQpuSelectionResultsOfOneAnalysisJob);
                 List<QpuSelectionResult> precisionRanking = new ArrayList<>(allQpuSelectionResultsOfOneAnalysisJob);
@@ -417,11 +422,19 @@ public class NisqAnalyzerControlService {
                 float precisionImportanceRatio = 1 - queueImportanceRatio;
 
                 allQpuSelectionResultsOfOneAnalysisJob.forEach(qpuSelectionResult -> {
-                    float rankWaitingTime = waitingTimeRanking.indexOf(qpuSelectionResult);
-                    float scoreWaitingTime = (n - rankWaitingTime) * queueImportanceRatio;
+                    float scoreWaitingTime;
+                    float scorePrecision;
 
-                    float rankPrecision = precisionRanking.indexOf(qpuSelectionResult);
-                    float scorePrecision = (n - rankPrecision) * precisionImportanceRatio;
+                    if (!qpuSelectionResult.getQpu().contains("simulator")) {
+                        float rankWaitingTime = waitingTimeRanking.indexOf(qpuSelectionResult);
+                        scoreWaitingTime = (n - rankWaitingTime) * queueImportanceRatio;
+
+                        float rankPrecision = precisionRanking.indexOf(qpuSelectionResult);
+                        scorePrecision = (n - rankPrecision) * precisionImportanceRatio;
+                    } else {
+                        scoreWaitingTime = 100;
+                        scorePrecision = 100;
+                    }
 
                     bordaCountRanking.put(qpuSelectionResult, scoreWaitingTime + scorePrecision);
                 });
@@ -437,7 +450,7 @@ public class NisqAnalyzerControlService {
                 });
             }
         }
-/*
+
         // trim ranking
         if (maxNumberOfCompiledCircuits > 0 &&
             allQpuSelectionResultsOfOneAnalysisJob.size() > maxNumberOfCompiledCircuits) {
@@ -445,30 +458,26 @@ public class NisqAnalyzerControlService {
                 allQpuSelectionResultsOfOneAnalysisJob.size()).clear();
         }
 
-        //FIXME
         // delete compilation candidates that will not be considered
-        qpuSelectionResultRepository.findAllByQpuSelectionJobId(job.getId()).forEach(qpuSelectionResult -> {
-            AtomicBoolean resultIsContained = new AtomicBoolean(false);
-            job.getJobResults().forEach(qpuSelectionResult1 -> {
-                if (qpuSelectionResult.getId().equals(qpuSelectionResult1.getId())) {
-                    resultIsContained.set(true);
+        analysisResults.forEach(analysisResult -> {
+            List<QpuSelectionResult> remainingQpuSelectionResultList = new ArrayList<>();
+            List<QpuSelectionResult> qpuSelectionResultsToBeRemoved = new ArrayList<>();
+
+            QpuSelectionJob qpuSelectionJob =
+                qpuSelectionJobRepository.findById(analysisResult.getQpuSelectionJobId()).get();
+            qpuSelectionJob.getJobResults().forEach(qpuSelectionResult -> {
+                if (!allQpuSelectionResultsOfOneAnalysisJob.contains(qpuSelectionResult)) {
+                    qpuSelectionResultsToBeRemoved.add(qpuSelectionResult);
+                    qpuSelectionResult.setQpuSelectionJobId(null);
+                    qpuSelectionResultRepository.save(qpuSelectionResult);
+                } else {
+                    remainingQpuSelectionResultList.add(qpuSelectionResult);
                 }
             });
-            if (!resultIsContained.get()) {
-                qpuSelectionResultRepository.delete(qpuSelectionResult);
-            }
+            qpuSelectionJob.setJobResults(remainingQpuSelectionResultList);
+            qpuSelectionJobRepository.save(qpuSelectionJob);
+            qpuSelectionResultRepository.deleteAll(qpuSelectionResultsToBeRemoved);
         });
-
-        // overwrite old, non-updated qpuSelectionResults in the job, after prediction
-        List<QpuSelectionResult> remainingQpuSelectionResultList = new ArrayList<>();
-        job.getJobResults().forEach(qpuSelectionResultOld -> {
-            Optional<QpuSelectionResult> qpuSelectionResultOptional =
-                qpuSelectionResultRepository.findById(qpuSelectionResultOld.getId());
-            qpuSelectionResultOptional.ifPresent(remainingQpuSelectionResultList::add);
-        });
-        job.setJobResults(remainingQpuSelectionResultList);
-*/
-        //TODO: Pre-Selection für alle Impls
         //TODO ggf. Übersetzung
         //TODO Compilation
         //TODO Executable?
