@@ -170,15 +170,12 @@ public class RootController {
         AnalysisJob job = new AnalysisJob();
         job.setImplementedAlgorithm(params.getAlgorithmId());
         job.setTime(OffsetDateTime.now());
-        String token = params.getParameters().get("token");
-        params.getParameters().remove("token");
         job.setInputParameters(params.getParameters());
-        params.getParameters().put("token", token);
         analysisJobRepository.save(job);
 
         new Thread(() -> {
             nisqAnalyzerService.performSelection(job, params.getAlgorithmId(), params.getParameters(),
-                params.getRefreshToken(), params.getAllowedProviders(), params.getCompilers(),
+                params.getTokens(), params.getRefreshToken(), params.getAllowedProviders(), params.getCompilers(),
                 params.isPreciseResultsPreference(), params.isShortWaitingTimesPreference(),
                 params.getQueueImportanceRatio(), params.getMaxNumberOfCompiledCircuits(),
                 params.getPredictionAlgorithm(), params.getMetaOptimizer());

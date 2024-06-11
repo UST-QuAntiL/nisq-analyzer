@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.web.dtos.requests;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import lombok.Getter;
@@ -44,6 +45,8 @@ public class SelectionRequestDto extends ParameterKeyValueDto {
     String predictionAlgorithm;
 
     String metaOptimizer;
+
+    Map<String, Map<String, String>> tokens;
 
     private UUID algorithmId;
 

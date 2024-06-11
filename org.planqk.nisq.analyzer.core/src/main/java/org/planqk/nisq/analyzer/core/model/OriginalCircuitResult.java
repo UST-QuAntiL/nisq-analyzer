@@ -27,49 +27,33 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Setter
+@Getter
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 public class OriginalCircuitResult extends HasId {
 
-    @Getter
-    @Setter
     private String circuitName;
 
-    @Getter
-    @Setter
     private int originalWidth;
 
-    @Getter
-    @Setter
     private int originalDepth;
 
-    @Getter
-    @Setter
     private int originalMultiQubitGateDepth;
 
-    @Getter
-    @Setter
     private int originalNumberOfSingleQubitGates;
 
-    @Getter
-    @Setter
     private int originalNumberOfMultiQubitGates;
 
-    @Getter
-    @Setter
     private int originalTotalNumberOfOperations;
 
-    @Getter
-    @Setter
     private int originalNumberOfMeasurementOperations;
 
-    @Getter
-    @Setter
     private String correlationID;
 
     @Lob
-    @Getter
-    @Setter
     private String circuit;
+
+    private String circuitLanguage;
 }

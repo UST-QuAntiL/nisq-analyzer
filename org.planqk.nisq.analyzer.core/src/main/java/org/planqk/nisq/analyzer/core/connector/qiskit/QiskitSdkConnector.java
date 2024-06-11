@@ -126,6 +126,7 @@ public class QiskitSdkConnector implements SdkConnector {
                     if (response.getStatusCode().is2xxSuccessful()) {
                         LOG.debug("Generating circuit using Qiskit Service.");
                         result = response.getBody();
+                        result.setCircuitLanguage(Constants.OPENQASM);
 
                         // Check if generation is completed
                         if (result.isComplete()) {
