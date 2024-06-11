@@ -572,7 +572,9 @@ public class NisqAnalyzerControlService {
         OriginalCircuitResult originalCircuitResult = analyzeOriginalCircuit(circuitName, circuitCode, circuitLanguage);
 
         // generate all possible combinations
-        createAllCircuitQpuCompilerCombinations(job, originalCircuitResult, compilers, circuitName, allowedProviders);
+        QpuSelectionResult simulatorQpuSelectionResult =
+            createAllCircuitQpuCompilerCombinations(job, originalCircuitResult, compilers, circuitName,
+                allowedProviders);
 
         // user prefers only short waiting times
         if (shortWaitingTimesPreference && !preciseResultsPreference) {
@@ -581,7 +583,7 @@ public class NisqAnalyzerControlService {
             if (maxNumberOfCompiledCircuits > 0 && job.getJobResults().size() > maxNumberOfCompiledCircuits) {
                 job.getJobResults().subList(maxNumberOfCompiledCircuits, job.getJobResults().size()).clear();
 
-                /*// add one compilation candidate for the simulator to calculate the histogram intersection after
+                // add one compilation candidate for the simulator to calculate the histogram intersection after
                 // execution
                 AtomicBoolean simulatorAlreadyContained = new AtomicBoolean(false);
                 job.getJobResults().forEach(qpuSelectionResult -> {
@@ -592,7 +594,7 @@ public class NisqAnalyzerControlService {
                 if (!simulatorAlreadyContained.get()) {
                     simulatorQpuSelectionResult = qpuSelectionResultRepository.save(simulatorQpuSelectionResult);
                     job.getJobResults().add(simulatorQpuSelectionResult);
-                }*/
+                }
             }
         } else if (preciseResultsPreference) {
             // look up if there is prior data for pre-selection based on prediction of precise execution results
@@ -628,8 +630,7 @@ public class NisqAnalyzerControlService {
                         });
                         job.setJobResults(listOfSelectedQpuSelectionResults);
 
-                        /*// add one compilation candidate for the simulator to calculate the histogram intersection
-                        after
+                        // add one compilation candidate for the simulator to calculate the histogram intersection after
                         // execution
                         AtomicBoolean simulatorAlreadyContained = new AtomicBoolean(false);
                         job.getJobResults().forEach(qpuSelectionResult -> {
@@ -641,7 +642,7 @@ public class NisqAnalyzerControlService {
                             simulatorQpuSelectionResult =
                                 qpuSelectionResultRepository.save(simulatorQpuSelectionResult);
                             job.getJobResults().add(simulatorQpuSelectionResult);
-                        }*/
+                        }
                     }
                 }
             }
@@ -964,10 +965,10 @@ public class NisqAnalyzerControlService {
             .collect(Collectors.toList());
     }
 
-    private void createAllCircuitQpuCompilerCombinations(QpuSelectionJob job,
-                                                         OriginalCircuitResult originalCircuitResult,
-                                                         List<String> compilers, String circuitName,
-                                                         List<String> allowedProviders) {
+    private QpuSelectionResult createAllCircuitQpuCompilerCombinations(QpuSelectionJob job,
+                                                                       OriginalCircuitResult originalCircuitResult,
+                                                                       List<String> compilers, String circuitName,
+                                                                       List<String> allowedProviders) {
 
         if (circuitName == null) {
             circuitName = "temp";
@@ -1079,5 +1080,6 @@ public class NisqAnalyzerControlService {
             job.getJobResults().add(simulatorQpuSelectionResult);
             qpuSelectionResultRepository.save(simulatorQpuSelectionResult);
         }
+        return simulatorQpuSelectionResult;
     }
 }
