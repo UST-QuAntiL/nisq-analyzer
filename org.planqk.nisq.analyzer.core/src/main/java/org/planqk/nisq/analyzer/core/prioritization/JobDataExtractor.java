@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.prioritization;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,11 +33,13 @@ import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.model.JobType;
 import org.planqk.nisq.analyzer.core.model.McdaJob;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionJob;
+import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
 import org.planqk.nisq.analyzer.core.qprov.QProvService;
 import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
+import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.xmcda.XmcdaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +78,8 @@ public class JobDataExtractor {
 
     private final QProvService qProvService;
 
+    private final QpuSelectionResultRepository qpuSelectionResultRepository;
+
     /**
      * Get the required information to run MCDA methods from different kinds of NISQ Analyzer jobs
      *
@@ -112,13 +117,20 @@ public class JobDataExtractor {
                 return null;
             }
 
-            //TODO loop throug all QPUSelectionResults of all AnalysisResults of one AnalysisJob
-//            mcdaJob.setJobType(JobType.ANALYSIS);
-//            mcdaJobRepository.save(mcdaJob);
-//            LOG.debug("Retrieving information from analysis job!");
-//            List<CircuitResult> results = job.getJobResults().stream().map(jobResult -> (CircuitResult) jobResult)
-//            .collect(Collectors.toList());
-//            return getFromCircuitResults(results, mcdaJob.getMethod());
+            // loop through all QPUSelectionResults of all AnalysisResults of one AnalysisJob
+            mcdaJob.setJobType(JobType.ANALYSIS);
+            mcdaJobRepository.save(mcdaJob);
+            LOG.debug("Retrieving information from analysis job!");
+
+            List<QpuSelectionResult> qpuSelectionResultList = new ArrayList<>();
+            job.getJobResults().forEach(analysisResult -> {
+                qpuSelectionResultList.addAll(
+                    qpuSelectionResultRepository.findAllByQpuSelectionJobId(analysisResult.getQpuSelectionJobId()));
+            });
+            List<CircuitResult> results =
+                qpuSelectionResultList.stream().map(qpuSelectionResult -> (CircuitResult) qpuSelectionResult)
+                    .collect(Collectors.toList());
+            return getFromCircuitResults(results, mcdaJob.getMethod());
         }
 
         Optional<CompilationJob> compilationJobOptional = compilationJobRepository.findById(mcdaJob.getJobId());
@@ -173,10 +185,8 @@ public class JobDataExtractor {
                     LOG.debug("Retrieving performance data for criterion {} from QPU!", criterion.getName());
                     performanceList.add(createPerformanceForQpuCriterion(backendQueueSize, result, criterion));
                 } else {
-                    LOG.error(
-                        "Criterion with name {} defined in criteria.xml but retrieval of corresponding data is " +
-                            "currently not supported!",
-                        criterion.getName());
+                    LOG.error("Criterion with name {} defined in criteria.xml but retrieval of corresponding data is " +
+                        "currently not supported!", criterion.getName());
                 }
             }
             performances.getAlternativePerformances().add(alternativePerformances);

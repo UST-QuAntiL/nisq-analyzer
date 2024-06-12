@@ -178,7 +178,8 @@ public class RootController {
                 params.getTokens(), params.getRefreshToken(), params.getAllowedProviders(), params.getCompilers(),
                 params.isPreciseResultsPreference(), params.isShortWaitingTimesPreference(),
                 params.getQueueImportanceRatio(), params.getMaxNumberOfCompiledCircuits(),
-                params.getPredictionAlgorithm(), params.getMetaOptimizer());
+                params.getPredictionAlgorithm(), params.getMetaOptimizer(), params.getMcdaMethodName(),
+                params.getMcdaWeightLearningMethod());
         }).start();
 
         AnalysisJobDto dto = AnalysisJobDto.Converter.convert(job);

@@ -54,6 +54,8 @@ import org.planqk.nisq.analyzer.core.model.DataType;
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.Implementation;
+import org.planqk.nisq.analyzer.core.model.McdaJob;
+import org.planqk.nisq.analyzer.core.model.McdaWeightLearningJob;
 import org.planqk.nisq.analyzer.core.model.OriginalCircuitResult;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
@@ -69,6 +71,8 @@ import org.planqk.nisq.analyzer.core.repository.CompilationJobRepository;
 import org.planqk.nisq.analyzer.core.repository.CompilerAnalysisResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.ImplementationRepository;
+import org.planqk.nisq.analyzer.core.repository.McdaJobRepository;
+import org.planqk.nisq.analyzer.core.repository.McdaWeightLearningJobRepository;
 import org.planqk.nisq.analyzer.core.repository.OriginalCircuitResultRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionJobRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
@@ -114,6 +118,10 @@ public class NisqAnalyzerControlService {
     final private QpuSelectionJobRepository qpuSelectionJobRepository;
 
     final private QpuSelectionResultRepository qpuSelectionResultRepository;
+
+    final private McdaWeightLearningJobRepository mcdaWeightLearningJobRepository;
+
+    final private McdaJobRepository mcdaJobRepository;
 
     public OriginalCircuitResult analyzeOriginalCircuit(String circuitName, File circuitFile, String circuitLanguage)
         throws UnsatisfiedLinkError {
@@ -276,7 +284,8 @@ public class NisqAnalyzerControlService {
                                  List<String> allowedProviders, List<String> compilers,
                                  boolean preciseResultsPreference, boolean shortWaitingTimesPreference,
                                  Float queueImportanceRatio, int maxNumberOfCompiledCircuits,
-                                 String predictionAlgorithm, String metaOptimizer) {
+                                 String predictionAlgorithm, String metaOptimizer, String mcdaMethodName,
+                                 String mcdaWeightLearningMethod) {
         LOG.debug("Performing quantum resource recommendation for algorithm with Id: {}", algorithm);
 
         // make name of providers case-insensitive
@@ -399,7 +408,7 @@ public class NisqAnalyzerControlService {
         if (shortWaitingTimesPreference && !preciseResultsPreference) {
             LOG.debug("Only short waiting times requested.");
             allQpuSelectionResultsOfOneAnalysisJob.sort(Comparator.comparing(QpuSelectionResult::getQueueSize));
-        } else if (preciseResultsPreference & priorDataAvailable) {
+        } else if (preciseResultsPreference && priorDataAvailable) {
             // only precise results demanded
             if (!shortWaitingTimesPreference) {
                 LOG.debug("Only precise results requested.");
@@ -460,6 +469,8 @@ public class NisqAnalyzerControlService {
                 allQpuSelectionResultsOfOneAnalysisJob.size()).clear();
         }
 
+        List<QpuSelectionResult> listOfAllCompiledQpuSelectionResults = new ArrayList<>();
+
         analysisResults.forEach(analysisResult -> {
             // delete compilation candidates that will not be considered
             List<QpuSelectionResult> remainingQpuSelectionResultList = new ArrayList<>();
@@ -505,7 +516,49 @@ public class NisqAnalyzerControlService {
                 }
             }
         });
-        //TODO Prioritization
+
+        //FIXME Prioritization
+        if (preciseResultsPreference) {
+            // create MCDA job to learn weights for prioritization
+            McdaWeightLearningJob mcdaWeightLearningJob = new McdaWeightLearningJob();
+            mcdaWeightLearningJob.setTime(OffsetDateTime.now());
+            mcdaWeightLearningJob.setMcdaMethod(mcdaMethodName);
+            mcdaWeightLearningJob.setState(ExecutionResultStatus.INITIALIZED.toString());
+            mcdaWeightLearningJob.setWeightLearningMethod(mcdaWeightLearningMethod);
+            mcdaWeightLearningJob.setReady(false);
+
+            mcdaWeightLearningJob = mcdaWeightLearningJobRepository.save(mcdaWeightLearningJob);
+
+            prioritizationService.learnWeights(mcdaWeightLearningJob);
+        }
+
+        Map<String, Float> bordaCountWeights = new HashMap<>();
+        boolean useBordaCount = false;
+
+        if (shortWaitingTimesPreference && preciseResultsPreference) {
+            bordaCountWeights.put("queue-size", queueImportanceRatio);
+            bordaCountWeights.put("result_precision", 1 - queueImportanceRatio);
+            useBordaCount = true;
+        } else {
+            bordaCountWeights.put("queue-size", 0.0f);
+            bordaCountWeights.put("result_precision", 0.0f);
+        }
+
+        // create job for prioritization
+        McdaJob mcdaJob = new McdaJob();
+        mcdaJob.setTime(OffsetDateTime.now());
+        mcdaJob.setMethod(mcdaMethodName);
+        mcdaJob.setUseBordaCount(useBordaCount);
+        mcdaJob.setBordaCountWeights(bordaCountWeights);
+        mcdaJob.setReady(false);
+        mcdaJob.setJobId(job.getId());
+        mcdaJob.setState(ExecutionResultStatus.INITIALIZED.toString());
+        mcdaJob = mcdaJobRepository.save(mcdaJob);
+
+        prioritizationService.executeMcdaMethod(mcdaJob);
+
+        //TODO return prioritized results
+
         //TODO Execution
     }
 
@@ -513,11 +566,11 @@ public class NisqAnalyzerControlService {
                                  Map<String, Map<String, String>> tokens, List<String> allowedProviders,
                                  List<String> compilers, boolean preciseResultsPreference,
                                  boolean shortWaitingTimesPreference, Float queueImportanceRatio,
-                                 int maxNumberOfCompiledCircuits, String predictionAlgorithm, String metaOptimizer)
-        throws UnsatisfiedLinkError {
+                                 int maxNumberOfCompiledCircuits, String predictionAlgorithm, String metaOptimizer,
+                                 String mcdaMethodName, String mcdaWeightLearningMethod) throws UnsatisfiedLinkError {
         performSelection(job, algorithm, inputParameters, tokens, "", allowedProviders, compilers,
             preciseResultsPreference, shortWaitingTimesPreference, queueImportanceRatio, maxNumberOfCompiledCircuits,
-            predictionAlgorithm, metaOptimizer);
+            predictionAlgorithm, metaOptimizer, metaOptimizer, mcdaMethodName);
     }
 
     /**
@@ -720,7 +773,7 @@ public class NisqAnalyzerControlService {
         LOG.debug("Performing compiler selection for QPU with name '{}' from provider with name '{}'!", qpuName,
             providerName);
         Qpu qpu = qProvService.getQpuByName(qpuName, providerName).orElse(null);
-        if (Objects.isNull(qpu) & qpuName.contains("simulator") & providerName.contains("ibmq")) {
+        if (Objects.isNull(qpu) && qpuName.contains("simulator") & providerName.contains("ibmq")) {
             qpu = new Qpu();
             qpu.setProvider("ibmq");
             qpu.setSimulator(true);

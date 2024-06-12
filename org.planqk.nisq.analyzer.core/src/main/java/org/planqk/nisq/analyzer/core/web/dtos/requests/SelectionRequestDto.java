@@ -51,4 +51,8 @@ public class SelectionRequestDto extends ParameterKeyValueDto {
     private UUID algorithmId;
 
     private String refreshToken;
+
+    private String mcdaMethodName;
+
+    private String mcdaWeightLearningMethod;
 }
