@@ -480,19 +480,24 @@ public class NisqAnalyzerControlService {
             qpuSelectionJobRepository.save(qpuSelectionJob);
             qpuSelectionResultRepository.deleteAll(qpuSelectionResultsToBeRemoved);
 
+            // translate and compile all QpuSelectionResults
             if (!qpuSelectionJob.getJobResults().isEmpty()) {
                 OriginalCircuitResult originalCircuitResult = originalCircuitResultRepository.findById(
                     qpuSelectionJob.getJobResults().get(0).getOriginalCircuitResultId()).get();
                 try {
                     File circuitFile = null;
+                    String fileEnding = "";
                     if (originalCircuitResult.getCircuitLanguage().equalsIgnoreCase(Constants.OPENQASM)) {
-                        circuitFile = Utils.inputStreamToFile(new ByteArrayInputStream(
-                            originalCircuitResult.getCircuit().getBytes(StandardCharsets.UTF_8)), "qasm");
+                        fileEnding = "qasm";
+                    } else if (originalCircuitResult.getCircuitLanguage().equalsIgnoreCase(Constants.QUIL)) {
+                        fileEnding = "quil";
+                    } else if (originalCircuitResult.getCircuitLanguage().equalsIgnoreCase(Constants.PYQUIL) ||
+                        originalCircuitResult.getCircuitLanguage().equalsIgnoreCase(Constants.QISKIT)) {
+                        fileEnding = "py";
                     }
-                    if (originalCircuitResult.getCircuitLanguage().equalsIgnoreCase(Constants.OPENQASM)) {
-                        circuitFile = Utils.inputStreamToFile(new ByteArrayInputStream(
-                            originalCircuitResult.getCircuit().getBytes(StandardCharsets.UTF_8)), "qasm");
-                    }
+                    circuitFile = Utils.inputStreamToFile(
+                        new ByteArrayInputStream(originalCircuitResult.getCircuit().getBytes(StandardCharsets.UTF_8)),
+                        fileEnding);
                     translationAndTranspilationOfQpuSelectionResults(qpuSelectionJob, caseInsensitiveTokens,
                         originalCircuitResult.getCircuitLanguage(), circuitFile);
                 } catch (IOException e) {
