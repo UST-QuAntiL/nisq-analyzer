@@ -519,7 +519,6 @@ public class NisqAnalyzerControlService {
         LOG.debug("Prioritize results of Analysis Job.");
         prioritizationService.executeMcdaMethod(mcdaJob);
         LOG.debug("Prioritization of results of Analysis Job is finished.");
-        //TODO Execution
     }
 
     public void performSelection(AnalysisJob job, UUID algorithm, Map<String, String> inputParameters,
