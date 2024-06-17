@@ -659,16 +659,21 @@ public class PrioritizationService {
                         "MCDA method execution only possible for finished NISQ Analyzer job but provided job is still" +
                             " running!");
                 } else {
-                    //TODO loop throug all QPUSelectionResults of all AnalysisResults of one AnalysisJob
-//                    mcdaSensitivityAnalysisJob.setJobType(JobType.ANALYSIS);
-//                    mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
-//                    LOG.debug("Retrieving information from analysis job!");
-//                    List<CircuitResult> results =
-//                        job.getJobResults().stream().map(jobResult -> {
-//
-//                            (CircuitResult) jobResult
-//                        }).collect(Collectors.toList());
-//                    compiledCircuits = getCircuitResults(results);
+                    //loop throug all QPUSelectionResults of all AnalysisResults of one AnalysisJob
+                    mcdaSensitivityAnalysisJob.setJobType(JobType.ANALYSIS);
+                    mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
+                    LOG.debug("Retrieving information from analysis job!");
+
+                    List<QpuSelectionResult> qpuSelectionResultList = new ArrayList<>();
+
+                    job.getJobResults().forEach(analysisResult -> {
+                        qpuSelectionResultList.addAll(qpuSelectionResultRepository.findAllByQpuSelectionJobId(
+                            analysisResult.getQpuSelectionJobId()));
+                    });
+                    List<CircuitResult> results =
+                        qpuSelectionResultList.stream().map(qpuSelectionResult -> (CircuitResult) qpuSelectionResult)
+                            .collect(Collectors.toList());
+                    compiledCircuits = getCircuitResults(results);
                 }
             } else {
                 LOG.debug("{} is no AnalysisJob", mcdaSensitivityAnalysisJob.getJobId());

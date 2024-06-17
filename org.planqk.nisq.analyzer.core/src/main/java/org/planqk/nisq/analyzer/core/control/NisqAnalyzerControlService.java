@@ -517,7 +517,7 @@ public class NisqAnalyzerControlService {
             }
         });
 
-        //FIXME Prioritization
+        //Prioritization of compiled circuits
         if (preciseResultsPreference) {
             // create MCDA job to learn weights for prioritization
             McdaWeightLearningJob mcdaWeightLearningJob = new McdaWeightLearningJob();
