@@ -392,7 +392,6 @@ public class NisqAnalyzerControlService {
         }
 
         job.setJobResults(analysisResults);
-        job.setReady(true);
         analysisJobRepository.save(job);
 
         // collect all QpuSelectionResults of all AnalysisResults in one list
@@ -462,14 +461,13 @@ public class NisqAnalyzerControlService {
             }
         }
 
+        LOG.debug("Trim rankings based on requirements.");
         // trim ranking
         if (maxNumberOfCompiledCircuits > 0 &&
             allQpuSelectionResultsOfOneAnalysisJob.size() > maxNumberOfCompiledCircuits) {
             allQpuSelectionResultsOfOneAnalysisJob.subList(maxNumberOfCompiledCircuits,
                 allQpuSelectionResultsOfOneAnalysisJob.size()).clear();
         }
-
-        List<QpuSelectionResult> listOfAllCompiledQpuSelectionResults = new ArrayList<>();
 
         analysisResults.forEach(analysisResult -> {
             // delete compilation candidates that will not be considered
@@ -509,6 +507,8 @@ public class NisqAnalyzerControlService {
                     circuitFile = Utils.inputStreamToFile(
                         new ByteArrayInputStream(originalCircuitResult.getCircuit().getBytes(StandardCharsets.UTF_8)),
                         fileEnding);
+
+                    LOG.debug("Translate and transpile the results of the given QpuSelectionJob.");
                     translationAndTranspilationOfQpuSelectionResults(qpuSelectionJob, caseInsensitiveTokens,
                         originalCircuitResult.getCircuitLanguage(), circuitFile);
                 } catch (IOException e) {
@@ -529,6 +529,7 @@ public class NisqAnalyzerControlService {
 
             mcdaWeightLearningJob = mcdaWeightLearningJobRepository.save(mcdaWeightLearningJob);
 
+            LOG.debug("Learn weights for prioritization.");
             prioritizationService.learnWeights(mcdaWeightLearningJob);
         }
 
@@ -555,10 +556,14 @@ public class NisqAnalyzerControlService {
         mcdaJob.setState(ExecutionResultStatus.INITIALIZED.toString());
         mcdaJob = mcdaJobRepository.save(mcdaJob);
 
+        job.setReady(true);
+        job.setInitialMcdaJob(mcdaJob.getId());
+        job.setInitialMcdaMethod(mcdaJob.getMethod());
+        analysisJobRepository.save(job);
+
+        LOG.debug("Prioritize results of Analysis Job.");
         prioritizationService.executeMcdaMethod(mcdaJob);
-
-        //TODO return prioritized results
-
+        LOG.debug("Prioritization of results of Analysis Job is finished.");
         //TODO Execution
     }
 
