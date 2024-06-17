@@ -222,9 +222,9 @@ public class QiskitSdkConnector implements SdkConnector {
                                 QpuSelectionResult qResult = qpuSelectionResult.get();
 
                                 // as QiskitSdk Connector is invoked, the provider is IBM Q, thus, the
-                                // ibmq_qasm_simulator is the one we need
+                                // ibmq simulator is the one we need
                                 // for histogram intersection
-                                String simulator = "qasm_simulator";
+                                String simulator = "simulator";
 
                                 // check if current execution result is already of a simulator otherwise get all
                                 // qpu-selection-results of same job

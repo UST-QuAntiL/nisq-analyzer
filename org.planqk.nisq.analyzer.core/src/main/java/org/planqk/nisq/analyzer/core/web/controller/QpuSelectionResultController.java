@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -84,23 +84,29 @@ public class QpuSelectionResultController {
 
     private final NisqAnalyzerControlService controlService;
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-        description = "Retrieve all QPU selection results")
+    @Operation(responses = {@ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "404", content = @Content)}, description = "Retrieve all QPU selection results")
     @GetMapping("/")
     @Transactional
-    public HttpEntity<QpuSelectionResultListDto> getQpuSelectionResults(@RequestParam(value = "userId", required = false) String userId) {
+    public HttpEntity<QpuSelectionResultListDto> getQpuSelectionResults(
+        @RequestParam(value = "userId", required = false) String userId) {
         QpuSelectionResultListDto model = new QpuSelectionResultListDto();
-        model.add(qpuSelectionResultRepository.findAllByUserId(userId).stream().map(this::createDto).collect(Collectors.toList()));
-        model.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionResults(userId)).withSelfRel().expand());
-        model.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJobs(userId)).withRel(Constants.JOBS).expand());
+        model.add(qpuSelectionResultRepository.findAllByUserId(userId).stream().map(this::createDto)
+            .collect(Collectors.toList()));
+        model.add(
+            linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionResults(userId)).withSelfRel().expand());
+        model.add(
+            linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJobs(userId)).withRel(Constants.JOBS)
+                .expand());
         return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-        description = "Retrieve a single QPU selection result")
+    @Operation(responses = {@ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "404", content = @Content)}, description = "Retrieve a single QPU selection result")
     @GetMapping("/{resId}")
     public HttpEntity<QpuSelectionResultDto> getQpuSelectionResult(@PathVariable UUID resId,
-                                                                   @RequestParam(value = "userId", required = false) String userId) {
+                                                                   @RequestParam(value = "userId", required = false)
+                                                                   String userId) {
         LOG.debug("Get to retrieve QPU selection result with id: {}.", resId);
 
         Optional<QpuSelectionResult> result = qpuSelectionResultRepository.findById(resId);
@@ -109,8 +115,8 @@ public class QpuSelectionResultController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        if ((result.get().getUserId() != null && result.get().getUserId().equals(userId))
-            || (result.get().getUserId() == null && userId == null)) {
+        if ((result.get().getUserId() != null && result.get().getUserId().equals(userId)) ||
+            (result.get().getUserId() == null && userId == null)) {
             return new ResponseEntity<>(createDto(result.get()), HttpStatus.OK);
         } else {
             LOG.error("Unable to retrieve QPU selection result with id {} for user {}.", resId, userId);
@@ -118,24 +124,27 @@ public class QpuSelectionResultController {
         }
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-        description = "Retrieve all QPU selection jobs")
+    @Operation(responses = {@ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "404", content = @Content)}, description = "Retrieve all QPU selection jobs")
     @GetMapping("/" + Constants.JOBS)
     @Transactional
     public HttpEntity<QpuSelectionJobListDto> getQpuSelectionJobs(
         @RequestParam(value = "userId", required = false) String userId) {
         QpuSelectionJobListDto model = new QpuSelectionJobListDto();
-        model.add(qpuSelectionJobRepository.findAllByUserId(userId).stream().map(this::createJobDto).collect(Collectors.toList()));
-        model.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJobs(userId)).withSelfRel().expand());
+        model.add(qpuSelectionJobRepository.findAllByUserId(userId).stream().map(this::createJobDto)
+            .collect(Collectors.toList()));
+        model.add(
+            linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJobs(userId)).withSelfRel().expand());
         return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-        description = "Retrieve a single QPU selection job")
+    @Operation(responses = {@ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "404", content = @Content)}, description = "Retrieve a single QPU selection job")
     @GetMapping("/" + Constants.JOBS + "/{resId}")
     @Transactional
     public HttpEntity<QpuSelectionJobDto> getQpuSelectionJob(@PathVariable UUID resId,
-                                                             @RequestParam(value = "userId", required = false) String userId) {
+                                                             @RequestParam(value = "userId", required = false)
+                                                             String userId) {
         LOG.debug("Get to retrieve QPU selection job with id: {}.", resId);
 
         Optional<QpuSelectionJob> result = qpuSelectionJobRepository.findById(resId);
@@ -144,8 +153,8 @@ public class QpuSelectionResultController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        if ((result.get().getUserId() != null && result.get().getUserId().equals(userId))
-            || (result.get().getUserId() == null && userId == null)) {
+        if ((result.get().getUserId() != null && result.get().getUserId().equals(userId)) ||
+            (result.get().getUserId() == null && userId == null)) {
             return new ResponseEntity<>(createJobDto(result.get()), HttpStatus.OK);
         } else {
             LOG.error("Unable to retrieve QPU selection result with id {} for user {}.", resId, userId);
@@ -156,8 +165,8 @@ public class QpuSelectionResultController {
     @Operation(responses = {@ApiResponse(responseCode = "202"), @ApiResponse(responseCode = "404", content = @Content),
         @ApiResponse(responseCode = "500", content = @Content)}, description = "Execute a compilation result")
     @PostMapping("/{resId}/" + Constants.EXECUTION)
-    public HttpEntity<ExecutionResultDto> executeQpuSelectionResult(@PathVariable UUID resId,
-                                                                    @RequestBody ExecuteAnalysisResultRequestDto executeAnalysisResultRequestDto) {
+    public HttpEntity<ExecutionResultDto> executeQpuSelectionResult(@PathVariable UUID resId, @RequestBody
+    ExecuteAnalysisResultRequestDto executeAnalysisResultRequestDto) {
         LOG.debug("Post to execute qpu-selection-result with id: {}", resId);
 
         Optional<QpuSelectionResult> result = qpuSelectionResultRepository.findById(resId);
@@ -169,28 +178,30 @@ public class QpuSelectionResultController {
         // get stored token for the execution
         QpuSelectionResult qpuSelectionResult = result.get();
 
-        // check if target machine is of Rigetti or IBMQ, consider accordingly qvm simulator or ibmq_qasm_simulator
+        // check if target machine is of Rigetti or IBMQ, consider accordingly qvm simulator or ibmq simulator
         String simulator;
         if (Objects.equals(qpuSelectionResult.getProvider(), Constants.RIGETTI)) {
             simulator = "qvm";
         } else {
-            simulator = "qasm_simulator";
+            simulator = "simulator";
         }
 
-        // if result to be executed is not a simulator, then check if a simulator result was already executed otherwise execute simulator first
+        // if result to be executed is not a simulator, then check if a simulator result was already executed
+        // otherwise execute simulator first
         // required for histogram intersection
         if (!qpuSelectionResult.getQpu().contains(simulator)) {
             // get all qpuSelectionResults of same qpuSelectionJob
-            List<QpuSelectionResult> jobResults =
-                qpuSelectionResultRepository.findAll().stream()
-                    .filter(qResult -> qResult.getQpuSelectionJobId().equals(qpuSelectionResult.getQpuSelectionJobId()))
-                    .collect(Collectors.toList());
+            List<QpuSelectionResult> jobResults = qpuSelectionResultRepository.findAll().stream()
+                .filter(qResult -> qResult.getQpuSelectionJobId().equals(qpuSelectionResult.getQpuSelectionJobId()))
+                .collect(Collectors.toList());
             // get qpuSelectionResult of simulator if available
             QpuSelectionResult simulatorQpuSelectionResult =
-                jobResults.stream().filter(jobResult -> jobResult.getQpu().contains(simulator)).findFirst().orElse(null);
+                jobResults.stream().filter(jobResult -> jobResult.getQpu().contains(simulator)).findFirst()
+                    .orElse(null);
             if (Objects.nonNull(simulatorQpuSelectionResult)) {
                 //check if qpu-selection result of simulator was already executed otherwise execute on simulator first
-                List<ExecutionResult> simulatorExecutionResults = executionResultRepository.findByQpuSelectionResult(simulatorQpuSelectionResult);
+                List<ExecutionResult> simulatorExecutionResults =
+                    executionResultRepository.findByQpuSelectionResult(simulatorQpuSelectionResult);
                 if (simulatorExecutionResults.size() == 0) {
 
                     Map<String, ParameterValue> simulatorParams = new HashMap<>();
@@ -200,18 +211,17 @@ public class QpuSelectionResultController {
                     ExecutionResult simulatorExecutionResult =
                         controlService.executeCompiledQpuSelectionCircuit(simulatorQpuSelectionResult, simulatorParams);
                     ExecutionResultDto simulatorDto = ExecutionResultDto.Converter.convert(simulatorExecutionResult);
-                    simulatorDto.add(
-                        linkTo(methodOn(ExecutionResultController.class).getExecutionResult(simulatorExecutionResult.getId())).withSelfRel());
+                    simulatorDto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(
+                        simulatorExecutionResult.getId())).withSelfRel());
 
-                    LOG.debug("Qpu-selection-result {} of {} has not yet been executed and will be executed now", simulatorQpuSelectionResult.getId(),
-                        simulator);
+                    LOG.debug("Qpu-selection-result {} of {} has not yet been executed and will be executed now",
+                        simulatorQpuSelectionResult.getId(), simulator);
                 } else {
                     LOG.debug("Qpu-selection-result {} for simulator already executed.", qpuSelectionResult.getId());
                 }
             } else {
                 LOG.debug("No qpu-selection-result for simulator found in related job {} of qpu-selection-result {}.",
-                    qpuSelectionResult.getQpuSelectionJobId(),
-                    qpuSelectionResult.getId());
+                    qpuSelectionResult.getQpuSelectionJobId(), qpuSelectionResult.getId());
             }
         }
 
@@ -220,8 +230,8 @@ public class QpuSelectionResultController {
             params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown,
                 executeAnalysisResultRequestDto.getTokens().get("ibmq").get("ibmq")));
         } else if (qpuSelectionResult.getProvider().equalsIgnoreCase("ionq")) {
-                params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown,
-                    executeAnalysisResultRequestDto.getTokens().get("ionq").get("ionq")));
+            params.put(Constants.TOKEN_PARAMETER, new ParameterValue(DataType.Unknown,
+                executeAnalysisResultRequestDto.getTokens().get("ionq").get("ionq")));
         } else if (qpuSelectionResult.getProvider().equalsIgnoreCase("aws")) {
             params.put(Constants.AWS_ACCESS_TOKEN_PARAMETER, new ParameterValue(DataType.Unknown,
                 executeAnalysisResultRequestDto.getTokens().get("aws").get("awsAccessKey")));
@@ -231,25 +241,30 @@ public class QpuSelectionResultController {
 
         ExecutionResult executionResult = controlService.executeCompiledQpuSelectionCircuit(qpuSelectionResult, params);
         ExecutionResultDto dto = ExecutionResultDto.Converter.convert(executionResult);
-        dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(executionResult.getId())).withSelfRel());
+        dto.add(linkTo(
+            methodOn(ExecutionResultController.class).getExecutionResult(executionResult.getId())).withSelfRel());
         return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
     }
 
     private QpuSelectionResultDto createDto(QpuSelectionResult result) {
         QpuSelectionResultDto dto = QpuSelectionResultDto.Converter.convert(result);
-        dto.add(
-            linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionResult(result.getId(), result.getUserId())).withSelfRel().expand());
-        //dto.add(linkTo(methodOn(QpuSelectionResultController.class).executeQpuSelectionResult(result.getId(), null)).withRel(Constants.EXECUTION));
+        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionResult(result.getId(),
+            result.getUserId())).withSelfRel().expand());
+        //dto.add(linkTo(methodOn(QpuSelectionResultController.class).executeQpuSelectionResult(result.getId(), null)
+        // ).withRel(Constants.EXECUTION));
         for (ExecutionResult executionResult : executionResultRepository.findByQpuSelectionResult(result)) {
-            dto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(executionResult.getId()))
-                .withRel(Constants.EXECUTION + "-" + executionResult.getId()));
+            dto.add(
+                linkTo(methodOn(ExecutionResultController.class).getExecutionResult(executionResult.getId())).withRel(
+                    Constants.EXECUTION + "-" + executionResult.getId()));
         }
         return dto;
     }
 
     private QpuSelectionJobDto createJobDto(QpuSelectionJob job) {
         QpuSelectionJobDto dto = QpuSelectionJobDto.Converter.convert(job);
-        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId(), job.getUserId())).withSelfRel().expand());
+        dto.add(linkTo(
+            methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId(), job.getUserId())).withSelfRel()
+            .expand());
         return dto;
     }
 }

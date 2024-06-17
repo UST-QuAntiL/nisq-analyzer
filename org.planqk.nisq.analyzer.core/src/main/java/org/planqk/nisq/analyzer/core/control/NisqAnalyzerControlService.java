@@ -160,51 +160,6 @@ public class NisqAnalyzerControlService {
     }
 
     /**
-     * Execute the given quantum algorithm implementation with the given input parameters and return the corresponding
-     * output of the execution.
-     *
-     * @param result          the analysis result that shall be executed
-     * @param inputParameters the input parameters for the execution as key/value pairs
-     * @return the ExecutionResult to track the current status and store the result
-     * @throws RuntimeException is thrown in case the execution of the algorithm implementation fails
-     */
-    /*public ExecutionResult executeQuantumAlgorithmImplementation(AnalysisResult result,
-                                                                 Map<String, ParameterValue> inputParameters,
-                                                                 String refreshToken) throws RuntimeException {
-        final Implementation implementation = result.getImplementation();
-        LOG.debug("Executing quantum algorithm implementation with Id: {} and name: {}", implementation.getId(),
-            implementation.getName());
-
-        // get suited Sdk connector plugin
-        SdkConnector selectedSdkConnector =
-            connectorList.stream().filter(executor -> executor.getName().equals(result.getCompiler())).findFirst()
-                .orElse(null);
-        if (Objects.isNull(selectedSdkConnector)) {
-            LOG.error("Unable to find connector plugin with name {}.", result.getCompiler());
-            throw new RuntimeException("Unable to find connector plugin with name " + result.getCompiler());
-        }
-
-        // Retrieve the QPU from Qiskit-Service
-        Optional<Qpu> qpu = qProvService.getQpuByName(result.getQpu(), result.getProvider());
-        if (!qpu.isPresent()) {
-            LOG.error("Unable to find qpu with name {}.", result.getQpu());
-            throw new RuntimeException("Unable to find qpu with name " + result.getQpu());
-        }
-
-        // create a object to store the execution results
-        ExecutionResult executionResult = executionResultRepository.save(
-            new ExecutionResult(ExecutionResultStatus.INITIALIZED, "Passing execution to executor plugin.", result,
-                null, null, null, 0, 0, implementation));
-
-        // execute implementation
-        new Thread(
-            () -> selectedSdkConnector.executeQuantumAlgorithmImplementation(implementation, qpu.get(), inputParameters,
-                executionResult, executionResultRepository, refreshToken)).start();
-
-        return executionResult;
-    }
-
-    /**
      * Execute the compiled circuit from the given compilation result
      *
      * @param result          the compilation result to execute the circuit for

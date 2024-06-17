@@ -173,12 +173,12 @@ public class PyTketSdkConnector implements SdkConnector {
                                 QpuSelectionResult qResult = qpuSelectionResult.get();
 
                                 // check if target machine is of Rigetti or IBMQ, consider accordingly qvm simulator
-                                // or ibmq_qasm_simulator
+                                // or ibmq simulator
                                 String simulator;
                                 if (Objects.equals(qResult.getProvider(), Constants.RIGETTI)) {
                                     simulator = "qvm";
                                 } else {
-                                    simulator = "qasm_simulator";
+                                    simulator = "simulator";
                                 }
 
                                 // check if current execution result is already of a simulator otherwise get all
