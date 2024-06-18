@@ -151,7 +151,7 @@ public class NisqAnalyzerControlService {
                     originalCircuitInformation.getCircuitNumberOfSingleQubitGates(),
                     originalCircuitInformation.getCircuitNumberOfMultiQubitGates(),
                     originalCircuitInformation.getCircuitTotalNumberOfOperations(),
-                    originalCircuitInformation.getCircuitNumberOfMeasurementOperations(), null, null, circuitLanguage);
+                    originalCircuitInformation.getCircuitNumberOfMeasurementOperations(), null, circuitLanguage);
 
             return originalCircuitResultRepository.save(originalCircuitResult);
         }
@@ -308,7 +308,6 @@ public class NisqAnalyzerControlService {
                 circuitInformationOfImplementation.getCircuitNumberOfMultiQubitGates(),
                 circuitInformationOfImplementation.getCircuitTotalNumberOfOperations(),
                 circuitInformationOfImplementation.getCircuitNumberOfMeasurementOperations(),
-                circuitInformationOfImplementation.getCorrelationId(),
                 circuitInformationOfImplementation.getGeneratedCircuit(),
                 circuitInformationOfImplementation.getCircuitLanguage());
 
@@ -327,7 +326,7 @@ public class NisqAnalyzerControlService {
 
             AnalysisResult analysisResult =
                 new AnalysisResult(algorithm, implementation, inputParameters, originalCircuitResult.getId(),
-                    qpuSelectionJob.getId());
+                    qpuSelectionJob.getId(), circuitInformationOfImplementation.getCorrelationId());
             analysisResult = analysisResultRepository.save(analysisResult);
             analysisResults.add(analysisResult);
 

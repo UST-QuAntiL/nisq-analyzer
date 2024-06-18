@@ -50,8 +50,6 @@ public class OriginalCircuitResult extends HasId {
 
     private int originalNumberOfMeasurementOperations;
 
-    private String correlationID;
-
     @Lob
     private String circuit;
 

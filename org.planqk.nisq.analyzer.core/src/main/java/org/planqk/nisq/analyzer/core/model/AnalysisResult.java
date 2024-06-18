@@ -51,4 +51,6 @@ public class AnalysisResult extends HasId {
     private UUID originalCircuitResultId;
 
     private UUID qpuSelectionJobId;
+
+    private String correlationId;
 }
