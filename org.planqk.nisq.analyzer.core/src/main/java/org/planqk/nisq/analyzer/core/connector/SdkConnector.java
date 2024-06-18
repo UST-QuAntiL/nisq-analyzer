@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.connector;
 
 import java.io.File;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,7 +68,8 @@ public interface SdkConnector {
     void executeTranspiledQuantumCircuit(String transpiledCircuit, String transpiledLanguage, String providerName,
                                          String qpuName, Map<String, ParameterValue> parameters,
                                          ExecutionResult executionResult, ExecutionResultRepository resultRepository,
-                                         QpuSelectionResultRepository qpuSelectionResultRepository);
+                                         QpuSelectionResultRepository qpuSelectionResultRepository,
+                                         String correlationId, URL fileLocation);
 
     /**
      * Analyse the quantum algorithm implementation located at the given URL after compiling it for the given QPU and

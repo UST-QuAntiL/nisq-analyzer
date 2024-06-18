@@ -22,6 +22,7 @@ package org.planqk.nisq.analyzer.core.control;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -186,7 +187,7 @@ public class NisqAnalyzerControlService {
         // execute implementation
         new Thread(() -> selectedSdkConnector.executeTranspiledQuantumCircuit(result.getTranspiledCircuit(),
             result.getTranspiledLanguage(), result.getProvider(), result.getQpu(), inputParameters, executionResult,
-            executionResultRepository, null)).start();
+            executionResultRepository, null, null, null)).start();
 
         return executionResult;
     }
@@ -199,8 +200,25 @@ public class NisqAnalyzerControlService {
      * @return the ExecutionResult to track the current status and store the result
      */
     public ExecutionResult executeCompiledQpuSelectionCircuit(QpuSelectionResult result,
-                                                              Map<String, ParameterValue> inputParameters) {
+                                                              Map<String, ParameterValue> inputParameters,
+                                                              String correlationId) {
 
+        URL fileLocation;
+
+        if (correlationId != null && !correlationId.isEmpty()) {
+            List<AnalysisResult> analysisResultList =
+                analysisResultRepository.findByQpuSelectionJobId(result.getQpuSelectionJobId());
+            if (!analysisResultList.isEmpty()) {
+                Optional<AnalysisResult> analysisResult =
+                    analysisResultList.stream().filter(anaResult -> anaResult.getCorrelationId().equals(correlationId))
+                        .findFirst();
+                fileLocation = analysisResult.map(value -> value.getImplementation().getFileLocation()).orElse(null);
+            } else {
+                fileLocation = null;
+            }
+        } else {
+            fileLocation = null;
+        }
         // get suited Sdk connector plugin
         SdkConnector selectedSdkConnector =
             connectorList.stream().filter(executor -> executor.supportedSdks().contains(result.getCompiler()))
@@ -218,7 +236,7 @@ public class NisqAnalyzerControlService {
         // execute implementation
         new Thread(() -> selectedSdkConnector.executeTranspiledQuantumCircuit(result.getTranspiledCircuit(),
             result.getTranspiledLanguage(), result.getProvider(), result.getQpu(), inputParameters, executionResult,
-            executionResultRepository, qpuSelectionResultRepository)).start();
+            executionResultRepository, qpuSelectionResultRepository, correlationId, fileLocation)).start();
 
         return executionResult;
     }

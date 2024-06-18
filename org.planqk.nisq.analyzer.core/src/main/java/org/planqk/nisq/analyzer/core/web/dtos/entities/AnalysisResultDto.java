@@ -44,7 +44,7 @@ public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
 
     private UUID qpuSelectionJobId;
 
-    private String correlationID;
+    private String correlationId;
 
     public static final class Converter {
 
@@ -55,7 +55,7 @@ public class AnalysisResultDto extends RepresentationModel<AnalysisResultDto> {
             dto.setInputParameters(object.getInputParameters());
             dto.setOriginalCircuitResultId(object.getOriginalCircuitResultId());
             dto.setQpuSelectionJobId(object.getQpuSelectionJobId());
-            dto.setCorrelationID(object.getCorrelationId());
+            dto.setCorrelationId(object.getCorrelationId());
             return dto;
         }
     }

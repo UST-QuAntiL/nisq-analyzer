@@ -76,6 +76,11 @@ public class QiskitRequest {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String bearerToken;
 
+    @Getter
+    @Setter
+    @JsonProperty(value = "correlation-id")
+    private String correlation_id;
+
     public QiskitRequest(URL impl_url, String impl_language, String qpu_name, String provider,
                          Map<String, ParameterValue> input_params, String bearerToken) {
         this.impl_url = impl_url;
@@ -101,6 +106,16 @@ public class QiskitRequest {
         this.qpu_name = qpu_name;
         this.provider = provider;
         this.input_params = input_params;
+    }
+
+    public QiskitRequest(String transpiled_qasm, String qpu_name, String provider,
+                         Map<String, ParameterValue> input_params, String correlation_id, URL impl_url) {
+        this.transpiled_qasm = transpiled_qasm;
+        this.qpu_name = qpu_name;
+        this.provider = provider;
+        this.input_params = input_params;
+        this.correlation_id = correlation_id;
+        this.impl_url = impl_url;
     }
 
     public QiskitRequest(String impl_data, Map<String, ParameterValue> input_params, String impl_language) {

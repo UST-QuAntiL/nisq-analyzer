@@ -24,6 +24,7 @@ import static org.planqk.nisq.analyzer.core.web.Utils.getBearerTokenFromRefreshT
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
@@ -104,7 +105,8 @@ public class ForestSdkConnector implements SdkConnector {
                                                 String providerName, String qpuName,
                                                 Map<String, ParameterValue> parameters, ExecutionResult executionResult,
                                                 ExecutionResultRepository resultRepository,
-                                                QpuSelectionResultRepository qpuSelectionResultRepository) {
+                                                QpuSelectionResultRepository qpuSelectionResultRepository,
+                                                String correlationId, URL fileLocation) {
         LOG.debug("Executing circuit passed as file with provider '{}' and qpu '{}'.", providerName, qpuName);
         ForestRequest request = new ForestRequest(transpiledCircuit, qpuName, parameters);
         executeQuantumCircuit(request, executionResult, resultRepository);

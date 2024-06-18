@@ -209,7 +209,8 @@ public class QpuSelectionResultController {
                         executeAnalysisResultRequestDto.getTokens().get("ibmq").get("ibmq")));
 
                     ExecutionResult simulatorExecutionResult =
-                        controlService.executeCompiledQpuSelectionCircuit(simulatorQpuSelectionResult, simulatorParams);
+                        controlService.executeCompiledQpuSelectionCircuit(simulatorQpuSelectionResult, simulatorParams,
+                            executeAnalysisResultRequestDto.getCorrelationId());
                     ExecutionResultDto simulatorDto = ExecutionResultDto.Converter.convert(simulatorExecutionResult);
                     simulatorDto.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResult(
                         simulatorExecutionResult.getId())).withSelfRel());
@@ -239,7 +240,8 @@ public class QpuSelectionResultController {
                 executeAnalysisResultRequestDto.getTokens().get("aws").get("awsSecretKey")));
         }
 
-        ExecutionResult executionResult = controlService.executeCompiledQpuSelectionCircuit(qpuSelectionResult, params);
+        ExecutionResult executionResult = controlService.executeCompiledQpuSelectionCircuit(qpuSelectionResult, params,
+            executeAnalysisResultRequestDto.getCorrelationId());
         ExecutionResultDto dto = ExecutionResultDto.Converter.convert(executionResult);
         dto.add(linkTo(
             methodOn(ExecutionResultController.class).getExecutionResult(executionResult.getId())).withSelfRel());
