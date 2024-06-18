@@ -1,5 +1,5 @@
-/********************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+/*******************************************************************************
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.model;
 
+import java.net.URI;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
@@ -76,4 +77,8 @@ public class ExecutionResult extends HasId {
     @Setter
     @ManyToOne
     private Implementation executedImplementation;
+
+    @Getter
+    @Setter
+    private URI resultLocation;
 }

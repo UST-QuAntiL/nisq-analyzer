@@ -182,7 +182,7 @@ public class NisqAnalyzerControlService {
         // create a object to store the execution results
         ExecutionResult executionResult = executionResultRepository.save(
             new ExecutionResult(ExecutionResultStatus.INITIALIZED, "Passing execution to executor plugin.", null,
-                result, null, null, 0, 0, null));
+                result, null, null, 0, 0, null, null));
 
         // execute implementation
         new Thread(() -> selectedSdkConnector.executeTranspiledQuantumCircuit(result.getTranspiledCircuit(),
@@ -231,7 +231,7 @@ public class NisqAnalyzerControlService {
         // create a object to store the execution results
         ExecutionResult executionResult = executionResultRepository.save(
             new ExecutionResult(ExecutionResultStatus.INITIALIZED, "Passing execution to executor plugin.", null, null,
-                result, null, 0, 0, null));
+                result, null, 0, 0, null, null));
 
         // execute implementation
         new Thread(() -> selectedSdkConnector.executeTranspiledQuantumCircuit(result.getTranspiledCircuit(),

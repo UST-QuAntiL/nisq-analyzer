@@ -214,6 +214,7 @@ public class QiskitSdkConnector implements SdkConnector {
                         executionResult.setStatusCode("Execution successfully completed.");
                         executionResult.setResult(result.getResult().toString());
                         executionResult.setShots(result.getShots());
+                        executionResult.setResultLocation(resultLocation);
 
                         // histogram intersection
                         //FIXME currently only for qpu-selection
