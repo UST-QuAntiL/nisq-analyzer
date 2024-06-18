@@ -115,7 +115,6 @@ public abstract class NisqAnalyzerTestCase {
         shor15qiskit.setFileLocation(URI.create(
             "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
                 "/Shor/shor-fix-15-qiskit.py").toURL());
-        shor15qiskit.setSelectionRule("processable(N, shor-fix-15-qiskit) :- N is 15.");
         shor15qiskit.setLanguage("Qiskit");
         shor15qiskit.setSdk(qiskitSDK);
         shor15qiskit.setInputParameters(Arrays.asList(new Parameter("N", DataType.Integer, "N = 15", "")));
@@ -129,7 +128,6 @@ public abstract class NisqAnalyzerTestCase {
             "https://platform.planqk.de/qc-catalog/algorithms/e7413acf-c25e-4de8-ab78-75bfc836a839" +
                 "/implementations/1207510f-9007-48b3-93b8-ea51359c0ced/files/1d827208-1976-487e-819b-64df6e990bf3" +
                 "/content").toURL());
-        shor15qiskitPlanQK.setSelectionRule("processable(N, shor-fix-15-qiskit) :- N is 15.");
         shor15qiskitPlanQK.setLanguage("Qiskit");
         shor15qiskitPlanQK.setSdk(qiskitSDK);
         shor15qiskitPlanQK.setInputParameters(Arrays.asList(new Parameter("N", DataType.Integer, "N = 15", "")));
@@ -142,7 +140,6 @@ public abstract class NisqAnalyzerTestCase {
         shor15pytket.setFileLocation(URI.create(
             "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
                 "/Shor/shor-fix-15-qiskit.py").toURL());
-        shor15pytket.setSelectionRule("processable(N, shor-fix-15-pytket) :- N is 15.");
         shor15pytket.setLanguage("Qiskit");
         shor15pytket.setSdk(pytketSDK);
         shor15pytket.setInputParameters(Arrays.asList(new Parameter("N", DataType.Integer, "N = 15", "")));
@@ -155,7 +152,6 @@ public abstract class NisqAnalyzerTestCase {
         shorGeneralQiskit.setFileLocation(URI.create(
             "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
                 "/Shor/shor-general-qiskit.py").toURL());
-        shorGeneralQiskit.setSelectionRule("processable(N, shor-general-qiskit) :- N > 2, 1 is mod(N, 2).");
         shorGeneralQiskit.setLanguage("Qiskit");
         shorGeneralQiskit.setSdk(qiskitSDK);
         shorGeneralQiskit.setInputParameters(Arrays.asList(new Parameter("N", DataType.Integer, "N > 2", "")));
@@ -168,7 +164,6 @@ public abstract class NisqAnalyzerTestCase {
         shorGeneralPytket.setFileLocation(URI.create(
             "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
                 "/Shor/shor-general-qiskit.py").toURL());
-        shorGeneralPytket.setSelectionRule("processable(N, shor-general-pytket) :- N > 2, 1 is mod(N, 2).");
         shorGeneralPytket.setLanguage("Qiskit");
         shorGeneralPytket.setSdk(pytketSDK);
         shorGeneralPytket.setInputParameters(Arrays.asList(new Parameter("N", DataType.Integer, "N > 2", "")));
@@ -183,8 +178,6 @@ public abstract class NisqAnalyzerTestCase {
         groverFixTruthtable.setFileLocation(URI.create(
             "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
                 "/Grover-Truthtable/grover-fix-truthtable-qiskit.py").toURL());
-        groverFixTruthtable.setSelectionRule(
-            "processable(Oracle, grover-fix-truthtable-qiskit) :- Oracle = '0010000000000000'.");
         groverFixTruthtable.setLanguage("Qiskit");
         groverFixTruthtable.setSdk(qiskitSDK);
         groverFixTruthtable.setInputParameters(
@@ -198,9 +191,6 @@ public abstract class NisqAnalyzerTestCase {
         groverGeneralTruthtable.setFileLocation(URI.create(
             "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
                 "/Grover-Truthtable/grover-general-truthtable-qiskit.py").toURL());
-        groverGeneralTruthtable.setSelectionRule(
-            "processable(Oracle, grover-general-truthtable-qiskit) :- Oracle =~ '^[01]+$', atom_length(Oracle, X), X " +
-                "is X /\\ (-X).");
         groverGeneralTruthtable.setLanguage("Qiskit");
         groverGeneralTruthtable.setSdk(qiskitSDK);
         groverGeneralTruthtable.setInputParameters(Arrays.asList(new Parameter("Oracle", DataType.String,
@@ -215,8 +205,6 @@ public abstract class NisqAnalyzerTestCase {
         groverFixSAT.setFileLocation(URI.create(
             "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
                 "/Grover-SAT/grover-fix-sat-qiskit.py").toURL());
-        groverFixSAT.setSelectionRule(
-            "processable(Formula, grover-fix-sat-qiskit) :- Formula = '(A | B) & (A | ~B) & (~A | B)'.");
         groverFixSAT.setLanguage("Qiskit");
         groverFixSAT.setSdk(qiskitSDK);
         groverFixSAT.setInputParameters(
@@ -230,8 +218,6 @@ public abstract class NisqAnalyzerTestCase {
         groverGeneralSAT.setFileLocation(URI.create(
             "https://raw.githubusercontent.com/UST-QuAntiL/nisq-analyzer-content/master/example-implementations" +
                 "/Grover-SAT/grover-general-sat-qiskit.py").toURL());
-        groverGeneralSAT.setSelectionRule(
-            "processable(Formula, grover-general-sat-qiskit) :- Formula =~ '^[0-9A-Za-z|&()~^ ]+$'.");
         groverGeneralSAT.setLanguage("Qiskit");
         groverGeneralSAT.setSdk(qiskitSDK);
         groverGeneralSAT.setInputParameters(Arrays.asList(new Parameter("Formula", DataType.String, "", "")));

@@ -1,5 +1,5 @@
-/********************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+/*******************************************************************************
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -34,4 +34,6 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 @RepositoryRestResource(exported = false)
 public interface AnalysisResultRepository extends JpaRepository<AnalysisResult, UUID> {
     List<AnalysisResult> findByImplementedAlgorithm(UUID implementedAlgorithm, Sort sort);
+
+    List<AnalysisResult> findByQpuSelectionJobId(UUID qpuSelectionJobId);
 }

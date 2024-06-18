@@ -93,14 +93,13 @@ public class AnalysisResultController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"),
-        @ApiResponse(responseCode = "404", content = @Content)}, description = "Retrieve all compiler analysis jobs")
+        @ApiResponse(responseCode = "404", content = @Content)}, description = "Retrieve all analysis jobs")
     @GetMapping("/" + Constants.JOBS)
     @Transactional
     public HttpEntity<AnalysisJobListDto> getAnalysisJobs() {
         AnalysisJobListDto model = new AnalysisJobListDto();
         model.add(
             analysisJobRepository.findAll().stream().map(this::createAnalysisJobDto).collect(Collectors.toList()));
-        model.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJobs()).withSelfRel());
         return new ResponseEntity<>(model, HttpStatus.OK);
     }
 

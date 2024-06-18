@@ -154,8 +154,7 @@ public class ImplementationController {
 
         // check consistency of the implementation object
         if (Objects.isNull(impl.getName()) || Objects.isNull(impl.getImplementedAlgorithm()) ||
-            Objects.isNull(impl.getSelectionRule()) || Objects.isNull(impl.getSdk()) ||
-            Objects.isNull(impl.getFileLocation())) {
+            Objects.isNull(impl.getSdk()) || Objects.isNull(impl.getFileLocation())) {
             LOG.error("Received invalid implementation object for post request: {}", impl.toString());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -190,8 +189,7 @@ public class ImplementationController {
 
         // check consistency of the implementation object
         if (Objects.isNull(impl.getName()) || Objects.isNull(impl.getImplementedAlgorithm()) ||
-            Objects.isNull(impl.getSelectionRule()) || Objects.isNull(impl.getSdk()) ||
-            Objects.isNull(impl.getFileLocation())) {
+            Objects.isNull(impl.getSdk()) || Objects.isNull(impl.getFileLocation())) {
             LOG.error("Received invalid implementation object for put request: {}", impl.toString());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
