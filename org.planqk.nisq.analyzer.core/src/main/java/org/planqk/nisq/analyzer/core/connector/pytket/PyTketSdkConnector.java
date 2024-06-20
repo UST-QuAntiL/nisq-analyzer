@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.connector.pytket;
 
+import static org.planqk.nisq.analyzer.core.connector.ConnectorUtils.calculateHistogramIntersection;
 import static org.planqk.nisq.analyzer.core.web.Utils.getBearerTokenFromRefreshToken;
 
 import java.io.File;
@@ -28,7 +29,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -49,13 +49,13 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
-import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.model.QpuSelectionResult;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
@@ -73,6 +73,8 @@ public class PyTketSdkConnector implements SdkConnector {
     private int pollInterval;
 
     // API Endpoints
+    private URI generateAPIEndpoint;
+
     private URI transpileAPIEndpoint;
 
     private URI executeAPIEndpoint;
@@ -83,6 +85,8 @@ public class PyTketSdkConnector implements SdkConnector {
                               @Value("${org.planqk.nisq.analyzer.connector.pytket.port}") int port,
                               @Value("${org.planqk.nisq.analyzer.connector.pytket.version}") String version) {
         // compile the API endpoints
+        generateAPIEndpoint =
+            URI.create(String.format("http://%s:%d/pytket-service/api/%s/generate-circuit", hostname, port, version));
         analyzeOriginalAPIEndpoint = URI.create(
             String.format("http://%s:%d/pytket-service/api/%s/analyze-original-circuit", hostname, port, version));
         this.transpileAPIEndpoint =
@@ -91,18 +95,73 @@ public class PyTketSdkConnector implements SdkConnector {
             URI.create(String.format("http://%s:%d/pytket-service/api/%s/execute", hostname, port, version));
     }
 
-    @Override
-    public void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu,
-                                                      Map<String, ParameterValue> parameters,
-                                                      ExecutionResult executionResult,
-                                                      ExecutionResultRepository resultRepository, String refreshToken) {
-
-        LOG.debug("Executing quantum algorithm implementation with PyTKet Sdk connector plugin!");
+    public CircuitInformationOfImplementation getCircuitOfImplementation(Implementation implementation,
+                                                                         Map<String, ParameterValue> parameters,
+                                                                         String refreshToken) {
+        LOG.debug(
+            "Generating and analyzing quantum circuit of quantum algorithm implementation with Pytket Sdk connector " +
+                "plugin!");
         String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
         PyTketRequest request =
-            new PyTketRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(),
-                qpu.getProvider(), parameters, bearerToken);
-        executeQuantumCircuit(request, executionResult, resultRepository, null);
+            new PyTketRequest(implementation.getFileLocation(), implementation.getLanguage(), parameters, bearerToken);
+
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            // request to generate circuit
+            URI circuitLocation = restTemplate.postForLocation(generateAPIEndpoint, request);
+
+            ExecutionResultStatus generationComplete = ExecutionResultStatus.RUNNING;
+
+            // poll the Pytket service frequently
+            while (generationComplete != ExecutionResultStatus.FAILED) {
+                try {
+                    ResponseEntity<CircuitInformationOfImplementation> response =
+                        restTemplate.exchange(circuitLocation, HttpMethod.GET, null,
+                            CircuitInformationOfImplementation.class);
+
+                    CircuitInformationOfImplementation result = null;
+
+                    // Check if the Pytket service was successful
+                    if (response.getStatusCode().is2xxSuccessful()) {
+                        LOG.debug("Generating circuit using Pytket Service.");
+                        result = response.getBody();
+                        if (implementation.getLanguage().equalsIgnoreCase("qiskit")) {
+                            result.setCircuitLanguage(Constants.OPENQASM);
+                        } else if (implementation.getLanguage().equalsIgnoreCase("pyquil")) {
+                            result.setCircuitLanguage(Constants.QUIL);
+                        }
+
+                        // Check if generation is completed
+                        if (result.isComplete()) {
+                            generationComplete = ExecutionResultStatus.FINISHED;
+                            return result;
+                        }
+                    } else if (response.getStatusCode().is4xxClientError()) {
+                        LOG.error(
+                            String.format("Pytket Service rejected request (HTTP %d)", response.getStatusCodeValue()));
+                        generationComplete = ExecutionResultStatus.FAILED;
+                    } else if (response.getStatusCode().is5xxServerError()) {
+                        LOG.error(
+                            String.format("Internal Pytket Service error (HTTP %d)", response.getStatusCodeValue()));
+                        generationComplete = ExecutionResultStatus.FAILED;
+                    }
+
+                    // Wait for next poll
+                    try {
+                        Thread.sleep(pollInterval);
+                    } catch (InterruptedException e) {
+                        // pass
+                    }
+                } catch (RestClientException e) {
+                    LOG.error("Polling generation result from Pytket Service failed.");
+                    generationComplete = ExecutionResultStatus.FAILED;
+                }
+            }
+        } catch (RestClientException e) {
+            LOG.error("Circuit generation with Pytket Service failed.");
+            throw new RuntimeException(e);
+        }
+        return null;
     }
 
     @Override
@@ -119,11 +178,11 @@ public class PyTketSdkConnector implements SdkConnector {
         switch (transpiledLanguage.toLowerCase()) {
             case "openqasm":
                 request = new PyTketRequest(qpuName, parameters, transpiledCircuit, providerName,
-                    PyTketRequest.TranspiledLanguage.OpenQASM);
+                    PyTketRequest.TranspiledLanguage.OpenQASM, correlationId, fileLocation);
                 break;
             case "quil":
                 request = new PyTketRequest(qpuName, parameters, transpiledCircuit, providerName,
-                    PyTketRequest.TranspiledLanguage.Quil);
+                    PyTketRequest.TranspiledLanguage.Quil, correlationId, fileLocation);
                 break;
         }
 
@@ -164,6 +223,7 @@ public class PyTketSdkConnector implements SdkConnector {
                         executionResult.setStatusCode("Execution successfully completed.");
                         executionResult.setResult(result.getResult().toString());
                         executionResult.setShots(result.getShots());
+                        executionResult.setResultLocation(resultLocation);
 
                         // histogram intersection
                         //FIXME currently only for qpu-selection
@@ -185,76 +245,8 @@ public class PyTketSdkConnector implements SdkConnector {
 
                                 // check if current execution result is already of a simulator otherwise get all
                                 // qpu-selection-results of same job
-                                if (!qResult.getQpu().contains(simulator)) {
-                                    List<QpuSelectionResult> jobResults =
-                                        qpuSelectionResultRepository.findAllByQpuSelectionJobId(
-                                            qResult.getQpuSelectionJobId());
-                                    // get qpuSelectionResult of simulator if available
-                                    QpuSelectionResult simulatorQpuSelectionResult =
-                                        jobResults.stream().filter(jobResult -> jobResult.getQpu().contains(simulator))
-                                            .findFirst().orElse(null);
-                                    if (Objects.nonNull(simulatorQpuSelectionResult)) {
-                                        //check if qpu-selection result of simulator was already executed otherwise
-                                        // wait max 1 minute
-                                        int iterator = 60;
-                                        while (iterator > 0) {
-                                            try {
-                                                Thread.sleep(1000);
-                                                ExecutionResult simulatorExecutionResult =
-                                                    resultRepository.findAll().stream().filter(
-                                                            exResults -> Objects.nonNull(exResults.getQpuSelectionResult()))
-                                                        .filter(exeResult -> exeResult.getQpuSelectionResult().getId()
-                                                            .equals(simulatorQpuSelectionResult.getId())).findFirst()
-                                                        .orElse(null);
-
-                                                // as soon as execution result of simulator is returned calculate
-                                                // histogram intersection
-                                                if (Objects.nonNull(simulatorExecutionResult)) {
-                                                    // convert stored execution result of simulator to Map
-                                                    String simulatorExecutionResultString =
-                                                        simulatorExecutionResult.getResult();
-                                                    Map<String, Integer> simulatorCountsOfResults = new HashMap<>();
-                                                    String rawData =
-                                                        simulatorExecutionResultString.replaceAll("[\\{\\}\\s+]", "");
-                                                    String[] instances = rawData.split(",");
-                                                    for (String instance : instances) {
-                                                        String[] resultsData = instance.split("=");
-                                                        String measurementResult = resultsData[0].trim();
-                                                        int counts = Integer.parseInt(resultsData[1].trim());
-                                                        simulatorCountsOfResults.put(measurementResult, counts);
-                                                    }
-
-                                                    Map<String, Integer> qpuExecutionResult = result.getResult();
-                                                    // histogram intersection calculation
-                                                    double intersection = 0;
-                                                    for (String qpuKey : qpuExecutionResult.keySet()) {
-                                                        if (!simulatorCountsOfResults.containsKey(qpuKey)) {
-                                                            simulatorCountsOfResults.put(qpuKey, 0);
-                                                        }
-                                                    }
-                                                    for (String simulatorKey : simulatorCountsOfResults.keySet()) {
-                                                        if (!qpuExecutionResult.containsKey(simulatorKey)) {
-                                                            qpuExecutionResult.put(simulatorKey, 0);
-                                                        }
-                                                        intersection = intersection +
-                                                            Math.min(simulatorCountsOfResults.get(simulatorKey),
-                                                                qpuExecutionResult.get(simulatorKey));
-                                                    }
-                                                    if (intersection > 0) {
-                                                        executionResult.setHistogramIntersectionValue(
-                                                            intersection / simulatorExecutionResult.getShots());
-                                                    }
-                                                    break;
-                                                }
-                                                iterator--;
-                                            } catch (InterruptedException e) {
-                                                // pass
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    executionResult.setHistogramIntersectionValue(1);
-                                }
+                                calculateHistogramIntersection(executionResult, resultRepository,
+                                    qpuSelectionResultRepository, result, qResult, simulator);
                             }
                         }
                         resultRepository.save(executionResult);
@@ -406,13 +398,6 @@ public class PyTketSdkConnector implements SdkConnector {
         } catch (IOException e) {
             LOG.error("Unable to read file content from circuit file!");
         }
-        return null;
-    }
-
-    @Override
-    public CircuitInformationOfImplementation getCircuitOfImplementation(Implementation implementation,
-                                                                         Map<String, ParameterValue> parameters,
-                                                                         String refreshToken) {
         return null;
     }
 }

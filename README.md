@@ -28,7 +28,6 @@ docker-compose up
 ```
 
 Now the NISQ Analyzer is available on http://localhost:5010/.  
-If you also started the Qiskit Service, it is available on http://localhost:5013/.
 
 ## Running on Tomcat
 

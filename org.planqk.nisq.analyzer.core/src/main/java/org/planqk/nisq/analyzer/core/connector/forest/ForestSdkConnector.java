@@ -46,7 +46,6 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResultStatus;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
-import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 import org.slf4j.Logger;
@@ -85,19 +84,6 @@ public class ForestSdkConnector implements SdkConnector {
             URI.create(String.format("http://%s:%d/forest-service/api/%s/transpile", hostname, port, version));
         executeAPIEndpoint =
             URI.create(String.format("http://%s:%d/forest-service/api/%s/execute", hostname, port, version));
-    }
-
-    @Override
-    public void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu,
-                                                      Map<String, ParameterValue> parameters,
-                                                      ExecutionResult executionResult,
-                                                      ExecutionResultRepository resultRepository, String refreshToken) {
-        LOG.debug("Executing quantum algorithm implementation with Forest Sdk connector plugin!");
-        String bearerToken = getBearerTokenFromRefreshToken(refreshToken)[0];
-        ForestRequest request =
-            new ForestRequest(implementation.getFileLocation(), implementation.getLanguage(), qpu.getName(), parameters,
-                bearerToken);
-        executeQuantumCircuit(request, executionResult, resultRepository);
     }
 
     @Override

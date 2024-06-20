@@ -29,7 +29,6 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
-import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 
@@ -37,21 +36,6 @@ import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
  * Interface for the interaction with a certain SDK.
  */
 public interface SdkConnector {
-
-    /**
-     * Execute the given quantum algorithm implementation with the given input parameters.
-     *
-     * @param implementation the implementation that should be executed
-     * @param qpu            the QPU to execute the implementation on
-     * @param parameters     the input parameters for the quantum algorithm execution
-     * @param resultService  the object to update the current state of the long running task and to add the results
-     *                       after completion
-     * @param refreshToken   a valid refresh token from the PlanQK platform, only needs to be specified if the
-     *                       implementation is hosted on the PlanQK platform
-     */
-    void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu,
-                                               Map<String, ParameterValue> parameters, ExecutionResult executionResult,
-                                               ExecutionResultRepository resultService, String refreshToken);
 
     /**
      * Execute the given transpiled quantum circuit.
