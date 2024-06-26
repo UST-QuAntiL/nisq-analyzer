@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -71,7 +71,13 @@ public class ForestRequest {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String bearerToken;
 
-    public ForestRequest(URL impl_url, String impl_language, String qpu_name, Map<String, ParameterValue> input_params, String bearerToken) {
+    @Getter
+    @Setter
+    @JsonProperty(value = "correlation-id")
+    private String correlation_id;
+
+    public ForestRequest(URL impl_url, String impl_language, String qpu_name, Map<String, ParameterValue> input_params,
+                         String bearerToken) {
         this.impl_url = impl_url;
         this.impl_language = impl_language;
         this.qpu_name = qpu_name;
@@ -79,11 +85,29 @@ public class ForestRequest {
         this.bearerToken = bearerToken;
     }
 
-    public ForestRequest(String impl_language, String impl_data, String qpu_name, Map<String, ParameterValue> input_params) {
+    public ForestRequest(String impl_language, String impl_data, String qpu_name,
+                         Map<String, ParameterValue> input_params) {
         this.impl_language = impl_language;
         this.impl_data = impl_data;
         this.qpu_name = qpu_name;
         this.input_params = input_params;
+    }
+
+    public ForestRequest(URL fileLocation, String language, Map<String, ParameterValue> parameters,
+                         String bearerToken) {
+        this.impl_url = fileLocation;
+        this.impl_language = language;
+        this.input_params = parameters;
+        this.bearerToken = bearerToken;
+    }
+
+    public ForestRequest(String transpiled_quil, String qpu_name, Map<String, ParameterValue> input_params,
+                         String correlation_id, URL impl_url) {
+        this.transpiled_quil = transpiled_quil;
+        this.qpu_name = qpu_name;
+        this.input_params = input_params;
+        this.correlation_id = correlation_id;
+        this.impl_url = impl_url;
     }
 
     public ForestRequest(String transpiled_quil, String qpu_name, Map<String, ParameterValue> input_params) {
