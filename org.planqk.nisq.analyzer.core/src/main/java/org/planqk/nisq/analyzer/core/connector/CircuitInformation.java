@@ -1,5 +1,5 @@
-/********************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+/*******************************************************************************
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -87,10 +87,10 @@ public class CircuitInformation {
 
     /**
      * Returns whether the transpilation was successfull
+     *
      * @return
      */
-    public boolean wasTranspilationSuccessfull()
-    {
+    public boolean wasTranspilationSuccessfull() {
         return this.error == null;
     }
 }

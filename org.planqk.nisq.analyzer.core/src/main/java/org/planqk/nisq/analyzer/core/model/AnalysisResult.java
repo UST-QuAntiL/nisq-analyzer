@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -31,14 +31,14 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * Object to represent the result of a analysis for a certain qpu and implementation
+ * Object to represent the result of an analysis for a certain qpu and implementation
  */
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AnalysisResult extends CircuitResult {
+public class AnalysisResult extends HasId {
 
     private UUID implementedAlgorithm;
 
@@ -47,4 +47,10 @@ public class AnalysisResult extends CircuitResult {
 
     @ElementCollection
     private Map<String, String> inputParameters;
+
+    private UUID originalCircuitResultId;
+
+    private UUID qpuSelectionJobId;
+
+    private String correlationId;
 }

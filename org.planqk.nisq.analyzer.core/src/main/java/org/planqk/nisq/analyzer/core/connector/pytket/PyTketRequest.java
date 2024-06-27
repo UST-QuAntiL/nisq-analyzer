@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -83,7 +83,13 @@ public class PyTketRequest {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String bearerToken;
 
-    public PyTketRequest(URL impl_url, String impl_language, String qpu_name, String provider, Map<String, ParameterValue> input_params, String bearerToken) {
+    @Getter
+    @Setter
+    @JsonProperty(value = "correlation-id")
+    private String correlation_id;
+
+    public PyTketRequest(URL impl_url, String impl_language, String qpu_name, String provider,
+                         Map<String, ParameterValue> input_params, String bearerToken) {
         this.impl_url = impl_url;
         this.impl_language = impl_language;
         this.qpu_name = qpu_name;
@@ -92,7 +98,8 @@ public class PyTketRequest {
         this.bearerToken = bearerToken;
     }
 
-    public PyTketRequest(String impl_data, Map<String, ParameterValue> input_params, String impl_language, String qpu_name, String provider) {
+    public PyTketRequest(String impl_data, Map<String, ParameterValue> input_params, String impl_language,
+                         String qpu_name, String provider) {
         this.impl_data = impl_data;
         this.impl_language = impl_language;
         this.qpu_name = qpu_name;
@@ -105,7 +112,8 @@ public class PyTketRequest {
         this.impl_language = impl_language;
     }
 
-    public PyTketRequest(String qpu_name, Map<String, ParameterValue> input_params, String transpiled, String provider, TranspiledLanguage language) {
+    public PyTketRequest(String qpu_name, Map<String, ParameterValue> input_params, String transpiled, String provider,
+                         TranspiledLanguage language) {
         this.qpu_name = qpu_name;
         this.provider = provider;
         this.input_params = input_params;
@@ -123,8 +131,37 @@ public class PyTketRequest {
         }
     }
 
+    public PyTketRequest(String qpu_name, Map<String, ParameterValue> input_params, String transpiled, String provider,
+                         TranspiledLanguage language, String correlation_id, URL impl_url) {
+        this.qpu_name = qpu_name;
+        this.provider = provider;
+        this.input_params = input_params;
+
+        switch (language) {
+            case Quil:
+                this.transpiled_quil = transpiled;
+                break;
+            case OpenQASM:
+                this.transpiled_qasm = transpiled;
+                break;
+            default:
+                this.transpiled_qasm = null;
+                this.transpiled_quil = null;
+        }
+
+        this.correlation_id = correlation_id;
+        this.impl_url = impl_url;
+    }
+
+    public PyTketRequest(URL fileLocation, String language, Map<String, ParameterValue> parameters,
+                         String bearerToken) {
+        this.impl_url = fileLocation;
+        this.impl_language = language;
+        this.input_params = parameters;
+        this.bearerToken = bearerToken;
+    }
+
     public enum TranspiledLanguage {
-        OpenQASM,
-        Quil
+        OpenQASM, Quil
     }
 }

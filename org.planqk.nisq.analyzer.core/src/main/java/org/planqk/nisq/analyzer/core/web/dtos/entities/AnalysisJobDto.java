@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -24,31 +24,28 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class AnalysisJobDto extends AnalysisResultListDto {
 
-    @Getter
-    @Setter
     private UUID id;
 
-    @Getter
-    @Setter
     private UUID implementedAlgorithm;
 
-    @Getter
-    @Setter
     private OffsetDateTime time;
 
-    @Getter
-    @Setter
     private Map<String, String> inputParameters;
 
-    @Getter
-    @Setter
     private boolean ready;
+
+    private UUID initialMcdaJob;
+
+    private String initialMcdaMethod;
 
     public static final class Converter {
 
@@ -59,7 +56,10 @@ public class AnalysisJobDto extends AnalysisResultListDto {
             dto.setTime(object.getTime());
             dto.setInputParameters(object.getInputParameters());
             dto.setReady(object.isReady());
-            dto.add(object.getJobResults().stream().map(AnalysisResultDto.Converter::convert).collect(Collectors.toList()));
+            dto.setInitialMcdaJob(object.getInitialMcdaJob());
+            dto.setInitialMcdaMethod(object.getInitialMcdaMethod());
+            dto.add(
+                object.getJobResults().stream().map(AnalysisResultDto.Converter::convert).collect(Collectors.toList()));
 
             return dto;
         }

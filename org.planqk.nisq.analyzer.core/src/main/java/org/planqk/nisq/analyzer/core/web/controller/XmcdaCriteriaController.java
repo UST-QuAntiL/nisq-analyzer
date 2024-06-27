@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -101,7 +101,8 @@ public class XmcdaCriteriaController {
 
     final private QpuSelectionResultRepository qpuSelectionResultRepository;
 
-    @Operation(responses = {@ApiResponse(responseCode = "200")}, description = "Get all supported prioritization methods")
+    @Operation(responses = {
+        @ApiResponse(responseCode = "200")}, description = "Get all supported prioritization methods")
     @GetMapping("/")
     public HttpEntity<McdaMethodListDto> getSupportedPrioritizationMethods() {
         LOG.debug("Retrieving all supported MCDA methods!");
@@ -110,7 +111,9 @@ public class XmcdaCriteriaController {
         // add all supported methods and corresponding links
         for (McdaMethod mcdaMethod : mcdaMethods) {
             model.add(createMcdaMethodDto(mcdaMethod));
-            model.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationMethod(mcdaMethod.getName())).withRel(mcdaMethod.getName()));
+            model.add(
+                linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationMethod(mcdaMethod.getName())).withRel(
+                    mcdaMethod.getName()));
         }
 
         // add self link
@@ -118,12 +121,14 @@ public class XmcdaCriteriaController {
         return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve a single prioritization method")
+    @Operation(responses = {@ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "404", content = @Content)}, description = "Retrieve a single prioritization " +
+        "method")
     @GetMapping("/{methodName}")
     public HttpEntity<McdaMethodDto> getPrioritizationMethod(@PathVariable String methodName) {
         LOG.debug("Retrieving MCDA method with name: {}", methodName);
-        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
+        Optional<McdaMethod> optional =
+            mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
 
         if (!optional.isPresent()) {
             LOG.error("MCDA method with name {} not supported.", methodName);
@@ -133,12 +138,14 @@ public class XmcdaCriteriaController {
         return new ResponseEntity<>(createMcdaMethodDto(optional.get()), HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve a single prioritization method")
+    @Operation(responses = {@ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "404", content = @Content)}, description = "Retrieve a single prioritization " +
+        "method")
     @GetMapping("/{methodName}/" + Constants.CRITERIA)
     public HttpEntity<McdaCriterionListDto> getCriterionForMethod(@PathVariable String methodName) {
         LOG.debug("Retrieving criteria for MCDA method with name: {}", methodName);
-        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
+        Optional<McdaMethod> optional =
+            mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
 
         if (!optional.isPresent()) {
             LOG.error("MCDA method with name {} not supported.", methodName);
@@ -147,25 +154,26 @@ public class XmcdaCriteriaController {
 
         // get dtos for all criterion defined for this MCDA method
         List<McdaCriterionDto> mcdaCriterionDtos = xmcdaRepository.findByMcdaMethod(methodName).stream()
-                .map(criterion -> createMcdaCriterionDto(criterion, methodName))
-                .collect(Collectors.toList());
+            .map(criterion -> createMcdaCriterionDto(criterion, methodName)).collect(Collectors.toList());
 
         McdaCriterionListDto mcdaCriterionListDto = new McdaCriterionListDto();
         mcdaCriterionListDto.add(mcdaCriterionDtos);
-        mcdaCriterionListDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getCriterionForMethod(methodName)).withSelfRel());
+        mcdaCriterionListDto.add(
+            linkTo(methodOn(XmcdaCriteriaController.class).getCriterionForMethod(methodName)).withSelfRel());
         return new ResponseEntity<>(mcdaCriterionListDto, HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve a single criterion for a MCDA method")
+    @Operation(responses = {@ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "404", content = @Content)}, description = "Retrieve a single criterion for a " +
+        "MCDA method")
     @GetMapping("/{methodName}/" + Constants.CRITERIA + "/{criterionId}")
-    public HttpEntity<McdaCriterionDto> getCriterion(@PathVariable String methodName, @PathVariable String criterionId) {
+    public HttpEntity<McdaCriterionDto> getCriterion(@PathVariable String methodName,
+                                                     @PathVariable String criterionId) {
 
         // get dtos for all criterion defined for this MCDA method
         Optional<McdaCriterionDto> mcdaCriterionDto = xmcdaRepository.findByMcdaMethod(methodName).stream()
-                .filter(criterion -> criterion.getId().equals(criterionId))
-                .map(criterion -> createMcdaCriterionDto(criterion, methodName))
-                .findFirst();
+            .filter(criterion -> criterion.getId().equals(criterionId))
+            .map(criterion -> createMcdaCriterionDto(criterion, methodName)).findFirst();
 
         if (!mcdaCriterionDto.isPresent()) {
             LOG.error("Unable to find criterion with id {} for MCDA method: {}", criterionId, methodName);
@@ -175,17 +183,20 @@ public class XmcdaCriteriaController {
         return new ResponseEntity<>(mcdaCriterionDto.get(), HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve the criterion value for a MCDA method")
+    @Operation(responses = {@ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "404", content = @Content)}, description = "Retrieve the criterion value for a " +
+        "MCDA method")
     @GetMapping("/{methodName}/" + Constants.CRITERIA + "/{criterionId}/" + Constants.CRITERIA_VALUE)
-    public HttpEntity<EntityModel<CriterionValue>> getCriterionValue(@PathVariable String methodName, @PathVariable String criterionId) {
+    public HttpEntity<EntityModel<CriterionValue>> getCriterionValue(@PathVariable String methodName,
+                                                                     @PathVariable String criterionId) {
 
         Optional<EntityModel<CriterionValue>> mcdaCriterionValueDto =
-                xmcdaRepository.findByCriterionIdAndMethod(criterionId, methodName)
-                        .map(criterionValue -> createMcdaCriterionValueDto(criterionValue, methodName));
+            xmcdaRepository.findByCriterionIdAndMethod(criterionId, methodName)
+                .map(criterionValue -> createMcdaCriterionValueDto(criterionValue, methodName));
 
         if (!mcdaCriterionValueDto.isPresent()) {
-            LOG.error("Unable to find criterion value for criterion with id {} and MCDA method: {}", criterionId, methodName);
+            LOG.error("Unable to find criterion value for criterion with id {} and MCDA method: {}", criterionId,
+                methodName);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
@@ -193,23 +204,26 @@ public class XmcdaCriteriaController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400"),
-            @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve the criterion value for a MCDA method")
+        @ApiResponse(responseCode = "404", content = @Content)}, description = "Retrieve the criterion value for a " +
+        "MCDA method")
     @PutMapping("/{methodName}/" + Constants.CRITERIA + "/{criterionId}/" + Constants.CRITERIA_VALUE)
-    public HttpEntity<EntityModel<CriterionValue>> updateCriterionValue(@PathVariable String methodName, @PathVariable String criterionId,
+    public HttpEntity<EntityModel<CriterionValue>> updateCriterionValue(@PathVariable String methodName,
+                                                                        @PathVariable String criterionId,
                                                                         @RequestBody CriterionValue criterionValue) {
 
         // find existing entity that should be updated
         Optional<EntityModel<CriterionValue>> mcdaCriterionValueDto =
-                xmcdaRepository.findByCriterionIdAndMethod(criterionId, methodName)
-                        .map(value -> createMcdaCriterionValueDto(criterionValue, methodName));
+            xmcdaRepository.findByCriterionIdAndMethod(criterionId, methodName)
+                .map(value -> createMcdaCriterionValueDto(criterionValue, methodName));
 
         if (!mcdaCriterionValueDto.isPresent()) {
-            LOG.error("Unable to find criterion value for criterion with id {} and MCDA method: {}", criterionId, methodName);
+            LOG.error("Unable to find criterion value for criterion with id {} and MCDA method: {}", criterionId,
+                methodName);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        if (!criterionValue.getCriterionID().equals(criterionId) || !criterionValue.getMcdaMethod().equals(methodName)) {
+        if (!criterionValue.getCriterionID().equals(criterionId) ||
+            !criterionValue.getMcdaMethod().equals(methodName)) {
             LOG.error("Updated criterion value must specify correct criterion id and MCDA method name!");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -238,14 +252,16 @@ public class XmcdaCriteriaController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve all MCDA jobs for the given method")
+    @Operation(responses = {@ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "404", content = @Content)}, description = "Retrieve all MCDA jobs for the given " +
+        "method")
     @GetMapping("/{methodName}/" + Constants.JOBS)
     public HttpEntity<CollectionModel<EntityModel<McdaJob>>> getPrioritizationJobs(@PathVariable String methodName) {
         LOG.debug("Retrieving all jobs for MCDA method with name: {}", methodName);
 
         // check if method is supported
-        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
+        Optional<McdaMethod> optional =
+            mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
         if (!optional.isPresent()) {
             LOG.error("MCDA method with name {} not supported.", methodName);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -256,7 +272,8 @@ public class XmcdaCriteriaController {
         for (McdaJob mcdaJob : mcdaJobRepository.findByMethod(methodName)) {
             EntityModel<McdaJob> mcdaJobDto = new EntityModel<>(mcdaJob);
             addLinksToRelatedResults(mcdaJobDto, mcdaJob);
-            mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, mcdaJob.getJobId())).withSelfRel());
+            mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName,
+                mcdaJob.getJobId())).withSelfRel());
             jobs.add(mcdaJobDto);
         }
 
@@ -265,14 +282,17 @@ public class XmcdaCriteriaController {
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-            description = "Retrieve all MCDA jobs for the given method")
+    @Operation(responses = {@ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "404", content = @Content)}, description = "Retrieve all MCDA jobs for the given " +
+        "method")
     @GetMapping("/{methodName}/" + Constants.JOBS + "/{jobId}")
-    public HttpEntity<EntityModel<McdaJob>> getPrioritizationJob(@PathVariable String methodName, @PathVariable UUID jobId) {
+    public HttpEntity<EntityModel<McdaJob>> getPrioritizationJob(@PathVariable String methodName,
+                                                                 @PathVariable UUID jobId) {
         LOG.debug("Retrieving MCDA job with ID: {}", jobId);
 
         // check if method is supported
-        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
+        Optional<McdaMethod> optional =
+            mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
         if (!optional.isPresent()) {
             LOG.error("MCDA method with name {} not supported.", methodName);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -293,20 +313,25 @@ public class XmcdaCriteriaController {
 
         EntityModel<McdaJob> mcdaJobDto = new EntityModel<>(job);
         addLinksToRelatedResults(mcdaJobDto, job);
-        mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, jobId)).withSelfRel());
+        mcdaJobDto.add(
+            linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, jobId)).withSelfRel());
         return new ResponseEntity<>(mcdaJobDto, HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
-        @ApiResponse(responseCode = "500", content = @Content)}, description = "Run the MCDA method on the NISQ Analyzer job passed as parameter")
+        @ApiResponse(responseCode = "500", content = @Content)}, description = "Run the MCDA method on the NISQ " +
+        "Analyzer job passed as parameter")
     @PostMapping(value = "/{methodName}/" + Constants.MCDA_PRIORITIZE)
-    public HttpEntity<EntityModel<McdaJob>> prioritizeCompiledCircuitsOfJob(@PathVariable String methodName, @RequestParam UUID jobId,
+    public HttpEntity<EntityModel<McdaJob>> prioritizeCompiledCircuitsOfJob(@PathVariable String methodName,
+                                                                            @RequestParam UUID jobId,
                                                                             @RequestParam Boolean useBordaCount,
                                                                             @RequestParam Float queueImportanceRatio) {
-        LOG.debug("Creating new job to run prioritization with MCDA method {} and NISQ Analyzer job with ID: {}", methodName, jobId);
+        LOG.debug("Creating new job to run prioritization with MCDA method {} and NISQ Analyzer job with ID: {}",
+            methodName, jobId);
 
         // check if method is supported
-        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
+        Optional<McdaMethod> optional =
+            mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst();
         if (!optional.isPresent()) {
             LOG.error("MCDA method with name {} not supported.", methodName);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -350,21 +375,26 @@ public class XmcdaCriteriaController {
 
         // return dto with link to poll for updates
         EntityModel<McdaJob> mcdaJobDto = new EntityModel<>(storedMcdaJob);
-        mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName, storedMcdaJob.getId())).withSelfRel());
+        mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJob(methodName,
+            storedMcdaJob.getId())).withSelfRel());
         return new ResponseEntity<>(mcdaJobDto, HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-        description = "Retrieve all MCDA-weight-learning jobs for the given method")
-    @GetMapping("/{methodName}/" + Constants.WEIGHT_LEARNING_METHODS + "/{weightLearningMethod}/" + Constants.JOBS + "/{jobId}")
+    @Operation(responses = {@ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "404", content = @Content)}, description = "Retrieve all MCDA-weight-learning " +
+        "jobs for the given method")
+    @GetMapping(
+        "/{methodName}/" + Constants.WEIGHT_LEARNING_METHODS + "/{weightLearningMethod}/" + Constants.JOBS + "/{jobId}")
     public HttpEntity<EntityModel<McdaWeightLearningJob>> getWeightLearningJob(@PathVariable String methodName,
-                                                                               @PathVariable String weightLearningMethod,
+                                                                               @PathVariable
+                                                                               String weightLearningMethod,
                                                                                @PathVariable UUID jobId) {
         LOG.debug("Retrieving MCDA-weight-learning job with ID: {}", jobId);
 
         // check if MCDA method is supported
-        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst()
-            .filter(mcdaMethod -> !mcdaMethod.getName().equals("electre-III"));
+        Optional<McdaMethod> optional =
+            mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst()
+                .filter(mcdaMethod -> !mcdaMethod.getName().equals("electre-III"));
         if (!optional.isPresent()) {
             LOG.error("MCDA method with name {} not supported to learn weights.", methodName);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -395,22 +425,26 @@ public class XmcdaCriteriaController {
 
         EntityModel<McdaWeightLearningJob> mcdaJobDto = new EntityModel<>(job);
         // addLinksToRelatedResults(mcdaJobDto, job); TODO add link to get criteria weights
-        mcdaJobDto.add(
-            linkTo(methodOn(XmcdaCriteriaController.class).getWeightLearningJob(methodName, weightLearningMethod, jobId)).withSelfRel());
+        mcdaJobDto.add(linkTo(
+            methodOn(XmcdaCriteriaController.class).getWeightLearningJob(methodName, weightLearningMethod,
+                jobId)).withSelfRel());
         return new ResponseEntity<>(mcdaJobDto, HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
-        @ApiResponse(responseCode = "500", content = @Content)}, description = "Run the MCDA method and weight learning method on the NISQ Analyzer, job passed as parameter")
-    @PostMapping(value = "/{methodName}/" + Constants.WEIGHT_LEARNING_METHODS + "/{weightLearningMethod}/" + Constants.MCDA_LEARN_WEIGHTS)
-    public HttpEntity<EntityModel<McdaWeightLearningJob>> learnWeightsForCompiledCircuitsOfJob(@PathVariable String methodName,
-                                                                                               @PathVariable String weightLearningMethod) {
+        @ApiResponse(responseCode = "500", content = @Content)}, description = "Run the MCDA method and weight " +
+        "learning method on the NISQ Analyzer, job passed as parameter")
+    @PostMapping(value = "/{methodName}/" + Constants.WEIGHT_LEARNING_METHODS + "/{weightLearningMethod}/" +
+        Constants.MCDA_LEARN_WEIGHTS)
+    public HttpEntity<EntityModel<McdaWeightLearningJob>> learnWeightsForCompiledCircuitsOfJob(
+        @PathVariable String methodName, @PathVariable String weightLearningMethod) {
         LOG.debug("Creating new job to run weight learning with MCDA method {} and weight learning method {}",
             methodName, weightLearningMethod);
 
         // check if MCDA method is supported
-        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst()
-            .filter(mcdaMethod -> !mcdaMethod.getName().equals("electre-III"));
+        Optional<McdaMethod> optional =
+            mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst()
+                .filter(mcdaMethod -> !mcdaMethod.getName().equals("electre-III"));
         ;
         if (!optional.isPresent()) {
             LOG.error("MCDA method with name {} not supported to learn weights.", methodName);
@@ -440,21 +474,24 @@ public class XmcdaCriteriaController {
 
         // return dto with link to poll for updates
         EntityModel<McdaWeightLearningJob> mcdaWeightLearningJobDto = new EntityModel<>(storedMcdaWeightLearningJob);
-        mcdaWeightLearningJobDto.add(
-            linkTo(methodOn(XmcdaCriteriaController.class).getWeightLearningJob(methodName, weightLearningMethod,
+        mcdaWeightLearningJobDto.add(linkTo(
+            methodOn(XmcdaCriteriaController.class).getWeightLearningJob(methodName, weightLearningMethod,
                 storedMcdaWeightLearningJob.getId())).withSelfRel());
         return new ResponseEntity<>(mcdaWeightLearningJobDto, HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-        description = "Retrieve all sensitivity analysis jobs for the given method")
+    @Operation(responses = {@ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "404", content = @Content)}, description = "Retrieve all sensitivity analysis " +
+        "jobs for the given method")
     @GetMapping("/{methodName}/" + Constants.MCDA_SENSITIVITY_ANALYZES + "/" + Constants.JOBS)
-    public HttpEntity<CollectionModel<EntityModel<McdaSensitivityAnalysisJob>>> getSensitivityAnalysisJobs(@PathVariable String methodName) {
+    public HttpEntity<CollectionModel<EntityModel<McdaSensitivityAnalysisJob>>> getSensitivityAnalysisJobs(
+        @PathVariable String methodName) {
         LOG.debug("Retrieving all sensitivity analysis jobs for MCDA method with name: {}", methodName);
 
         // check if method is supported
-        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst()
-            .filter(mcdaMethod -> !mcdaMethod.getName().equals("electre-III"));
+        Optional<McdaMethod> optional =
+            mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst()
+                .filter(mcdaMethod -> !mcdaMethod.getName().equals("electre-III"));
         if (!optional.isPresent()) {
             LOG.error("MCDA method with name {} not supported for sensitivity analyzes.", methodName);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -465,7 +502,8 @@ public class XmcdaCriteriaController {
         for (McdaSensitivityAnalysisJob mcdaJob : mcdaSensitivityAnalysisJobRepository.findByMethod(methodName)) {
             EntityModel<McdaSensitivityAnalysisJob> mcdaJobDto = new EntityModel<>(mcdaJob);
             //addLinksToRelatedResults(mcdaJobDto, mcdaJob); TODO
-            mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getSensitivityAnalysisJob(methodName, mcdaJob.getJobId())).withSelfRel());
+            mcdaJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getSensitivityAnalysisJob(methodName,
+                mcdaJob.getJobId())).withSelfRel());
             jobs.add(mcdaJobDto);
         }
 
@@ -474,15 +512,18 @@ public class XmcdaCriteriaController {
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "404", content = @Content)},
-        description = "Retrieve the sensitivity analysis job for the given method")
+    @Operation(responses = {@ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "404", content = @Content)}, description = "Retrieve the sensitivity analysis job" +
+        " for the given method")
     @GetMapping("/{methodName}/" + Constants.MCDA_SENSITIVITY_ANALYZES + "/" + Constants.JOBS + "/{jobId}")
-    public HttpEntity<EntityModel<McdaSensitivityAnalysisJob>> getSensitivityAnalysisJob(@PathVariable String methodName, @PathVariable UUID jobId) {
+    public HttpEntity<EntityModel<McdaSensitivityAnalysisJob>> getSensitivityAnalysisJob(
+        @PathVariable String methodName, @PathVariable UUID jobId) {
         LOG.debug("Retrieving sensitivity analysis job with ID: {}", jobId);
 
         // check if method is supported
-        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst()
-            .filter(mcdaMethod -> !mcdaMethod.getName().equals("electre-III"));
+        Optional<McdaMethod> optional =
+            mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst()
+                .filter(mcdaMethod -> !mcdaMethod.getName().equals("electre-III"));
         if (!optional.isPresent()) {
             LOG.error("MCDA method with name {} not supported for sensitivity analyzes.", methodName);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -502,22 +543,24 @@ public class XmcdaCriteriaController {
         }
 
         EntityModel<McdaSensitivityAnalysisJob> mcdaSensitivityAnalysisJobDto = new EntityModel<>(job);
-        //addLinksToRelatedResults(mcdaSensitivityAnalysisJobDto, job); TODO maybe add link to job, therefore jobType is required to call right endpoint
-        mcdaSensitivityAnalysisJobDto.add(linkTo(methodOn(XmcdaCriteriaController.class).getSensitivityAnalysisJob(methodName, jobId)).withSelfRel());
+        //addLinksToRelatedResults(mcdaSensitivityAnalysisJobDto, job); TODO maybe add link to job, therefore jobType
+        // is required to call right endpoint
+        mcdaSensitivityAnalysisJobDto.add(
+            linkTo(methodOn(XmcdaCriteriaController.class).getSensitivityAnalysisJob(methodName, jobId)).withSelfRel());
         return new ResponseEntity<>(mcdaSensitivityAnalysisJobDto, HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
-        @ApiResponse(responseCode = "500", content = @Content)}, description = "Run the MCDA method on the NISQ Analyzer job passed as parameter")
-    @PostMapping(value = "/{methodName}/" + Constants.MCDA_SENSITIVITY_ANALYZES + "/" + Constants.MCDA_ANALYZE_SENSITIVITY)
-    public HttpEntity<EntityModel<McdaSensitivityAnalysisJob>> analyzeSensitivityOfCompiledCircuitsOfJob(@PathVariable String methodName,
-                                                                                                         @RequestParam UUID jobId,
-                                                                                                         @RequestParam float stepSize,
-                                                                                                         @RequestParam float upperBound,
-                                                                                                         @RequestParam float lowerBound,
-                                                                                                         @RequestParam Boolean useBordaCount,
-                                                                                                         @RequestParam Float queueImportanceRatio) {
-        LOG.debug("Creating new job to run sensitivity analysis with MCDA method {} and NISQ Analyzer job with ID: {}", methodName, jobId);
+        @ApiResponse(responseCode = "500", content = @Content)}, description = "Run the MCDA method on the NISQ " +
+        "Analyzer job passed as parameter")
+    @PostMapping(value = "/{methodName}/" + Constants.MCDA_SENSITIVITY_ANALYZES + "/" +
+        Constants.MCDA_ANALYZE_SENSITIVITY)
+    public HttpEntity<EntityModel<McdaSensitivityAnalysisJob>> analyzeSensitivityOfCompiledCircuitsOfJob(
+        @PathVariable String methodName, @RequestParam UUID jobId, @RequestParam float stepSize,
+        @RequestParam float upperBound, @RequestParam float lowerBound, @RequestParam Boolean useBordaCount,
+        @RequestParam Float queueImportanceRatio) {
+        LOG.debug("Creating new job to run sensitivity analysis with MCDA method {} and NISQ Analyzer job with ID: {}",
+            methodName, jobId);
 
         Map<String, Float> bordaCountWeights = new HashMap<>();
 
@@ -533,8 +576,9 @@ public class XmcdaCriteriaController {
         }
 
         // check if method is supported
-        Optional<McdaMethod> optional = mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst()
-            .filter(mcdaMethod -> !mcdaMethod.getName().equals("electre-III"));
+        Optional<McdaMethod> optional =
+            mcdaMethods.stream().filter(method -> method.getName().equals(methodName)).findFirst()
+                .filter(mcdaMethod -> !mcdaMethod.getName().equals("electre-III"));
         if (!optional.isPresent()) {
             LOG.error("MCDA method with name {} not supported for sensitivity analyzes.", methodName);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -554,16 +598,19 @@ public class XmcdaCriteriaController {
         mcdaSensitivityAnalysisJob.setState(ExecutionResultStatus.INITIALIZED.toString());
 
         // store object to generate UUID
-        McdaSensitivityAnalysisJob storedMcdaSensitivityAnalysisJob = mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
+        McdaSensitivityAnalysisJob storedMcdaSensitivityAnalysisJob =
+            mcdaSensitivityAnalysisJobRepository.save(mcdaSensitivityAnalysisJob);
 
         new Thread(() -> {
             prioritizationService.analyzeSensitivity(storedMcdaSensitivityAnalysisJob);
         }).start();
 
         // return dto with link to poll for updates
-        EntityModel<McdaSensitivityAnalysisJob> mcdaSensitivityAnalysisJobDto = new EntityModel<>(storedMcdaSensitivityAnalysisJob);
+        EntityModel<McdaSensitivityAnalysisJob> mcdaSensitivityAnalysisJobDto =
+            new EntityModel<>(storedMcdaSensitivityAnalysisJob);
         mcdaSensitivityAnalysisJobDto.add(linkTo(
-            methodOn(XmcdaCriteriaController.class).getSensitivityAnalysisJob(methodName, storedMcdaSensitivityAnalysisJob.getId())).withSelfRel());
+            methodOn(XmcdaCriteriaController.class).getSensitivityAnalysisJob(methodName,
+                storedMcdaSensitivityAnalysisJob.getId())).withSelfRel());
         return new ResponseEntity<>(mcdaSensitivityAnalysisJobDto, HttpStatus.OK);
     }
 
@@ -571,9 +618,12 @@ public class XmcdaCriteriaController {
         McdaMethodDto dto = new McdaMethodDto();
         dto.setName(method.getName());
         dto.setDescription(method.getDescription());
-        dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationMethod(method.getName())).withSelfRel());
-        dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getCriterionForMethod(method.getName())).withRel(Constants.CRITERIA));
-        dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJobs(method.getName())).withRel(Constants.JOBS));
+        dto.add(
+            linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationMethod(method.getName())).withSelfRel());
+        dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getCriterionForMethod(method.getName())).withRel(
+            Constants.CRITERIA));
+        dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getPrioritizationJobs(method.getName())).withRel(
+            Constants.JOBS));
         return dto;
     }
 
@@ -586,45 +636,45 @@ public class XmcdaCriteriaController {
 
         // check if criterion is set to active and return false otherwise
         dto.setActive(
-            criterion.getActiveOrScaleOrCriterionFunction().stream()
-                .filter(object -> object instanceof Boolean)
-                .map(object -> (Boolean) object)
-                .findFirst().orElse(false));
+            criterion.getActiveOrScaleOrCriterionFunction().stream().filter(object -> object instanceof Boolean)
+                .map(object -> (Boolean) object).findFirst().orElse(false));
 
         // find scale child object to retrieve required information
-        dto.setScale(criterion.getActiveOrScaleOrCriterionFunction().stream()
-            .filter(object -> object instanceof Scale)
-            .map(object -> (Scale) object)
-            .findFirst().orElse(null));
+        dto.setScale(criterion.getActiveOrScaleOrCriterionFunction().stream().filter(object -> object instanceof Scale)
+            .map(object -> (Scale) object).findFirst().orElse(null));
 
-        dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getCriterion(methodName, criterion.getId())).withSelfRel());
         dto.add(
-            linkTo(methodOn(XmcdaCriteriaController.class).getCriterionValue(methodName, criterion.getId())).withRel(Constants.CRITERIA_VALUE));
+            linkTo(methodOn(XmcdaCriteriaController.class).getCriterion(methodName, criterion.getId())).withSelfRel());
+        dto.add(
+            linkTo(methodOn(XmcdaCriteriaController.class).getCriterionValue(methodName, criterion.getId())).withRel(
+                Constants.CRITERIA_VALUE));
         return dto;
     }
 
     private EntityModel<CriterionValue> createMcdaCriterionValueDto(CriterionValue criterionValue, String methodName) {
         EntityModel<CriterionValue> dto = new EntityModel<>(criterionValue);
-        dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getCriterionValue(methodName, criterionValue.getCriterionID())).withSelfRel());
+        dto.add(linkTo(methodOn(XmcdaCriteriaController.class).getCriterionValue(methodName,
+            criterionValue.getCriterionID())).withSelfRel());
         return dto;
     }
 
     private void addLinksToRelatedResults(EntityModel<McdaJob> mcdaJobDto, McdaJob job) {
         for (McdaResult mcdaResult : job.getRankedResults()) {
             if (job.getJobType().equals(JobType.ANALYSIS)) {
-                mcdaJobDto.add(linkTo(methodOn(AnalysisResultController.class).getAnalysisResult(mcdaResult.getResultId())).withRel(
+                mcdaJobDto.add(linkTo(
+                    methodOn(AnalysisResultController.class).getAnalysisResult(mcdaResult.getResultId())).withRel(
                     mcdaResult.getResultId().toString()));
             }
             if (job.getJobType().equals(JobType.COMPILATION)) {
-                mcdaJobDto.add(
-                    linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisResult(mcdaResult.getResultId())).withRel(
-                        mcdaResult.getResultId().toString()));
+                mcdaJobDto.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisResult(
+                    mcdaResult.getResultId())).withRel(mcdaResult.getResultId().toString()));
             }
             if (job.getJobType().equals(JobType.QPU_SELECTION)) {
-                String qpuSelectionResultUserId = qpuSelectionResultRepository.findById(mcdaResult.getResultId()).get().getUserId();
+                String qpuSelectionResultUserId =
+                    qpuSelectionResultRepository.findById(mcdaResult.getResultId()).get().getUserId();
                 mcdaJobDto.add(linkTo(
-                    methodOn(QpuSelectionResultController.class).getQpuSelectionResult(mcdaResult.getResultId(), qpuSelectionResultUserId)).withRel(
-                    mcdaResult.getResultId().toString()).expand());
+                    methodOn(QpuSelectionResultController.class).getQpuSelectionResult(mcdaResult.getResultId(),
+                        qpuSelectionResultUserId)).withRel(mcdaResult.getResultId().toString()).expand());
             }
         }
     }

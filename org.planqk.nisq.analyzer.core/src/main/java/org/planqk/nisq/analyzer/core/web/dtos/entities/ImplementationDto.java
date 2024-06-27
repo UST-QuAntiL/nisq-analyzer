@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -35,7 +35,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * Data transfer object for the model class Implementation ({@link org.planqk.nisq.analyzer.core.model.Implementation}).
+ * Data transfer object for the model class Implementation
+ * ({@link org.planqk.nisq.analyzer.core.model.Implementation}).
  */
 @ToString(callSuper = true, includeFieldNames = true)
 @NoArgsConstructor
@@ -60,10 +61,6 @@ public class ImplementationDto extends RepresentationModel<ImplementationDto> {
     @Getter
     @Setter
     private String language;
-
-    @Getter
-    @Setter
-    private String selectionRule;
 
     @Getter
     @Setter
@@ -103,19 +100,18 @@ public class ImplementationDto extends RepresentationModel<ImplementationDto> {
             dto.setName(object.getName());
             dto.setImplementedAlgorithm(object.getImplementedAlgorithm());
             dto.setAlgorithmName(object.getAlgorithmName());
-            dto.setSelectionRule(object.getSelectionRule());
             dto.setFileLocation(object.getFileLocation());
             dto.setSdk(object.getSdk().getName());
             dto.setLanguage(object.getLanguage());
 
             ParameterListDto inputParams = new ParameterListDto();
-            inputParams.add(object.getInputParameters().stream().map(ParameterDto.Converter::convert)
-                    .collect(Collectors.toList()));
+            inputParams.add(
+                object.getInputParameters().stream().map(ParameterDto.Converter::convert).collect(Collectors.toList()));
             dto.setInputParameters(inputParams);
 
             ParameterListDto outputParams = new ParameterListDto();
             outputParams.add(object.getOutputParameters().stream().map(ParameterDto.Converter::convert)
-                    .collect(Collectors.toList()));
+                .collect(Collectors.toList()));
             dto.setOutputParameters(outputParams);
 
             return dto;
@@ -126,15 +122,14 @@ public class ImplementationDto extends RepresentationModel<ImplementationDto> {
             implementation.setName(object.getName());
             implementation.setImplementedAlgorithm(object.getImplementedAlgorithm());
             implementation.setAlgorithmName(object.getAlgorithmName());
-            implementation.setSelectionRule(object.getSelectionRule());
             implementation.setFileLocation(object.getFileLocation());
             implementation.setSdk(sdk);
             implementation.setLanguage(object.getLanguage());
-            implementation.setInputParameters(object.getInputParameters().getParameters().stream()
-                    .map(ParameterDto.Converter::convert)
+            implementation.setInputParameters(
+                object.getInputParameters().getParameters().stream().map(ParameterDto.Converter::convert)
                     .collect(Collectors.toList()));
-            implementation.setOutputParameters(object.getOutputParameters().getParameters().stream()
-                    .map(ParameterDto.Converter::convert)
+            implementation.setOutputParameters(
+                object.getOutputParameters().getParameters().stream().map(ParameterDto.Converter::convert)
                     .collect(Collectors.toList()));
             return implementation;
         }

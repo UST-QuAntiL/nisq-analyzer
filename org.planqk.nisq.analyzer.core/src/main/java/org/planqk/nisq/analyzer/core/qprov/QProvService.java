@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -52,10 +52,8 @@ public class QProvService {
 
     private List<Qpu> requiredQpuList;
 
-    public QProvService(
-        @Value("${org.planqk.nisq.analyzer.qprov.hostname}") String hostname,
-        @Value("${org.planqk.nisq.analyzer.qprov.port}") int port
-    ) {
+    public QProvService(@Value("${org.planqk.nisq.analyzer.qprov.hostname}") String hostname,
+                        @Value("${org.planqk.nisq.analyzer.qprov.port}") int port) {
         this.providerAPIEnpoint = String.format("http://%s:%d/qprov/providers", hostname, port);
     }
 
@@ -83,9 +81,12 @@ public class QProvService {
 
         try {
             QpuListDto qpuListDto =
-                restTemplate.getForObject(URI.create(String.format(providerAPIEnpoint + "/%s/qpus", provider.getId())), QpuListDto.class);
+                restTemplate.getForObject(URI.create(String.format(providerAPIEnpoint + "/%s/qpus", provider.getId())),
+                    QpuListDto.class);
             if (qpuListDto != null) {
-                return requiredQpuList = qpuListDto.getQpuDtoList().stream().map(dto -> QpuDto.Converter.convert(dto, provider.getName())).collect(Collectors.toList());
+                return requiredQpuList =
+                    qpuListDto.getQpuDtoList().stream().map(dto -> QpuDto.Converter.convert(dto, provider.getName()))
+                        .collect(Collectors.toList());
             } else {
                 return new ArrayList<>();
             }
@@ -103,7 +104,8 @@ public class QProvService {
             }
         }
         Optional<Provider> prov = getProviders().stream().filter(p -> p.getName().equals(provider)).findFirst();
-        return prov.flatMap(value -> getQPUs(value).stream().filter(q -> q.getName().equalsIgnoreCase(name)).findFirst());
+        return prov.flatMap(
+            value -> getQPUs(value).stream().filter(q -> q.getName().equalsIgnoreCase(name)).findFirst());
     }
 
     public Integer getQueueSizeOfQpu(String qpuName, String provider) {
@@ -114,29 +116,34 @@ public class QProvService {
                 return qpu.getQueueSize();
             }
         } else {
-            URI ibmqQueueSizeUrl = URI.create(String.format("https://api.quantum-computing.ibm.com/api/Backends/%s/queue/status?", qpuName));
-            LOG.debug("Requesting IBMQ for queue size");
-            RestTemplate restTemplate = new RestTemplate();
+            if (qpuName.contains("simulator")) {
+                return 0;
+            } else {
+                URI ibmqQueueSizeUrl = URI.create(
+                    String.format("https://api.quantum-computing.ibm.com/api/Backends/%s/queue/status?", qpuName));
+                LOG.debug("Requesting IBMQ for queue size");
+                RestTemplate restTemplate = new RestTemplate();
 
-            // fake user agent, as IBMQ blocks Java/1.8
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("user-agent", "python-requests/2.27.1");
+                // fake user agent, as IBMQ blocks Java/1.8
+                HttpHeaders headers = new HttpHeaders();
+                headers.set("user-agent", "python-requests/2.27.1");
 
-            HttpEntity<String> entity = new HttpEntity<>(headers);
+                HttpEntity<String> entity = new HttpEntity<>(headers);
 
-            try {
-                ResponseEntity<IbmqQpuQueue> response =
-                    restTemplate.exchange(ibmqQueueSizeUrl, HttpMethod.GET, entity, IbmqQpuQueue.class);
+                try {
+                    ResponseEntity<IbmqQpuQueue> response =
+                        restTemplate.exchange(ibmqQueueSizeUrl, HttpMethod.GET, entity, IbmqQpuQueue.class);
 
-                IbmqQpuQueue ibmqQpuQueue = response.getBody();
+                    IbmqQpuQueue ibmqQpuQueue = response.getBody();
 
-                if (ibmqQpuQueue != null) {
-                    return ibmqQpuQueue.getLengthQueue();
-                } else {
+                    if (ibmqQpuQueue != null) {
+                        return ibmqQpuQueue.getLengthQueue();
+                    } else {
+                        return 100;
+                    }
+                } catch (RestClientException e) {
                     return 100;
                 }
-            } catch (RestClientException e) {
-                return 100;
             }
         }
         return 100;

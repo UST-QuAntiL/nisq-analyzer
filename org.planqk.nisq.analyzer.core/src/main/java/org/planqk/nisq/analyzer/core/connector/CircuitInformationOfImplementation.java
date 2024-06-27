@@ -17,41 +17,35 @@
  * limitations under the License.
  *******************************************************************************/
 
-package org.planqk.nisq.analyzer.core.model;
+package org.planqk.nisq.analyzer.core.connector;
 
-import javax.persistence.Entity;
 import javax.persistence.Lob;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Setter
 @Getter
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class OriginalCircuitResult extends HasId {
-
-    private String circuitName;
-
-    private int originalWidth;
-
-    private int originalDepth;
-
-    private int originalMultiQubitGateDepth;
-
-    private int originalNumberOfSingleQubitGates;
-
-    private int originalNumberOfMultiQubitGates;
-
-    private int originalTotalNumberOfOperations;
-
-    private int originalNumberOfMeasurementOperations;
+@ToString
+public class CircuitInformationOfImplementation extends OriginalCircuitInformation {
 
     @Lob
-    private String circuit;
+    @JsonAlias({"generated-circuit"})
+    private String generatedCircuit;
 
+    @JsonProperty("language")
     private String circuitLanguage;
+
+    @JsonProperty("id")
+    private String correlationId;
+
+    private boolean complete;
 }

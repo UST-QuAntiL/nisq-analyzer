@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -45,10 +45,6 @@ public class Implementation extends HasId {
     @Getter
     @Setter
     private String name;
-
-    @Getter
-    @Setter
-    private String selectionRule;
 
     @Getter
     @Setter

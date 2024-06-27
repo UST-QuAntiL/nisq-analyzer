@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -29,4 +29,6 @@ public class ExecuteAnalysisResultRequestDto {
     String refreshToken;
 
     Map<String, Map<String, String>> tokens;
+
+    String correlationId;
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,18 +19,40 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.requests;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import lombok.Getter;
 import lombok.Setter;
 
+@Setter
+@Getter
 public class SelectionRequestDto extends ParameterKeyValueDto {
 
-    @Getter
-    @Setter
+    List<String> allowedProviders;
+
+    List<String> compilers;
+
+    boolean preciseResultsPreference;
+
+    boolean shortWaitingTimesPreference;
+
+    Float queueImportanceRatio;
+
+    int maxNumberOfCompiledCircuits;
+
+    String predictionAlgorithm;
+
+    String metaOptimizer;
+
+    Map<String, Map<String, String>> tokens;
+
     private UUID algorithmId;
 
-    @Getter
-    @Setter
     private String refreshToken;
+
+    private String mcdaMethodName;
+
+    private String mcdaWeightLearningMethod;
 }

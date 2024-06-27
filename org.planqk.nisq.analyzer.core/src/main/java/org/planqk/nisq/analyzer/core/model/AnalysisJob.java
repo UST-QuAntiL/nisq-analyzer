@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -44,7 +44,11 @@ public class AnalysisJob extends Job {
 
     @ElementCollection
     private Map<String, String> inputParameters;
-    
+
     @OneToMany(cascade = CascadeType.PERSIST)
     private List<AnalysisResult> jobResults = new ArrayList<>();
+
+    private UUID initialMcdaJob;
+
+    private String initialMcdaMethod;
 }

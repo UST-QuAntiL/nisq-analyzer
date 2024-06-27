@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -76,8 +76,13 @@ public class QiskitRequest {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String bearerToken;
 
-    public QiskitRequest(URL impl_url, String impl_language, String qpu_name, String provider, Map<String, ParameterValue> input_params,
-                         String bearerToken) {
+    @Getter
+    @Setter
+    @JsonProperty(value = "correlation-id")
+    private String correlation_id;
+
+    public QiskitRequest(URL impl_url, String impl_language, String qpu_name, String provider,
+                         Map<String, ParameterValue> input_params, String bearerToken) {
         this.impl_url = impl_url;
         this.impl_language = impl_language;
         this.qpu_name = qpu_name;
@@ -86,7 +91,8 @@ public class QiskitRequest {
         this.bearerToken = bearerToken;
     }
 
-    public QiskitRequest(String impl_language, String impl_data, String qpu_name, String provider, Map<String, ParameterValue> input_params) {
+    public QiskitRequest(String impl_language, String impl_data, String qpu_name, String provider,
+                         Map<String, ParameterValue> input_params) {
         this.impl_language = impl_language;
         this.impl_data = impl_data;
         this.qpu_name = qpu_name;
@@ -94,16 +100,35 @@ public class QiskitRequest {
         this.input_params = input_params;
     }
 
-    public QiskitRequest(String transpiled_qasm, String qpu_name, String provider, Map<String, ParameterValue> input_params) {
+    public QiskitRequest(String transpiled_qasm, String qpu_name, String provider,
+                         Map<String, ParameterValue> input_params) {
         this.transpiled_qasm = transpiled_qasm;
         this.qpu_name = qpu_name;
         this.provider = provider;
         this.input_params = input_params;
     }
 
+    public QiskitRequest(String transpiled_qasm, String qpu_name, String provider,
+                         Map<String, ParameterValue> input_params, String correlation_id, URL impl_url) {
+        this.transpiled_qasm = transpiled_qasm;
+        this.qpu_name = qpu_name;
+        this.provider = provider;
+        this.input_params = input_params;
+        this.correlation_id = correlation_id;
+        this.impl_url = impl_url;
+    }
+
     public QiskitRequest(String impl_data, Map<String, ParameterValue> input_params, String impl_language) {
         this.impl_data = impl_data;
         this.impl_language = impl_language;
         this.input_params = input_params;
+    }
+
+    public QiskitRequest(URL fileLocation, String language, Map<String, ParameterValue> parameters,
+                         String bearerToken) {
+        this.impl_url = fileLocation;
+        this.impl_language = language;
+        this.input_params = parameters;
+        this.bearerToken = bearerToken;
     }
 }

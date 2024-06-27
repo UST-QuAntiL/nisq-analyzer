@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -29,7 +29,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -72,7 +71,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
- * Root controller to access all entities within Quality, trigger the hardware selection, and execution of quantum algorithms.
+ * Root controller to access all entities within Quality, trigger the hardware selection, and execution of quantum
+ * algorithms.
  */
 @Tag(name = "root")
 @RestController
@@ -106,35 +106,41 @@ public class RootController {
 
         // add links to sub-controllers
         responseEntity.add(linkTo(methodOn(RootController.class).root()).withSelfRel());
-        responseEntity.add(linkTo(methodOn(ImplementationController.class).getImplementations(null)).withRel(Constants.IMPLEMENTATIONS));
+        responseEntity.add(linkTo(methodOn(ImplementationController.class).getImplementations(null)).withRel(
+            Constants.IMPLEMENTATIONS));
         responseEntity.add(linkTo(methodOn(SdkController.class).getSdks()).withRel(Constants.SDKS));
-        responseEntity.add(linkTo(methodOn(RootController.class).getSelectionParams(null)).withRel(Constants.SELECTION_PARAMS));
-        responseEntity.add(linkTo(methodOn(RootController.class).selectImplementations(null)).withRel(Constants.SELECTION));
-        responseEntity
-                .add(linkTo(methodOn(RootController.class).selectCompilerForFile(null, null))
-                        .withRel(Constants.COMPILER_SELECTION));
-        responseEntity.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisResults()).withRel(Constants.COMPILER_RESULTS));
-        responseEntity.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResults(null)).withRel(Constants.EXECUTION_RESULTS));
-        responseEntity.add(linkTo(methodOn(XmcdaCriteriaController.class).getSupportedPrioritizationMethods()).withRel(Constants.MCDA_METHODS));
+        responseEntity.add(
+            linkTo(methodOn(RootController.class).getSelectionParams(null)).withRel(Constants.SELECTION_PARAMS));
+        responseEntity.add(
+            linkTo(methodOn(RootController.class).selectImplementations(null)).withRel(Constants.SELECTION));
+        responseEntity.add(linkTo(methodOn(RootController.class).selectCompilerForFile(null, null)).withRel(
+            Constants.COMPILER_SELECTION));
+        responseEntity.add(
+            linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisResults()).withRel(
+                Constants.COMPILER_RESULTS));
+        responseEntity.add(linkTo(methodOn(ExecutionResultController.class).getExecutionResults(null)).withRel(
+            Constants.EXECUTION_RESULTS));
+        responseEntity.add(linkTo(methodOn(XmcdaCriteriaController.class).getSupportedPrioritizationMethods()).withRel(
+            Constants.MCDA_METHODS));
 
         return new ResponseEntity<>(responseEntity, HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content)},
-            description = "Retrieve selection parameters")
+    @Operation(responses = {@ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "400", content = @Content)}, description = "Retrieve selection parameters")
     @GetMapping("/" + Constants.SELECTION_PARAMS)
     public HttpEntity<ParameterListDto> getSelectionParams(@RequestParam UUID algoId) {
         LOG.debug("Get to retrieve selection parameters for algorithm with Id {} received.", algoId);
 
         if (Objects.isNull(algoId)) {
             LOG.error("AlgoId have to be provided to get selection parameters!");
-            return new ResponseEntity("AlgoId have to be provided to get selection parameters!", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity("AlgoId have to be provided to get selection parameters!",
+                HttpStatus.BAD_REQUEST);
         }
 
         // determine and return required selection parameters
-        List<ParameterDto> requiredParamsDto = nisqAnalyzerService.getRequiredSelectionParameters(algoId)
-                .stream()
-                .map(ParameterDto.Converter::convert)
+        List<ParameterDto> requiredParamsDto =
+            nisqAnalyzerService.getRequiredSelectionParameters(algoId).stream().map(ParameterDto.Converter::convert)
                 .collect(Collectors.toList());
         ParameterListDto dto = new ParameterListDto(requiredParamsDto);
 
@@ -144,7 +150,8 @@ public class RootController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
-            @ApiResponse(responseCode = "500", content = @Content)}, description = "Select implementations for an algorithm")
+        @ApiResponse(responseCode = "500", content = @Content)}, description = "Select implementations for an " +
+        "algorithm")
     @PostMapping("/" + Constants.SELECTION)
     public HttpEntity<AnalysisJobDto> selectImplementations(@RequestBody SelectionRequestDto params) {
         LOG.debug("Post to select implementations for algorithm with Id {} received.", params.getAlgorithmId());
@@ -163,22 +170,17 @@ public class RootController {
         AnalysisJob job = new AnalysisJob();
         job.setImplementedAlgorithm(params.getAlgorithmId());
         job.setTime(OffsetDateTime.now());
-        String token = params.getParameters().get("token");
-        params.getParameters().remove("token");
         job.setInputParameters(params.getParameters());
-        params.getParameters().put("token", token);
         analysisJobRepository.save(job);
 
-        try {
-            new Thread(() -> {
-                nisqAnalyzerService.performSelection(job, params.getAlgorithmId(), params.getParameters(), params.getRefreshToken());
-            }).start();
-        } catch (UnsatisfiedLinkError e) {
-            LOG.error(
-                "UnsatisfiedLinkError while activating prolog rule. Please make sure prolog is installed and configured correctly to use the NISQ analyzer functionality!",
-                e);
-            return new ResponseEntity("No prolog engine accessible from the server. Selection not possible!", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        new Thread(() -> {
+            nisqAnalyzerService.performSelection(job, params.getAlgorithmId(), params.getParameters(),
+                params.getTokens(), params.getRefreshToken(), params.getAllowedProviders(), params.getCompilers(),
+                params.isPreciseResultsPreference(), params.isShortWaitingTimesPreference(),
+                params.getQueueImportanceRatio(), params.getMaxNumberOfCompiledCircuits(),
+                params.getPredictionAlgorithm(), params.getMetaOptimizer(), params.getMcdaMethodName(),
+                params.getMcdaWeightLearningMethod());
+        }).start();
 
         AnalysisJobDto dto = AnalysisJobDto.Converter.convert(job);
         dto.add(linkTo(methodOn(AnalysisResultController.class).getAnalysisJob(job.getId())).withSelfRel());
@@ -186,11 +188,13 @@ public class RootController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
-        @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit passed in as file")
+        @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum " +
+        "computer for a quantum circuit passed in as file")
     @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitFile(@RequestBody QpuSelectionDto qpuSelectionDto,
                                                                   @RequestParam("circuit") MultipartFile circuitCode) {
-        LOG.debug("Post to select QPU for given quantum circuit with language: {}", qpuSelectionDto.getCircuitLanguage());
+        LOG.debug("Post to select QPU for given quantum circuit with language: {}",
+            qpuSelectionDto.getCircuitLanguage());
 
         // get temp file for passed circuit code
         File circuitFile = Utils.getFileObjectFromMultipart(circuitCode);
@@ -211,21 +215,23 @@ public class RootController {
 
         qpuSelectionJobRepository.save(job);
         new Thread(() -> {
-            nisqAnalyzerService
-                .performQpuSelectionForCircuit(job, qpuSelectionDto.getAllowedProviders(), qpuSelectionDto.getCircuitLanguage(), circuitFile,
-                    qpuSelectionDto.getTokens(), qpuSelectionDto.getCircuitName(), qpuSelectionDto.getCompilers(),
-                    qpuSelectionDto.isPreciseResultsPreference(), qpuSelectionDto.isShortWaitingTimesPreference(),
-                    qpuSelectionDto.getQueueImportanceRatio(), qpuSelectionDto.getMaxNumberOfCompiledCircuits(),
-                    qpuSelectionDto.getPredictionAlgorithm(), qpuSelectionDto.getMetaOptimizer());
+            nisqAnalyzerService.performQpuSelectionForCircuit(job, qpuSelectionDto.getAllowedProviders(),
+                qpuSelectionDto.getCircuitLanguage(), circuitFile, qpuSelectionDto.getTokens(),
+                qpuSelectionDto.getCircuitName(), qpuSelectionDto.getCompilers(),
+                qpuSelectionDto.isPreciseResultsPreference(), qpuSelectionDto.isShortWaitingTimesPreference(),
+                qpuSelectionDto.getQueueImportanceRatio(), qpuSelectionDto.getMaxNumberOfCompiledCircuits(),
+                qpuSelectionDto.getPredictionAlgorithm(), qpuSelectionDto.getMetaOptimizer());
         }).start();
 
         // send back QPU selection job to track the progress
         QpuSelectionJobDto dto = QpuSelectionJobDto.Converter.convert(job);
-        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId(), job.getUserId())).withSelfRel());
+        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId(),
+            job.getUserId())).withSelfRel());
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
-    private File createQasmFileFromUrlOrString(URL url, String qasm, String refreshToken) throws IOException, IllegalArgumentException {
+    private File createQasmFileFromUrlOrString(URL url, String qasm, String refreshToken)
+        throws IOException, IllegalArgumentException {
         if (Objects.isNull(url) == Objects.isNull(qasm)) {
             throw new IllegalArgumentException("Either circuitUrl or qasmCode needs to be specified.");
         }
@@ -234,7 +240,8 @@ public class RootController {
 
         // create circuit file from string or URL
         if (Objects.isNull(url)) {
-            circuitFile = Utils.inputStreamToFile(new ByteArrayInputStream(qasm.getBytes(StandardCharsets.UTF_8)), "qasm");
+            circuitFile =
+                Utils.inputStreamToFile(new ByteArrayInputStream(qasm.getBytes(StandardCharsets.UTF_8)), "qasm");
         } else {
             // get file from passed URL
             circuitFile = Utils.getFileObjectFromUrl(url, refreshToken);
@@ -247,15 +254,19 @@ public class RootController {
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
-            @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum computer for a quantum circuit loaded from the given URL")
-    @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+        @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable quantum " +
+        "computer for a quantum circuit loaded from the given URL")
+    @PostMapping(value = "/" + Constants.QPU_SELECTION, consumes = {MediaType.APPLICATION_XML_VALUE,
+        MediaType.APPLICATION_JSON_VALUE})
     public HttpEntity<QpuSelectionJobDto> selectQpuForCircuitUrl(@RequestBody QpuSelectionDto params) {
-        LOG.debug("Post to select QPU for quantum circuit at URL '{}', with language '{}', and allowed providers '{}'!", params.getCircuitUrl(), params.getCircuitLanguage(), params.getAllowedProviders());
+        LOG.debug("Post to select QPU for quantum circuit at URL '{}', with language '{}', and allowed providers '{}'!",
+            params.getCircuitUrl(), params.getCircuitLanguage(), params.getAllowedProviders());
 
         File circuitFile;
 
         try {
-            circuitFile = createQasmFileFromUrlOrString(params.getCircuitUrl(), params.getQasmCode(), params.getRefreshToken());
+            circuitFile =
+                createQasmFileFromUrlOrString(params.getCircuitUrl(), params.getQasmCode(), params.getRefreshToken());
         } catch (Exception e) {
             return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -274,21 +285,23 @@ public class RootController {
         qpuSelectionJobRepository.save(job);
 
         new Thread(() -> {
-            nisqAnalyzerService
-                .performQpuSelectionForCircuit(job, params.getAllowedProviders(), params.getCircuitLanguage(), circuitFile,
-                    params.getTokens(), params.getCircuitName(), params.getCompilers(), params.isPreciseResultsPreference(),
-                    params.isShortWaitingTimesPreference(), params.getQueueImportanceRatio(), params.getMaxNumberOfCompiledCircuits(),
-                    params.getPredictionAlgorithm(), params.getMetaOptimizer());
+            nisqAnalyzerService.performQpuSelectionForCircuit(job, params.getAllowedProviders(),
+                params.getCircuitLanguage(), circuitFile, params.getTokens(), params.getCircuitName(),
+                params.getCompilers(), params.isPreciseResultsPreference(), params.isShortWaitingTimesPreference(),
+                params.getQueueImportanceRatio(), params.getMaxNumberOfCompiledCircuits(),
+                params.getPredictionAlgorithm(), params.getMetaOptimizer());
         }).start();
 
         // send back QPU selection job to track the progress
         QpuSelectionJobDto dto = QpuSelectionJobDto.Converter.convert(job);
-        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId(), job.getUserId())).withSelfRel());
+        dto.add(linkTo(methodOn(QpuSelectionResultController.class).getQpuSelectionJob(job.getId(),
+            job.getUserId())).withSelfRel());
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
-            @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable compiler for an implementation passed in as file")
+        @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable compiler for" +
+        " an implementation passed in as file")
     @PostMapping(value = "/" + Constants.COMPILER_SELECTION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public HttpEntity<CompilationJobDto> selectCompilerForFile(@RequestBody CompilerSelectionDto compilerSelectionDto,
                                                                @RequestParam("circuit") MultipartFile circuitCode) {
@@ -302,33 +315,40 @@ public class RootController {
         // create object for the compilation job and call asynchronously to update the job
         CompilationJob job = compilationJobRepository.save(new CompilationJob());
         new Thread(() -> {
-            nisqAnalyzerService
-                    .performCompilerSelection(job, compilerSelectionDto.getProviderName().toLowerCase(),
-                        compilerSelectionDto.getQpuName().toLowerCase(), compilerSelectionDto.getCircuitLanguage().toLowerCase(), circuitFile,
-                        compilerSelectionDto.getCircuitName(),null, compilerSelectionDto.getTokens());
+            nisqAnalyzerService.performCompilerSelection(job, compilerSelectionDto.getProviderName().toLowerCase(),
+                compilerSelectionDto.getQpuName().toLowerCase(),
+                compilerSelectionDto.getCircuitLanguage().toLowerCase(), circuitFile,
+                compilerSelectionDto.getCircuitName(), null, compilerSelectionDto.getTokens());
         }).start();
 
         // send back compilation job
         CompilationJobDto dto = CompilationJobDto.Converter.convert(job);
-        dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJob(job.getId())).withSelfRel());
+        dto.add(
+            linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJob(job.getId())).withSelfRel());
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content),
-            @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable compiler for an implementation loaded from the given URL")
-    @PostMapping(value = "/" + Constants.COMPILER_SELECTION, consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+        @ApiResponse(responseCode = "500", content = @Content)}, description = "Select the most suitable compiler for" +
+        " an implementation loaded from the given URL")
+    @PostMapping(value = "/" + Constants.COMPILER_SELECTION, consumes = {MediaType.APPLICATION_XML_VALUE,
+        MediaType.APPLICATION_JSON_VALUE})
     public HttpEntity<CompilationJobDto> selectCompilerForUrl(@RequestBody CompilerSelectionDto compilerSelectionDto) {
 
-        if (Objects.isNull(compilerSelectionDto.getProviderName()) || Objects.isNull(compilerSelectionDto.getQpuName()) ||
-                Objects.isNull(compilerSelectionDto.getCircuitLanguage()) || Objects.isNull(compilerSelectionDto.getTokens())) {
+        if (Objects.isNull(compilerSelectionDto.getProviderName()) ||
+            Objects.isNull(compilerSelectionDto.getQpuName()) ||
+            Objects.isNull(compilerSelectionDto.getCircuitLanguage()) ||
+            Objects.isNull(compilerSelectionDto.getTokens())) {
             return new ResponseEntity("Provider name, QPU name, circuit language, and access token have to be passed!",
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+                HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         File circuitFile;
 
         try {
-            circuitFile = createQasmFileFromUrlOrString(compilerSelectionDto.getCircuitUrl(), compilerSelectionDto.getQasmCode(), compilerSelectionDto.getRefreshToken());
+            circuitFile =
+                createQasmFileFromUrlOrString(compilerSelectionDto.getCircuitUrl(), compilerSelectionDto.getQasmCode(),
+                    compilerSelectionDto.getRefreshToken());
         } catch (Exception e) {
             return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -336,21 +356,21 @@ public class RootController {
         // create object for the compilation job and call asynchronously to update the job
         CompilationJob job = compilationJobRepository.save(new CompilationJob());
         new Thread(() -> {
-            nisqAnalyzerService
-                    .performCompilerSelection(job, compilerSelectionDto.getProviderName().toLowerCase(),
-                            compilerSelectionDto.getQpuName().toLowerCase(),
-                            compilerSelectionDto.getCircuitLanguage().toLowerCase(), circuitFile, compilerSelectionDto.getCircuitName(),null,
-                            compilerSelectionDto.getTokens());
+            nisqAnalyzerService.performCompilerSelection(job, compilerSelectionDto.getProviderName().toLowerCase(),
+                compilerSelectionDto.getQpuName().toLowerCase(),
+                compilerSelectionDto.getCircuitLanguage().toLowerCase(), circuitFile,
+                compilerSelectionDto.getCircuitName(), null, compilerSelectionDto.getTokens());
         }).start();
 
         // send back compilation job
         CompilationJobDto dto = CompilationJobDto.Converter.convert(job);
-        dto.add(linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJob(job.getId())).withSelfRel());
+        dto.add(
+            linkTo(methodOn(CompilerAnalysisResultController.class).getCompilerAnalysisJob(job.getId())).withSelfRel());
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
-    @Operation(responses = {@ApiResponse(responseCode = "200"), @ApiResponse(responseCode = "400", content = @Content)},
-            description = "Retrieve compilers")
+    @Operation(responses = {@ApiResponse(responseCode = "200"),
+        @ApiResponse(responseCode = "400", content = @Content)}, description = "Retrieve compilers")
     @GetMapping("/" + Constants.COMPILERS)
     public HttpEntity<List<String>> getCompilers(@RequestParam String provider) {
         LOG.debug("Get to retrieve compilers for provider {} received.", provider);
