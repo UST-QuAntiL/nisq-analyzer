@@ -49,6 +49,7 @@ import org.planqk.nisq.analyzer.core.connector.OriginalCircuitInformation;
 import org.planqk.nisq.analyzer.core.connector.SdkConnector;
 import org.planqk.nisq.analyzer.core.model.AnalysisJob;
 import org.planqk.nisq.analyzer.core.model.AnalysisResult;
+import org.planqk.nisq.analyzer.core.model.CircuitResult;
 import org.planqk.nisq.analyzer.core.model.CompilationJob;
 import org.planqk.nisq.analyzer.core.model.CompilationResult;
 import org.planqk.nisq.analyzer.core.model.DataType;
@@ -368,8 +369,9 @@ public class NisqAnalyzerControlService {
 
         // collect all QpuSelectionResults of all AnalysisResults in one list
         List<QpuSelectionResult> allQpuSelectionResultsOfOneAnalysisJob = new ArrayList<>();
+        List<QpuSelectionResult> finalAllQpuSelectionResultsOfOneAnalysisJob = allQpuSelectionResultsOfOneAnalysisJob;
         job.getJobResults().forEach(analysisResult -> {
-            allQpuSelectionResultsOfOneAnalysisJob.addAll(
+            finalAllQpuSelectionResultsOfOneAnalysisJob.addAll(
                 qpuSelectionResultRepository.findAllByQpuSelectionJobId(analysisResult.getQpuSelectionJobId()));
         });
 
@@ -381,6 +383,13 @@ public class NisqAnalyzerControlService {
             allQpuSelectionResultsOfOneAnalysisJob.sort(Comparator.comparing(QpuSelectionResult::getQueueSize));
         } else if (preciseResultsPreference && priorDataAvailable) {
             // only precise results demanded
+            allQpuSelectionResultsOfOneAnalysisJob.forEach(qpuSelectionResult -> {
+                if (qpuSelectionResult.getPredictedHistogramIntersectionValue() == null) {
+                    qpuSelectionResult.setPredictedHistogramIntersectionValue(-1.0F);
+                    qpuSelectionResultRepository.save(qpuSelectionResult);
+                }
+            });
+
             if (!shortWaitingTimesPreference) {
                 LOG.debug("Only precise results requested.");
                 allQpuSelectionResultsOfOneAnalysisJob.sort(
@@ -426,10 +435,11 @@ public class NisqAnalyzerControlService {
                 bordaCountRanking.entrySet().stream().sorted((k1, k2) -> -k1.getValue().compareTo(k2.getValue()))
                     .forEach(k -> sortedBordaCountRanking.put(k.getKey(), k.getValue()));
 
-                allQpuSelectionResultsOfOneAnalysisJob.forEach(qpuSelectionResult -> {
-                    int pos = new ArrayList<>(sortedBordaCountRanking.keySet()).indexOf(qpuSelectionResult);
-                    allQpuSelectionResultsOfOneAnalysisJob.set(pos, qpuSelectionResult);
+                List<QpuSelectionResult> sortedQpuSelectionResults = new ArrayList<>();
+                sortedBordaCountRanking.forEach((qpuSelectionResult, aFloat) -> {
+                    sortedQpuSelectionResults.add(qpuSelectionResult);
                 });
+                allQpuSelectionResultsOfOneAnalysisJob = sortedQpuSelectionResults;
             }
         }
 
@@ -437,10 +447,11 @@ public class NisqAnalyzerControlService {
         // trim ranking
         if (maxNumberOfCompiledCircuits > 0 &&
             allQpuSelectionResultsOfOneAnalysisJob.size() > maxNumberOfCompiledCircuits) {
-            allQpuSelectionResultsOfOneAnalysisJob.subList(maxNumberOfCompiledCircuits,
+            allQpuSelectionResultsOfOneAnalysisJob.subList(maxNumberOfCompiledCircuits + 1,
                 allQpuSelectionResultsOfOneAnalysisJob.size()).clear();
         }
 
+        List<QpuSelectionResult> finalAllQpuSelectionResultsOfOneAnalysisJob1 = allQpuSelectionResultsOfOneAnalysisJob;
         analysisResults.forEach(analysisResult -> {
             // delete compilation candidates that will not be considered
             List<QpuSelectionResult> remainingQpuSelectionResultList = new ArrayList<>();
@@ -449,7 +460,7 @@ public class NisqAnalyzerControlService {
             QpuSelectionJob qpuSelectionJob =
                 qpuSelectionJobRepository.findById(analysisResult.getQpuSelectionJobId()).get();
             qpuSelectionJob.getJobResults().forEach(qpuSelectionResult -> {
-                if (!allQpuSelectionResultsOfOneAnalysisJob.contains(qpuSelectionResult)) {
+                if (!finalAllQpuSelectionResultsOfOneAnalysisJob1.contains(qpuSelectionResult)) {
                     qpuSelectionResultsToBeRemoved.add(qpuSelectionResult);
                     qpuSelectionResult.setQpuSelectionJobId(null);
                     qpuSelectionResultRepository.save(qpuSelectionResult);
@@ -1036,12 +1047,6 @@ public class NisqAnalyzerControlService {
 //                    continue;
 //                }
 
-                // only consider standard simulator
-                if (provider.getName().equalsIgnoreCase("ibmq") && qpu.isSimulator() &&
-                    !Objects.equals(qpu.getName(), "ibmq_qasm_simulator")) {
-                    continue;
-                }
-
                 // create all possible combinations of QPUs and compilers and retrieve actual QPU data
                 for (String compilerName : compilersToUse) {
                     // use only qiskit transpiler when compiling with the simulator
@@ -1078,8 +1083,8 @@ public class NisqAnalyzerControlService {
                 }
             }
         }
-        Optional<QpuSelectionResult> simulatorResult = job.getJobResults().stream().findFirst()
-            .filter(qpuSelectionResult -> qpuSelectionResult.getQpu().contains("simulator"));
+        Optional<QpuSelectionResult> simulatorResult =
+            job.getJobResults().stream().findFirst().filter(CircuitResult::isSimulator);
         if (!simulatorResult.isPresent()) {
             job.getJobResults().add(simulatorQpuSelectionResult);
             qpuSelectionResultRepository.save(simulatorQpuSelectionResult);
@@ -1127,16 +1132,11 @@ public class NisqAnalyzerControlService {
         // required
         qpuSelectionResultRepository.findAllByQpuSelectionJobId(job.getId()).forEach(qpuSelectionResult -> {
             if (qpuSelectionResult.getAnalyzedWidth() == 0 && qpuSelectionResult.getAnalyzedDepth() == 0) {
+                job.getJobResults().remove(qpuSelectionResult);
+                qpuSelectionJobRepository.save(job);
                 qpuSelectionResultRepository.delete(qpuSelectionResult);
             }
         });
-        List<QpuSelectionResult> allOverRemainingQpuSelectionResultList = new ArrayList<>();
-        job.getJobResults().forEach(qpuSelectionResultOld -> {
-            Optional<QpuSelectionResult> qpuSelectionResultOptional =
-                qpuSelectionResultRepository.findById(qpuSelectionResultOld.getId());
-            qpuSelectionResultOptional.ifPresent(allOverRemainingQpuSelectionResultList::add);
-        });
-        job.setJobResults(allOverRemainingQpuSelectionResultList);
 
         // store updated result object
         LOG.debug("Results: " + job.getJobResults().size());

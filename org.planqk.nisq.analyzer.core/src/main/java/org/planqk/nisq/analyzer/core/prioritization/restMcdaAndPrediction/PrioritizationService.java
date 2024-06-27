@@ -209,7 +209,9 @@ public class PrioritizationService {
         List<OriginalCircuitAndQpuMetrics> originalCircuitAndQpuMetricsNewCircuitList = new ArrayList<>();
 
         qpuSelectionJob.getJobResults().forEach(qpuSelectionResult -> {
-            if (!qpuSelectionResult.getQpu().contains("simulator")) {
+            if (!qpuSelectionResult.getQpu().contains("simulator") &&
+                !qpuSelectionResult.getCompiler().contains("forest") &&
+                !qpuSelectionResult.getCompiler().contains("cirq")) {
                 OriginalCircuitAndQpuMetrics originalCircuitAndQpuMetricsNewCircuit =
                     new OriginalCircuitAndQpuMetrics();
                 originalCircuitAndQpuMetricsNewCircuit.setId(qpuSelectionResult.getId().toString());
@@ -263,6 +265,9 @@ public class PrioritizationService {
                 while (!prioritizationServiceResultLocationResponse.getLog().equalsIgnoreCase("finished")) {
                     // Wait for next poll
                     try {
+                        if (prioritizationServiceResultLocationResponse.getStatus().equalsIgnoreCase("FAILURE")) {
+                            break;
+                        }
                         Thread.sleep(5000);
                     } catch (InterruptedException e) {
                         // pass

@@ -327,7 +327,7 @@ public class ForestSdkConnector implements SdkConnector {
 
     @Override
     public List<String> supportedSdks() {
-        return Arrays.asList(Constants.FOREST);
+        return Arrays.asList(Constants.FOREST, Constants.PYQUIL);
     }
 
     @Override
