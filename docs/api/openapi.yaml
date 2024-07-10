@@ -47,45 +47,6 @@ paths:
                 $ref: '#/components/schemas/AnalysisResultListDto'
         "404":
           description: Not Found
-  /analysis-results/jobs:
-    get:
-      tags:
-      - analysis-result
-      description: Retrieve all compiler analysis jobs
-      operationId: getAnalysisJobs
-      responses:
-        "200":
-          description: OK
-          content:
-            application/hal+json:
-              schema:
-                $ref: '#/components/schemas/AnalysisJobListDto'
-        "404":
-          description: Not Found
-  /analysis-results/{resId}:
-    get:
-      tags:
-      - analysis-result
-      description: Retrieve a single analysis result
-      operationId: getAnalysisResult
-      parameters:
-      - name: resId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          format: uuid
-      responses:
-        "200":
-          description: OK
-          content:
-            application/hal+json:
-              schema:
-                $ref: '#/components/schemas/AnalysisResultDto'
-        "404":
-          description: Not Found
   /analysis-results/jobs/algorithm/{algoId}:
     get:
       tags:
@@ -121,6 +82,30 @@ paths:
                 $ref: '#/components/schemas/AnalysisJobListDto'
         "404":
           description: Not Found
+  /analysis-results/{resId}:
+    get:
+      tags:
+      - analysis-result
+      description: Retrieve a single analysis result
+      operationId: getAnalysisResult
+      parameters:
+      - name: resId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResultDto'
+        "404":
+          description: Not Found
   /analysis-results/jobs/{resId}:
     get:
       tags:
@@ -145,50 +130,19 @@ paths:
                 $ref: '#/components/schemas/AnalysisJobDto'
         "404":
           description: Not Found
-  /analysis-results/{resId}/execute:
-    post:
-      tags:
-      - analysis-result
-      description: Execute an analysis configuration
-      operationId: executeAnalysisResult
-      parameters:
-      - name: resId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          format: uuid
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ExecuteAnalysisResultRequestDto'
-      responses:
-        "202":
-          description: Accepted
-          content:
-            application/hal+json:
-              schema:
-                $ref: '#/components/schemas/ExecutionResultDto'
-        "404":
-          description: Not Found
-        "500":
-          description: Internal Server Error
-  /compiler-results/jobs:
+  /analysis-results/jobs:
     get:
       tags:
-      - compiler-analysis-result
-      description: Retrieve all compiler analysis jobs
-      operationId: getCompilerAnalysisJobs
+      - analysis-result
+      description: Retrieve all analysis jobs
+      operationId: getAnalysisJobs
       responses:
         "200":
           description: OK
           content:
             application/hal+json:
               schema:
-                $ref: '#/components/schemas/CompilationJobListDto'
+                $ref: '#/components/schemas/AnalysisJobListDto'
         "404":
           description: Not Found
   /compiler-results/:
@@ -204,6 +158,21 @@ paths:
             application/hal+json:
               schema:
                 $ref: '#/components/schemas/CompilerAnalysisResultListDto'
+        "404":
+          description: Not Found
+  /compiler-results/jobs:
+    get:
+      tags:
+      - compiler-analysis-result
+      description: Retrieve all compiler analysis jobs
+      operationId: getCompilerAnalysisJobs
+      responses:
+        "200":
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/CompilationJobListDto'
         "404":
           description: Not Found
   /compiler-results/{resId}:
@@ -289,6 +258,30 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
+  /execution-results/{resultId}:
+    get:
+      tags:
+      - execution-result
+      description: Retrieve a single execution result
+      operationId: getExecutionResult
+      parameters:
+      - name: resultId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ExecutionResultDto'
+        "404":
+          description: Not Found
   /execution-results/:
     get:
       tags:
@@ -313,14 +306,58 @@ paths:
                 $ref: '#/components/schemas/ExecutionResultListDto'
         "404":
           description: Not Found
-  /execution-results/{resultId}:
+  /implementations/:
     get:
       tags:
-      - execution-result
-      description: Retrieve a single execution result
-      operationId: getExecutionResult
+      - implementation
+      description: Retrieve implementations for an algorithm
+      operationId: getImplementations
       parameters:
-      - name: resultId
+      - name: algoId
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ImplementationListDto'
+        "404":
+          description: Not Found
+    post:
+      tags:
+      - implementation
+      description: Create an implementation
+      operationId: createImplementation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImplementationDto'
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ImplementationDto'
+        "400":
+          description: Bad Request
+  /implementations/{implId}/output-parameters:
+    get:
+      tags:
+      - implementation
+      description: Retrieve output parameters for an implementation
+      operationId: getOutputParameters
+      parameters:
+      - name: implId
         in: path
         required: true
         style: simple
@@ -334,7 +371,38 @@ paths:
           content:
             application/hal+json:
               schema:
-                $ref: '#/components/schemas/ExecutionResultDto'
+                $ref: '#/components/schemas/ParameterListDto'
+        "404":
+          description: Not Found
+    post:
+      tags:
+      - implementation
+      description: Add output parameters to an implementation
+      operationId: addOutputParameter
+      parameters:
+      - name: implId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParameterDto'
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ParameterDto'
+        "400":
+          description: Bad Request
         "404":
           description: Not Found
   /implementations/{implId}:
@@ -472,14 +540,14 @@ paths:
           description: OK
         "404":
           description: Not Found
-  /implementations/{implId}/output-parameters:
+  /qpu-selection-results/jobs/{resId}:
     get:
       tags:
-      - implementation
-      description: Retrieve output parameters for an implementation
-      operationId: getOutputParameters
+      - qpu-selection-result
+      description: Retrieve a single QPU selection job
+      operationId: getQpuSelectionJob
       parameters:
-      - name: implId
+      - name: resId
         in: path
         required: true
         style: simple
@@ -487,90 +555,22 @@ paths:
         schema:
           type: string
           format: uuid
-      responses:
-        "200":
-          description: OK
-          content:
-            application/hal+json:
-              schema:
-                $ref: '#/components/schemas/ParameterListDto'
-        "404":
-          description: Not Found
-    post:
-      tags:
-      - implementation
-      description: Add output parameters to an implementation
-      operationId: addOutputParameter
-      parameters:
-      - name: implId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          format: uuid
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ParameterDto'
-        required: true
-      responses:
-        "201":
-          description: Created
-          content:
-            application/hal+json:
-              schema:
-                $ref: '#/components/schemas/ParameterDto'
-        "400":
-          description: Bad Request
-        "404":
-          description: Not Found
-  /implementations/:
-    get:
-      tags:
-      - implementation
-      description: Retrieve implementations for an algorithm
-      operationId: getImplementations
-      parameters:
-      - name: algoId
+      - name: userId
         in: query
         required: false
         style: form
         explode: true
         schema:
           type: string
-          format: uuid
       responses:
         "200":
           description: OK
           content:
             application/hal+json:
               schema:
-                $ref: '#/components/schemas/ImplementationListDto'
+                $ref: '#/components/schemas/QpuSelectionJobDto'
         "404":
           description: Not Found
-    post:
-      tags:
-      - implementation
-      description: Create an implementation
-      operationId: createImplementation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ImplementationDto'
-        required: true
-      responses:
-        "201":
-          description: Created
-          content:
-            application/hal+json:
-              schema:
-                $ref: '#/components/schemas/ImplementationDto'
-        "400":
-          description: Bad Request
   /qpu-selection-results/{resId}:
     get:
       tags:
@@ -648,37 +648,6 @@ paths:
                 $ref: '#/components/schemas/QpuSelectionJobListDto'
         "404":
           description: Not Found
-  /qpu-selection-results/jobs/{resId}:
-    get:
-      tags:
-      - qpu-selection-result
-      description: Retrieve a single QPU selection job
-      operationId: getQpuSelectionJob
-      parameters:
-      - name: resId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          format: uuid
-      - name: userId
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/hal+json:
-              schema:
-                $ref: '#/components/schemas/QpuSelectionJobDto'
-        "404":
-          description: Not Found
   /qpu-selection-results/{resId}/execute:
     post:
       tags:
@@ -724,31 +693,6 @@ paths:
             application/hal+json:
               schema:
                 $ref: '#/components/schemas/RepresentationModel'
-  /compilers:
-    get:
-      tags:
-      - root
-      description: Retrieve compilers
-      operationId: getCompilers
-      parameters:
-      - name: provider
-        in: query
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/hal+json:
-              schema:
-                type: array
-                items:
-                  type: string
-        "400":
-          description: Bad Request
   /selection-params:
     get:
       tags:
@@ -796,36 +740,6 @@ paths:
           description: Bad Request
         "500":
           description: Internal Server Error
-  /qpu-selection:
-    post:
-      tags:
-      - root
-      description: Select the most suitable quantum computer for a quantum circuit
-        loaded from the given URL
-      operationId: selectQpuForCircuitFile_1
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/qpuselection_body'
-          application/xml:
-            schema:
-              $ref: '#/components/schemas/QpuSelectionDto'
-          application/json:
-            schema:
-              $ref: '#/components/schemas/QpuSelectionDto'
-        required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/hal+json:
-              schema:
-                $ref: '#/components/schemas/QpuSelectionJobDto'
-        "400":
-          description: Bad Request
-        "500":
-          description: Internal Server Error
   /compiler-selection:
     post:
       tags:
@@ -856,30 +770,61 @@ paths:
           description: Bad Request
         "500":
           description: Internal Server Error
-  /sdks/{id}:
-    get:
+  /qpu-selection:
+    post:
       tags:
-      - sdks
-      description: Retrieve a single SDK
-      operationId: getSdk
-      parameters:
-      - name: id
-        in: path
+      - root
+      description: Select the most suitable quantum computer for a quantum circuit
+        loaded from the given URL
+      operationId: selectQpuForCircuitFile_1
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/qpuselection_body'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/QpuSelectionDto'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QpuSelectionDto'
         required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          format: uuid
       responses:
         "200":
           description: OK
           content:
             application/hal+json:
               schema:
-                $ref: '#/components/schemas/SdkDto'
-        "404":
-          description: Not Found
+                $ref: '#/components/schemas/QpuSelectionJobDto'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+  /compilers:
+    get:
+      tags:
+      - root
+      description: Retrieve compilers
+      operationId: getCompilers
+      parameters:
+      - name: provider
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  type: string
+        "400":
+          description: Bad Request
   /sdks/:
     get:
       tags:
@@ -913,21 +858,38 @@ paths:
                 $ref: '#/components/schemas/SdkDto'
         "400":
           description: Bad Request
-  /mcda-methods/{methodName}/criteria/{criterionId}:
+  /sdks/{id}:
     get:
       tags:
-      - xmcda-criteria
-      description: Retrieve a single criterion for a MCDA method
-      operationId: getCriterion
+      - sdks
+      description: Retrieve a single SDK
+      operationId: getSdk
       parameters:
-      - name: methodName
+      - name: id
         in: path
         required: true
         style: simple
         explode: false
         schema:
           type: string
-      - name: criterionId
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/SdkDto'
+        "404":
+          description: Not Found
+  /mcda-methods/{methodName}:
+    get:
+      tags:
+      - xmcda-criteria
+      description: Retrieve a single prioritization method
+      operationId: getPrioritizationMethod
+      parameters:
+      - name: methodName
         in: path
         required: true
         style: simple
@@ -940,7 +902,176 @@ paths:
           content:
             application/hal+json:
               schema:
-                $ref: '#/components/schemas/McdaCriterionDto'
+                $ref: '#/components/schemas/McdaMethodDto'
+        "404":
+          description: Not Found
+  /mcda-methods/{methodName}/criteria:
+    get:
+      tags:
+      - xmcda-criteria
+      description: Retrieve a single prioritization method
+      operationId: getCriterionForMethod
+      parameters:
+      - name: methodName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/McdaCriterionListDto'
+        "404":
+          description: Not Found
+  /mcda-methods/{methodName}/jobs/{jobId}:
+    get:
+      tags:
+      - xmcda-criteria
+      description: Retrieve all MCDA jobs for the given method
+      operationId: getPrioritizationJob
+      parameters:
+      - name: methodName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: jobId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/EntityModelMcdaJob'
+        "404":
+          description: Not Found
+  /mcda-methods/{methodName}/jobs:
+    get:
+      tags:
+      - xmcda-criteria
+      description: Retrieve all MCDA jobs for the given method
+      operationId: getPrioritizationJobs
+      parameters:
+      - name: methodName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/CollectionModelEntityModelMcdaJob'
+        "404":
+          description: Not Found
+  /mcda-methods/{methodName}/weight-learning-methods/{weightLearningMethod}/jobs/{jobId}:
+    get:
+      tags:
+      - xmcda-criteria
+      description: Retrieve all MCDA-weight-learning jobs for the given method
+      operationId: getWeightLearningJob
+      parameters:
+      - name: methodName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: weightLearningMethod
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: jobId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/EntityModelMcdaWeightLearningJob'
+        "404":
+          description: Not Found
+  /mcda-methods/{methodName}/sensitivity-analyzes/jobs/{jobId}:
+    get:
+      tags:
+      - xmcda-criteria
+      description: Retrieve the sensitivity analysis job for the given method
+      operationId: getSensitivityAnalysisJob
+      parameters:
+      - name: methodName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: jobId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/EntityModelMcdaSensitivityAnalysisJob'
+        "404":
+          description: Not Found
+  /mcda-methods/{methodName}/sensitivity-analyzes/jobs:
+    get:
+      tags:
+      - xmcda-criteria
+      description: Retrieve all sensitivity analysis jobs for the given method
+      operationId: getSensitivityAnalysisJobs
+      parameters:
+      - name: methodName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/CollectionModelEntityModelMcdaSensitivityAnalysisJob'
         "404":
           description: Not Found
   /mcda-methods/{methodName}/criteria/{criterionId}/value:
@@ -1014,6 +1145,36 @@ paths:
                 $ref: '#/components/schemas/EntityModelCriterionValue'
         "404":
           description: Not Found
+  /mcda-methods/{methodName}/criteria/{criterionId}:
+    get:
+      tags:
+      - xmcda-criteria
+      description: Retrieve a single criterion for a MCDA method
+      operationId: getCriterion
+      parameters:
+      - name: methodName
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: criterionId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/McdaCriterionDto'
+        "404":
+          description: Not Found
   /mcda-methods/:
     get:
       tags:
@@ -1027,106 +1188,6 @@ paths:
             application/hal+json:
               schema:
                 $ref: '#/components/schemas/McdaMethodListDto'
-  /mcda-methods/{methodName}:
-    get:
-      tags:
-      - xmcda-criteria
-      description: Retrieve a single prioritization method
-      operationId: getPrioritizationMethod
-      parameters:
-      - name: methodName
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/hal+json:
-              schema:
-                $ref: '#/components/schemas/McdaMethodDto'
-        "404":
-          description: Not Found
-  /mcda-methods/{methodName}/criteria:
-    get:
-      tags:
-      - xmcda-criteria
-      description: Retrieve a single prioritization method
-      operationId: getCriterionForMethod
-      parameters:
-      - name: methodName
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/hal+json:
-              schema:
-                $ref: '#/components/schemas/McdaCriterionListDto'
-        "404":
-          description: Not Found
-  /mcda-methods/{methodName}/jobs:
-    get:
-      tags:
-      - xmcda-criteria
-      description: Retrieve all MCDA jobs for the given method
-      operationId: getPrioritizationJobs
-      parameters:
-      - name: methodName
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/hal+json:
-              schema:
-                $ref: '#/components/schemas/CollectionModelEntityModelMcdaJob'
-        "404":
-          description: Not Found
-  /mcda-methods/{methodName}/jobs/{jobId}:
-    get:
-      tags:
-      - xmcda-criteria
-      description: Retrieve all MCDA jobs for the given method
-      operationId: getPrioritizationJob
-      parameters:
-      - name: methodName
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: jobId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          format: uuid
-      responses:
-        "200":
-          description: OK
-          content:
-            application/hal+json:
-              schema:
-                $ref: '#/components/schemas/EntityModelMcdaJob'
-        "404":
-          description: Not Found
   /mcda-methods/{methodName}/prioritize:
     post:
       tags:
@@ -1175,44 +1236,6 @@ paths:
           description: Bad Request
         "500":
           description: Internal Server Error
-  /mcda-methods/{methodName}/weight-learning-methods/{weightLearningMethod}/jobs/{jobId}:
-    get:
-      tags:
-      - xmcda-criteria
-      description: Retrieve all MCDA-weight-learning jobs for the given method
-      operationId: getWeightLearningJob
-      parameters:
-      - name: methodName
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: weightLearningMethod
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: jobId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          format: uuid
-      responses:
-        "200":
-          description: OK
-          content:
-            application/hal+json:
-              schema:
-                $ref: '#/components/schemas/EntityModelMcdaWeightLearningJob'
-        "404":
-          description: Not Found
   /mcda-methods/{methodName}/weight-learning-methods/{weightLearningMethod}/learning-weights:
     post:
       tags:
@@ -1246,60 +1269,6 @@ paths:
           description: Bad Request
         "500":
           description: Internal Server Error
-  /mcda-methods/{methodName}/sensitivity-analyzes/jobs:
-    get:
-      tags:
-      - xmcda-criteria
-      description: Retrieve all sensitivity analysis jobs for the given method
-      operationId: getSensitivityAnalysisJobs
-      parameters:
-      - name: methodName
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/hal+json:
-              schema:
-                $ref: '#/components/schemas/CollectionModelEntityModelMcdaSensitivityAnalysisJob'
-        "404":
-          description: Not Found
-  /mcda-methods/{methodName}/sensitivity-analyzes/jobs/{jobId}:
-    get:
-      tags:
-      - xmcda-criteria
-      description: Retrieve the sensitivity analysis job for the given method
-      operationId: getSensitivityAnalysisJob
-      parameters:
-      - name: methodName
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: jobId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-          format: uuid
-      responses:
-        "200":
-          description: OK
-          content:
-            application/hal+json:
-              schema:
-                $ref: '#/components/schemas/EntityModelMcdaSensitivityAnalysisJob'
-        "404":
-          description: Not Found
   /mcda-methods/{methodName}/sensitivity-analyzes/analyze-sensitivity:
     post:
       tags:
@@ -1377,74 +1346,23 @@ components:
     AnalysisResultDto:
       type: object
       properties:
+        implementation:
+          $ref: '#/components/schemas/ImplementationDto'
         id:
           type: string
           format: uuid
-        provider:
-          type: string
-        qpu:
-          type: string
-        compiler:
-          type: string
-        analyzedDepth:
-          type: integer
-          format: int32
-        analyzedWidth:
-          type: integer
-          format: int32
-        analyzedTotalNumberOfOperations:
-          type: integer
-          format: int32
-        analyzedNumberOfSingleQubitGates:
-          type: integer
-          format: int32
-        analyzedNumberOfMultiQubitGates:
-          type: integer
-          format: int32
-        analyzedNumberOfMeasurementOperations:
-          type: integer
-          format: int32
-        analyzedMultiQubitGateDepth:
-          type: integer
-          format: int32
-        numberOfQubits:
-          type: integer
-          format: int32
-        t1:
-          type: number
-          format: float
-        t2:
-          type: number
-          format: float
-        avgReadoutError:
-          type: number
-          format: float
-        avgSingleQubitGateError:
-          type: number
-          format: float
-        avgMultiQubitGateError:
-          type: number
-          format: float
-        avgSingleQubitGateTime:
-          type: number
-          format: float
-        avgMultiQubitGateTime:
-          type: number
-          format: float
-        maxGateTime:
-          type: number
-          format: float
-        simulator:
-          type: boolean
-        time:
-          type: string
-          format: date-time
-        implementation:
-          $ref: '#/components/schemas/ImplementationDto'
         inputParameters:
           type: object
           additionalProperties:
             type: string
+        originalCircuitResultId:
+          type: string
+          format: uuid
+        qpuSelectionJobId:
+          type: string
+          format: uuid
+        correlationId:
+          type: string
         _links:
           $ref: '#/components/schemas/Links'
     AnalysisResultListDto:
@@ -1470,8 +1388,6 @@ components:
         algorithmName:
           type: string
         language:
-          type: string
-        selectionRule:
           type: string
         sdk:
           type: string
@@ -1537,6 +1453,11 @@ components:
             type: string
         ready:
           type: boolean
+        initialMcdaJob:
+          type: string
+          format: uuid
+        initialMcdaMethod:
+          type: string
         _links:
           $ref: '#/components/schemas/Links'
     AnalysisJobListDto:
@@ -1546,65 +1467,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AnalysisJobDto'
-        _links:
-          $ref: '#/components/schemas/Links'
-    ExecuteAnalysisResultRequestDto:
-      type: object
-      properties:
-        refreshToken:
-          type: string
-        tokens:
-          type: object
-          additionalProperties:
-            type: object
-            additionalProperties:
-              type: string
-    ExecutionResultDto:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        status:
-          type: string
-          enum:
-          - INITIALIZED
-          - RUNNING
-          - FAILED
-          - FINISHED
-        statusCode:
-          type: string
-        result:
-          type: string
-        shots:
-          type: integer
-          format: int32
-        histogramIntersectionValue:
-          type: number
-          format: double
-        _links:
-          $ref: '#/components/schemas/Links'
-    CompilationJobDto:
-      type: object
-      properties:
-        compilerAnalysisResultList:
-          type: array
-          items:
-            $ref: '#/components/schemas/CompilerAnalysisResultDto'
-        id:
-          type: string
-          format: uuid
-        ready:
-          type: boolean
-        _links:
-          $ref: '#/components/schemas/Links'
-    CompilationJobListDto:
-      type: object
-      properties:
-        compilationJobList:
-          type: array
-          items:
-            $ref: '#/components/schemas/CompilationJobDto'
         _links:
           $ref: '#/components/schemas/Links'
     CompilerAnalysisResultDto:
@@ -1689,6 +1551,57 @@ components:
             $ref: '#/components/schemas/CompilerAnalysisResultDto'
         _links:
           $ref: '#/components/schemas/Links'
+    CompilationJobDto:
+      type: object
+      properties:
+        compilerAnalysisResultList:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompilerAnalysisResultDto'
+        id:
+          type: string
+          format: uuid
+        ready:
+          type: boolean
+        _links:
+          $ref: '#/components/schemas/Links'
+    CompilationJobListDto:
+      type: object
+      properties:
+        compilationJobList:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompilationJobDto'
+        _links:
+          $ref: '#/components/schemas/Links'
+    ExecutionResultDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - INITIALIZED
+          - RUNNING
+          - FAILED
+          - FINISHED
+        statusCode:
+          type: string
+        result:
+          type: string
+        shots:
+          type: integer
+          format: int32
+        histogramIntersectionValue:
+          type: number
+          format: double
+        resultLocation:
+          type: string
+          format: uri
+        _links:
+          $ref: '#/components/schemas/Links'
     ExecutionResultListDto:
       type: object
       properties:
@@ -1706,6 +1619,27 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ImplementationDto'
+        _links:
+          $ref: '#/components/schemas/Links'
+    QpuSelectionJobDto:
+      type: object
+      properties:
+        qpuSelectionResultList:
+          type: array
+          items:
+            $ref: '#/components/schemas/QpuSelectionResultDto'
+        id:
+          type: string
+          format: uuid
+        time:
+          type: string
+          format: date-time
+        circuitName:
+          type: string
+        ready:
+          type: boolean
+        userId:
+          type: string
         _links:
           $ref: '#/components/schemas/Links'
     QpuSelectionResultDto:
@@ -1804,27 +1738,6 @@ components:
             $ref: '#/components/schemas/QpuSelectionResultDto'
         _links:
           $ref: '#/components/schemas/Links'
-    QpuSelectionJobDto:
-      type: object
-      properties:
-        qpuSelectionResultList:
-          type: array
-          items:
-            $ref: '#/components/schemas/QpuSelectionResultDto'
-        id:
-          type: string
-          format: uuid
-        time:
-          type: string
-          format: date-time
-        circuitName:
-          type: string
-        ready:
-          type: boolean
-        userId:
-          type: string
-        _links:
-          $ref: '#/components/schemas/Links'
     QpuSelectionJobListDto:
       type: object
       properties:
@@ -1834,6 +1747,19 @@ components:
             $ref: '#/components/schemas/QpuSelectionJobDto'
         _links:
           $ref: '#/components/schemas/Links'
+    ExecuteAnalysisResultRequestDto:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+        tokens:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: string
+        correlationId:
+          type: string
     RepresentationModel:
       type: object
       properties:
@@ -1846,9 +1772,63 @@ components:
           type: object
           additionalProperties:
             type: string
+        allowedProviders:
+          type: array
+          items:
+            type: string
+        compilers:
+          type: array
+          items:
+            type: string
+        preciseResultsPreference:
+          type: boolean
+        shortWaitingTimesPreference:
+          type: boolean
+        queueImportanceRatio:
+          type: number
+          format: float
+        maxNumberOfCompiledCircuits:
+          type: integer
+          format: int32
+        predictionAlgorithm:
+          type: string
+        metaOptimizer:
+          type: string
+        tokens:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: string
         algorithmId:
           type: string
           format: uuid
+        refreshToken:
+          type: string
+        mcdaMethodName:
+          type: string
+        mcdaWeightLearningMethod:
+          type: string
+    CompilerSelectionDto:
+      type: object
+      properties:
+        providerName:
+          type: string
+        qpuName:
+          type: string
+        circuitLanguage:
+          type: string
+        circuitName:
+          type: string
+        circuitUrl:
+          type: string
+          format: url
+        qasmCode:
+          type: string
+        tokens:
+          type: object
+          additionalProperties:
+            type: string
         refreshToken:
           type: string
     QpuSelectionDto:
@@ -1895,28 +1875,6 @@ components:
           type: array
           items:
             type: string
-    CompilerSelectionDto:
-      type: object
-      properties:
-        providerName:
-          type: string
-        qpuName:
-          type: string
-        circuitLanguage:
-          type: string
-        circuitName:
-          type: string
-        circuitUrl:
-          type: string
-          format: url
-        qasmCode:
-          type: string
-        tokens:
-          type: object
-          additionalProperties:
-            type: string
-        refreshToken:
-          type: string
     SdkDto:
       type: object
       properties:
@@ -1934,6 +1892,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SdkDto'
+        _links:
+          $ref: '#/components/schemas/Links'
+    McdaMethodDto:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
         _links:
           $ref: '#/components/schemas/Links'
     Description:
@@ -1994,6 +1961,15 @@ components:
           $ref: '#/components/schemas/Description'
         scale:
           $ref: '#/components/schemas/Scale'
+        _links:
+          $ref: '#/components/schemas/Links'
+    McdaCriterionListDto:
+      type: object
+      properties:
+        mcdaCriterionList:
+          type: array
+          items:
+            $ref: '#/components/schemas/McdaCriterionDto'
         _links:
           $ref: '#/components/schemas/Links'
     Nominal:
@@ -2221,6 +2197,143 @@ components:
             attribute: true
         boolean:
           type: boolean
+    EntityModelMcdaJob:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        time:
+          type: string
+          format: date-time
+        ready:
+          type: boolean
+        method:
+          type: string
+        state:
+          type: string
+        useBordaCount:
+          type: boolean
+        bordaCountWeights:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+        jobId:
+          type: string
+          format: uuid
+        jobType:
+          type: string
+          enum:
+          - ANALYSIS
+          - COMPILATION
+          - QPU_SELECTION
+          - MCDA
+        rankedResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/McdaResult'
+        _links:
+          $ref: '#/components/schemas/Links'
+    McdaResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        resultId:
+          type: string
+          format: uuid
+        position:
+          type: integer
+          format: int32
+        score:
+          type: number
+          format: double
+        _links:
+          $ref: '#/components/schemas/Links'
+    CollectionModelEntityModelMcdaJob:
+      type: object
+      properties:
+        _embedded:
+          $ref: '#/components/schemas/CollectionModelEntityModelMcdaJob__embedded'
+        _links:
+          $ref: '#/components/schemas/Links'
+    EntityModelMcdaWeightLearningJob:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        time:
+          type: string
+          format: date-time
+        ready:
+          type: boolean
+        mcdaMethod:
+          type: string
+        weightLearningMethod:
+          type: string
+        state:
+          type: string
+        _links:
+          $ref: '#/components/schemas/Links'
+    EntityModelMcdaSensitivityAnalysisJob:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        time:
+          type: string
+          format: date-time
+        ready:
+          type: boolean
+        method:
+          type: string
+        state:
+          type: string
+        useBordaCount:
+          type: boolean
+        bordaCountWeights:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+        jobId:
+          type: string
+          format: uuid
+        jobType:
+          type: string
+          enum:
+          - ANALYSIS
+          - COMPILATION
+          - QPU_SELECTION
+          - MCDA
+        stepSize:
+          type: number
+          format: float
+        upperBound:
+          type: number
+          format: float
+        lowerBound:
+          type: number
+          format: float
+        plotFileLocation:
+          type: string
+        originalRanking:
+          type: array
+          items:
+            $ref: '#/components/schemas/McdaResult'
+        _links:
+          $ref: '#/components/schemas/Links'
+    CollectionModelEntityModelMcdaSensitivityAnalysisJob:
+      type: object
+      properties:
+        _embedded:
+          $ref: '#/components/schemas/CollectionModelEntityModelMcdaSensitivityAnalysisJob__embedded'
+        _links:
+          $ref: '#/components/schemas/Links'
     CriteriaSet:
       type: object
       properties:
@@ -2319,15 +2432,6 @@ components:
           type: string
         _links:
           $ref: '#/components/schemas/Links'
-    McdaMethodDto:
-      type: object
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-        _links:
-          $ref: '#/components/schemas/Links'
     McdaMethodListDto:
       type: object
       properties:
@@ -2335,152 +2439,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/McdaMethodDto'
-        _links:
-          $ref: '#/components/schemas/Links'
-    McdaCriterionListDto:
-      type: object
-      properties:
-        mcdaCriterionList:
-          type: array
-          items:
-            $ref: '#/components/schemas/McdaCriterionDto'
-        _links:
-          $ref: '#/components/schemas/Links'
-    CollectionModelEntityModelMcdaJob:
-      type: object
-      properties:
-        _embedded:
-          $ref: '#/components/schemas/CollectionModelEntityModelMcdaJob__embedded'
-        _links:
-          $ref: '#/components/schemas/Links'
-    EntityModelMcdaJob:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        time:
-          type: string
-          format: date-time
-        ready:
-          type: boolean
-        method:
-          type: string
-        state:
-          type: string
-        useBordaCount:
-          type: boolean
-        bordaCountWeights:
-          type: object
-          additionalProperties:
-            type: number
-            format: float
-        jobId:
-          type: string
-          format: uuid
-        jobType:
-          type: string
-          enum:
-          - ANALYSIS
-          - COMPILATION
-          - QPU_SELECTION
-          - MCDA
-        rankedResults:
-          type: array
-          items:
-            $ref: '#/components/schemas/McdaResult'
-        _links:
-          $ref: '#/components/schemas/Links'
-    McdaResult:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        resultId:
-          type: string
-          format: uuid
-        position:
-          type: integer
-          format: int32
-        score:
-          type: number
-          format: double
-        _links:
-          $ref: '#/components/schemas/Links'
-    EntityModelMcdaWeightLearningJob:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        time:
-          type: string
-          format: date-time
-        ready:
-          type: boolean
-        mcdaMethod:
-          type: string
-        weightLearningMethod:
-          type: string
-        state:
-          type: string
-        _links:
-          $ref: '#/components/schemas/Links'
-    CollectionModelEntityModelMcdaSensitivityAnalysisJob:
-      type: object
-      properties:
-        _embedded:
-          $ref: '#/components/schemas/CollectionModelEntityModelMcdaSensitivityAnalysisJob__embedded'
-        _links:
-          $ref: '#/components/schemas/Links'
-    EntityModelMcdaSensitivityAnalysisJob:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        time:
-          type: string
-          format: date-time
-        ready:
-          type: boolean
-        method:
-          type: string
-        state:
-          type: string
-        useBordaCount:
-          type: boolean
-        bordaCountWeights:
-          type: object
-          additionalProperties:
-            type: number
-            format: float
-        jobId:
-          type: string
-          format: uuid
-        jobType:
-          type: string
-          enum:
-          - ANALYSIS
-          - COMPILATION
-          - QPU_SELECTION
-          - MCDA
-        stepSize:
-          type: number
-          format: float
-        upperBound:
-          type: number
-          format: float
-        lowerBound:
-          type: number
-          format: float
-        plotFileLocation:
-          type: string
-        originalRanking:
-          type: array
-          items:
-            $ref: '#/components/schemas/McdaResult'
         _links:
           $ref: '#/components/schemas/Links'
     Link:
@@ -2502,19 +2460,19 @@ components:
           type: string
         templated:
           type: boolean
-    qpuselection_body:
-      type: object
-      properties:
-        qpuSelectionDto:
-          $ref: '#/components/schemas/QpuSelectionDto'
-        circuit:
-          type: string
-          format: binary
     compilerselection_body:
       type: object
       properties:
         compilerSelectionDto:
           $ref: '#/components/schemas/CompilerSelectionDto'
+        circuit:
+          type: string
+          format: binary
+    qpuselection_body:
+      type: object
+      properties:
+        qpuSelectionDto:
+          $ref: '#/components/schemas/QpuSelectionDto'
         circuit:
           type: string
           format: binary
