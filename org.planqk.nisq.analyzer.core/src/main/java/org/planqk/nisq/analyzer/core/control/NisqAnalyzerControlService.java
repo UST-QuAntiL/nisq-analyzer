@@ -383,6 +383,7 @@ public class NisqAnalyzerControlService {
             allQpuSelectionResultsOfOneAnalysisJob.sort(Comparator.comparing(QpuSelectionResult::getQueueSize));
         } else if (preciseResultsPreference && priorDataAvailable) {
             // only precise results demanded
+            //FIXME how to handle combinations with compilers not yet in training set?
             allQpuSelectionResultsOfOneAnalysisJob.forEach(qpuSelectionResult -> {
                 if (qpuSelectionResult.getPredictedHistogramIntersectionValue() == null) {
                     qpuSelectionResult.setPredictedHistogramIntersectionValue(-1.0F);
