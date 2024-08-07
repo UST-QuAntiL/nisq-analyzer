@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,6 +19,7 @@
 
 package org.planqk.nisq.analyzer.core.web.dtos.entities;
 
+import java.net.URI;
 import java.util.UUID;
 
 import org.planqk.nisq.analyzer.core.model.ExecutionResult;
@@ -57,6 +58,10 @@ public class ExecutionResultDto extends RepresentationModel<ExecutionResultDto> 
     @Setter
     private double histogramIntersectionValue;
 
+    @Getter
+    @Setter
+    private URI resultLocation;
+
     public static final class Converter {
 
         public static ExecutionResultDto convert(final ExecutionResult object) {
@@ -67,6 +72,7 @@ public class ExecutionResultDto extends RepresentationModel<ExecutionResultDto> 
             dto.setResult(object.getResult());
             dto.setShots(object.getShots());
             dto.setHistogramIntersectionValue(object.getHistogramIntersectionValue());
+            dto.setResultLocation(object.getResultLocation());
             return dto;
         }
     }

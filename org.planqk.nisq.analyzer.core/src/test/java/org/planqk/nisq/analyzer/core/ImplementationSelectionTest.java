@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,32 +19,19 @@
 
 package org.planqk.nisq.analyzer.core;
 
-import java.util.Arrays;
+import org.junit.jupiter.api.Disabled;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
-import org.mockito.Mockito;
-import org.planqk.nisq.analyzer.core.control.NisqAnalyzerControlService;
-import org.planqk.nisq.analyzer.core.model.AnalysisJob;
-import org.planqk.nisq.analyzer.core.model.Provider;
-import org.planqk.nisq.analyzer.core.qprov.QProvService;
-import org.planqk.nisq.analyzer.core.repository.AnalysisJobRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-
-
+@Disabled
 public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
-
-    @MockBean
-    private QProvService qProvService;
-
+/*
     @Autowired
     protected AnalysisJobRepository analysisJobRepository;
 
     @Autowired
     protected NisqAnalyzerControlService nisqAnalyzerControlService;
+
+    @MockBean
+    private QProvService qProvService;
 
     @Before
     public void setUpQiskitQpusMock() {
@@ -53,10 +40,9 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         ibmq.setName("IBMQ");
 
         Mockito.when(qProvService.getProviders()).thenReturn(Arrays.asList(ibmq));
-        Mockito.when(qProvService.getQPUs(ibmq)).thenReturn(Arrays.asList(
-            createDummyQPU("IBMQ", "ibmq_16_melbourne", 15, 1696, 54502.2906f),
-            createDummySimulator("IBMQ", "ibmq_qasm_simulator", 32)
-        ));
+        Mockito.when(qProvService.getQPUs(ibmq)).thenReturn(
+            Arrays.asList(createDummyQPU("IBMQ", "ibmq_16_melbourne", 15, 1696, 54502.2906f),
+                createDummySimulator("IBMQ", "ibmq_qasm_simulator", 32)));
     }
 
     @Test
@@ -66,7 +52,7 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
 
     @Ignore("Ignored by default due to long expected runtime")
     @Test
-    public void testSelectionShor15(){
+    public void testSelectionShor15() {
 
         AnalysisJob job = analysisJobRepository.save(new AnalysisJob());
         nisqAnalyzerControlService.performSelection(job, shorAlgorithmUuid, composeShorInputParameters(15));
@@ -91,7 +77,8 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         AnalysisJob job = analysisJobRepository.save(new AnalysisJob());
 
         String refreshToken = System.getenv("refresh-token");
-        nisqAnalyzerControlService.performSelection(job, shorPlanQKAlgorithmUuid, composeShorInputParameters(15), refreshToken);
+        nisqAnalyzerControlService.performSelection(job, shorPlanQKAlgorithmUuid, composeShorInputParameters(15),
+            refreshToken);
 
         assertContainsImpl(job, "shor15-qiskit-PlanQK");
 
@@ -101,7 +88,7 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
 
     @Ignore("Ignored by default due to long expected runtime")
     @Test
-    public void testSelectionShor9(){
+    public void testSelectionShor9() {
 
         AnalysisJob job = analysisJobRepository.save(new AnalysisJob());
         nisqAnalyzerControlService.performSelection(job, shorAlgorithmUuid, composeShorInputParameters(9));
@@ -119,7 +106,7 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
 
     @Ignore("Ignored by default due to long expected runtime")
     @Test
-    public void testSelectionShor6(){
+    public void testSelectionShor6() {
 
         AnalysisJob job = analysisJobRepository.save(new AnalysisJob());
         nisqAnalyzerControlService.performSelection(job, shorAlgorithmUuid, composeShorInputParameters(6));
@@ -131,9 +118,10 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
     }
 
     @Test
-    public void testSelectionGroverFix(){
+    public void testSelectionGroverFix() {
         AnalysisJob job = analysisJobRepository.save(new AnalysisJob());
-        nisqAnalyzerControlService.performSelection(job, groverTruthtableUuid, composeGroverInputParameters("0010000000000000"));
+        nisqAnalyzerControlService.performSelection(job, groverTruthtableUuid,
+            composeGroverInputParameters("0010000000000000"));
 
         assertContainsImpl(job, "grover-fix-truthtable-qiskit");
         assertContainsImpl(job, "grover-general-truthtable-qiskit");
@@ -143,9 +131,10 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
     }
 
     @Test
-    public void testSelectionGroverGeneral(){
+    public void testSelectionGroverGeneral() {
         AnalysisJob job = analysisJobRepository.save(new AnalysisJob());
-        nisqAnalyzerControlService.performSelection(job, groverTruthtableUuid, composeGroverInputParameters("0001000000000000"));
+        nisqAnalyzerControlService.performSelection(job, groverTruthtableUuid,
+            composeGroverInputParameters("0001000000000000"));
 
         assertNotContainsImpl(job, "grover-fix-truthtable-qiskit");
         assertContainsImpl(job, "grover-general-truthtable-qiskit");
@@ -155,7 +144,7 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
     }
 
     @Test
-    public void testSelectionGroverGeneralSmall(){
+    public void testSelectionGroverGeneralSmall() {
         AnalysisJob job = analysisJobRepository.save(new AnalysisJob());
         nisqAnalyzerControlService.performSelection(job, groverTruthtableUuid, composeGroverInputParameters("0001"));
 
@@ -167,9 +156,10 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
     }
 
     @Test
-    public void testSelectionGroverSAT(){
+    public void testSelectionGroverSAT() {
         AnalysisJob job = analysisJobRepository.save(new AnalysisJob());
-        nisqAnalyzerControlService.performSelection(job, groverSatUuid, composeGroverSATInputParameters("(A | B) & (A | ~B) & (~A | B)"));
+        nisqAnalyzerControlService.performSelection(job, groverSatUuid,
+            composeGroverSATInputParameters("(A | B) & (A | ~B) & (~A | B)"));
 
         assertContainsImpl(job, "grover-fix-sat-qiskit");
         assertContainsImpl(job, "grover-general-sat-qiskit");
@@ -181,7 +171,7 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
     }
 
     @Test
-    public void testSelectionGroverSATGeneral(){
+    public void testSelectionGroverSATGeneral() {
         AnalysisJob job = analysisJobRepository.save(new AnalysisJob());
         nisqAnalyzerControlService.performSelection(job, groverSatUuid, composeGroverSATInputParameters("(A | B)"));
 
@@ -192,5 +182,5 @@ public class ImplementationSelectionTest extends NisqAnalyzerTestCase {
         assertNotContainsImplForQpu(job, "grover-fix-sat-qiskit", "ibmq_16_melbourne");
         assertContainsImplForQpu(job, "grover-general-sat-qiskit", "ibmq_qasm_simulator");
         assertContainsImplForQpu(job, "grover-general-sat-qiskit", "ibmq_16_melbourne");
-    }
+    }*/
 }

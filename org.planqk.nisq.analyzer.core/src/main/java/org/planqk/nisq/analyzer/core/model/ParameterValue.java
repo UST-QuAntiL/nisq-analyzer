@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -23,12 +23,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 @AllArgsConstructor
 public class ParameterValue {
@@ -43,43 +43,40 @@ public class ParameterValue {
     @Setter
     String rawValue;
 
-
-    public static String convertToUntyped(ParameterValue parameter)
-    {
+    public static String convertToUntyped(ParameterValue parameter) {
         return parameter.rawValue;
     }
 
-    public static Map<String,String> convertToUntyped(Map<String, ParameterValue> parameters)
-    {
-        Map<String,String> untypedParameters = new HashMap<>();
+    public static Map<String, String> convertToUntyped(Map<String, ParameterValue> parameters) {
+        Map<String, String> untypedParameters = new HashMap<>();
 
         // Convert all the entries to untyped versions
-        for ( Map.Entry<String, ParameterValue> entry : parameters.entrySet())
-        {
+        for (Map.Entry<String, ParameterValue> entry : parameters.entrySet()) {
             untypedParameters.put(entry.getKey(), ParameterValue.convertToUntyped(entry.getValue()));
         }
 
         return untypedParameters;
     }
 
-    public static ParameterValue inferTypedParameterValue(List<Parameter> parameters, String parameterName, String value)
-    {
-        try
-        {
-            DataType inferredType = parameters.stream().filter(p -> p.name.equals(parameterName)).findFirst().get().type;
+    public static ParameterValue inferTypedParameterValue(List<Parameter> parameters, String parameterName,
+                                                          String value) {
+        try {
+            DataType inferredType =
+                parameters.stream().filter(p -> p.name.equals(parameterName)).findFirst().get().type;
             return new ParameterValue(inferredType, value);
-        }
-        catch (Exception e)
-        {
-            LOG.warn("Unable to infer type for parameter \"{}\". Continue with unknown type. This might influence the correct execution of the implementation.", parameterName);
+        } catch (Exception e) {
+            LOG.warn(
+                "Unable to infer type for parameter \"{}\". Continue with unknown type. This might influence the " +
+                    "correct execution of the implementation.",
+                parameterName);
             return new ParameterValue(DataType.Unknown, value);
         }
     }
 
-    public static Map<String, ParameterValue> inferTypedParameterValue(List<Parameter> parameters, Map<String, String> values)
-    {
+    public static Map<String, ParameterValue> inferTypedParameterValue(List<Parameter> parameters,
+                                                                       Map<String, String> values) {
         Map<String, ParameterValue> typedParameters = new HashMap<>();
-        values.entrySet().stream().forEach( (entry) -> {
+        values.entrySet().stream().forEach((entry) -> {
             typedParameters.put(entry.getKey(), inferTypedParameterValue(parameters, entry.getKey(), entry.getValue()));
         });
         return typedParameters;

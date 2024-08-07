@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 University of Stuttgart
+ * Copyright (c) 2024 University of Stuttgart
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -20,6 +20,7 @@
 package org.planqk.nisq.analyzer.core.connector;
 
 import java.io.File;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +29,6 @@ import org.planqk.nisq.analyzer.core.model.ExecutionResult;
 import org.planqk.nisq.analyzer.core.model.Implementation;
 import org.planqk.nisq.analyzer.core.model.Parameter;
 import org.planqk.nisq.analyzer.core.model.ParameterValue;
-import org.planqk.nisq.analyzer.core.model.Qpu;
 import org.planqk.nisq.analyzer.core.repository.ExecutionResultRepository;
 import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 
@@ -38,35 +38,26 @@ import org.planqk.nisq.analyzer.core.repository.QpuSelectionResultRepository;
 public interface SdkConnector {
 
     /**
-     * Execute the given quantum algorithm implementation with the given input parameters.
-     *
-     * @param implementation the implementation that should be executed
-     * @param qpu            the QPU to execute the implementation on
-     * @param parameters     the input parameters for the quantum algorithm execution
-     * @param resultService  the object to update the current state of the long running task and to add the results after completion
-     * @param refreshToken   a valid refresh token from the PlanQK platform, only needs to be specified if the implementation is hosted on the PlanQK platform
-     */
-    void executeQuantumAlgorithmImplementation(Implementation implementation, Qpu qpu, Map<String, ParameterValue> parameters,
-                                               ExecutionResult executionResult, ExecutionResultRepository resultService, String refreshToken);
-
-    /**
      * Execute the given transpiled quantum circuit.
      *
-     * @param transpiledCircuit the transpiled circuit that should be executed
+     * @param transpiledCircuit  the transpiled circuit that should be executed
      * @param transpiledLanguage the language the circuit is transpiled in
-     * @param providerName      the provider name for the QPU to execute the circuit
-     * @param qpuName           the name of the QPU to execute the circuit
-     * @param parameters        the set of parameters for the execution, inlcuding the access token if required
-     * @param executionResult   the object to store the result
-     * @param resultRepository  the object to update the current state of the long running task and to add the results after completion
+     * @param providerName       the provider name for the QPU to execute the circuit
+     * @param qpuName            the name of the QPU to execute the circuit
+     * @param parameters         the set of parameters for the execution, inlcuding the access token if required
+     * @param executionResult    the object to store the result
+     * @param resultRepository   the object to update the current state of the long running task and to add the results
+     *                           after completion
      */
-    void executeTranspiledQuantumCircuit(String transpiledCircuit, String transpiledLanguage, String providerName, String qpuName,
-                                         Map<String, ParameterValue> parameters, ExecutionResult executionResult,
-                                         ExecutionResultRepository resultRepository, QpuSelectionResultRepository qpuSelectionResultRepository);
+    void executeTranspiledQuantumCircuit(String transpiledCircuit, String transpiledLanguage, String providerName,
+                                         String qpuName, Map<String, ParameterValue> parameters,
+                                         ExecutionResult executionResult, ExecutionResultRepository resultRepository,
+                                         QpuSelectionResultRepository qpuSelectionResultRepository,
+                                         String correlationId, URL fileLocation);
 
     /**
-     * Analyse the quantum algorithm implementation located at the given URL after compiling it for the given QPU and with the given input
-     * parameters.
+     * Analyse the quantum algorithm implementation located at the given URL after compiling it for the given QPU and
+     * with the given input parameters.
      *
      * @param implementation the implementation to get the circuit properties for
      * @param providerName   the name of the provider of the QPU
@@ -113,7 +104,8 @@ public interface SdkConnector {
     List<String> supportedProviders();
 
     /**
-     * Get parameters which are required by the SDK to execute a quantum circuit and which are independent of problem-specific input data
+     * Get parameters which are required by the SDK to execute a quantum circuit and which are independent of
+     * problem-specific input data
      *
      * @return a Set of required parameters
      */
@@ -141,4 +133,16 @@ public interface SdkConnector {
      * @return the object containing all analysed properties of the original quantum circuit
      */
     OriginalCircuitInformation getOriginalCircuitProperties(File circuit, String language);
+
+    /**
+     * Get the generated circuit of the given implementation for the specific input parameters and the analyzed
+     * properties of this circuit.
+     *
+     * @param implementation the implementation from which the circuit should be generated
+     * @param parameters     the input parameters for the implementation
+     * @return the object containing all analysed properties of the original quantum circuit and the circuit itself
+     */
+    CircuitInformationOfImplementation getCircuitOfImplementation(Implementation implementation,
+                                                                  Map<String, ParameterValue> parameters,
+                                                                  String refreshToken);
 }
